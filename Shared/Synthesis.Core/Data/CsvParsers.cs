@@ -89,6 +89,21 @@ namespace Synthesis.Core.Data
             return bossData;
         }
 
+        // enemies.csv: id,name,hp,atk,moveSpeed
+        public static EnemyData CsvToEnemyData(string line)
+        {
+            var split = line.Split(',');
+            if (split.Length < 5) return null;
+
+            EnemyData enemyData = new EnemyData();
+            enemyData.id        = split[0].Trim();
+            enemyData.name      = split[1].Trim();
+            enemyData.hp        = CsvUtil.StringToFixed(split[2]);
+            enemyData.atk       = CsvUtil.StringToFixed(split[3]);
+            enemyData.moveSpeed = CsvUtil.StringToFixed(split[4]);
+            return enemyData;
+        }
+
         // relics.csv: id,name,ruleType,targetGrade,targetElement,param1,param2,rarity
         public static RelicData CsvToRelicData(string line)
         {
@@ -180,6 +195,22 @@ namespace Synthesis.Core.Data
             foreach (var line in lineList)
             {
                 var data = CsvToRelicData(line);
+                if (data == null)
+                {
+                    continue;
+                }
+                resultList.Add(data);
+            }
+            return resultList;
+        }
+
+        public static List<EnemyData> LoadEnemies(string fileText)
+        {
+            List<EnemyData> resultList = new List<EnemyData>();
+            var lineList = CsvUtil.CsvToDataLines(fileText);
+            foreach (var line in lineList)
+            {
+                var data = CsvToEnemyData(line);
                 if (data == null)
                 {
                     continue;

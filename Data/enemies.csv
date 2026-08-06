@@ -1,0 +1,10 @@
+# enemies.csv - 적 데이터 (원본). STEP 2 에서 새로 도입한 스키마.
+# 컬럼: id,name,hp,atk,moveSpeed
+#   hp: 체력, atk: 저지 중인 근접 유닛에게 주는 피해(초당), moveSpeed: 초당 이동 셀 수
+#
+# [스키마 미정의였음] BALANCE_SPEC 10 에 적 스키마가 없었다. 웨이브별 적 구성도 12장이 미확정으로 둔다.
+#   STEP 2 스켈레톤을 돌리기 위해 최소 스키마와 TEMP 적 2종을 둔다. 전부 임시값이다.
+#   waves.csv 의 enemySetId 는 STEP 2 에서 단일 적 id 로 취급한다(적 세트 개념은 이후 확정).
+id,name,hp,atk,moveSpeed
+E01,잡졸,50,5,1.0
+E02,돌격병,90,8,1.5

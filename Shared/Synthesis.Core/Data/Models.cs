@@ -60,6 +60,16 @@ namespace Synthesis.Core.Data
         public Fixed preDamageCapRatio;
     }
 
+    // STEP 2. 뼈대 - 적 데이터. enemies.csv 스키마는 STEP 2 에서 새로 도입(TEMP).
+    public sealed class EnemyData
+    {
+        public string id;
+        public string name;
+        public Fixed hp;
+        public Fixed atk;        // 저지 중인 근접 유닛에게 주는 초당 피해
+        public Fixed moveSpeed;  // 초당 이동 셀 수
+    }
+
     public sealed class RelicData
     {
         public string id;
@@ -80,5 +90,6 @@ namespace Synthesis.Core.Data
         public List<WaveData> waveList = new List<WaveData>();
         public List<BossData> bossList = new List<BossData>();
         public List<RelicData> relicList = new List<RelicData>();
+        public List<EnemyData> enemyList = new List<EnemyData>();
     }
 }
