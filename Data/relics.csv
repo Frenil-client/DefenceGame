@@ -1,0 +1,6 @@
+# relics.csv - 유물 데이터 (원본). 스키마: BALANCE_SPEC.md 10
+# 컬럼: id,name,ruleType,targetGrade,targetElement,param1,param2,rarity
+#
+# [미정의] 유물 40-50종의 구체적 규칙은 BALANCE_SPEC.md 12장이 '미확정'으로 둔 항목이며 STEP 6 산출물이다.
+#          임의로 유물을 발명하지 않는다(CLAUDE.md 5-2). 헤더만 두고 데이터 행은 STEP 6에서 채운다.
+id,name,ruleType,targetGrade,targetElement,param1,param2,rarity

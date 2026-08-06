@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- STEP 1. 기반 도구 - Core 순수 C# 어셈블리.
+       netstandard2.1 로 맞춰 Unity(6000.x)와 소스를 공유한다.
+       UnityEngine 참조 없음이 이 프로젝트의 절대 규칙이다 (ARCHITECTURE.md 1, 3). -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RootNamespace>Synthesis.Core</RootNamespace>
+    <AssemblyName>Synthesis.Core</AssemblyName>
+    <!-- Unity가 .meta 를 붙이므로 dotnet 빌드 산출물이 Unity 링크 경로에 섞이지 않도록 격리 -->
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Unity 링크용 asmdef/meta 는 dotnet 컴파일 대상에서 제외 -->
+    <Compile Remove="**\*.asmdef" />
+    <None Remove="**\*.meta" />
+  </ItemGroup>
+
+</Project>

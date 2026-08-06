@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- STEP 1. 기반 도구 - 불변식 린터 CLI.
+       Unity 없이 CI 에서 돌 수 있어야 한다 (ARCHITECTURE.md 9). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>synthesis-linter</AssemblyName>
+    <RootNamespace>Synthesis.Linter</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Shared\Synthesis.Core\Synthesis.Core.csproj" />
+  </ItemGroup>
+
+</Project>

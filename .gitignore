@@ -1,0 +1,36 @@
+# SYNTHESIS - repository ignore rules
+
+# ---- dotnet (Core / Sim / Linter / Tests) ----
+bin/
+obj/
+artifacts/
+*.user
+.vs/
+
+# ---- Unity Core.Link junction (실제 소스는 Shared/Synthesis.Core 에 한 벌만 추적한다) ----
+# 이 경로는 Shared/Synthesis.Core 로의 junction 이라 내용은 이미 Shared 에서 추적된다.
+DefenceGame/Assets/_Project/Scripts/Core.Link/
+
+# ---- Simulation output (ARCHITECTURE.md 2) ----
+Reports/
+
+# ---- Unity project (DefenceGame/) ----
+DefenceGame/Library/
+DefenceGame/Temp/
+DefenceGame/Obj/
+DefenceGame/Build/
+DefenceGame/Builds/
+DefenceGame/Logs/
+DefenceGame/UserSettings/
+DefenceGame/MemoryCaptures/
+DefenceGame/Recordings/
+DefenceGame/.vs/
+
+# Unity generated solution/project files
+DefenceGame/*.csproj
+DefenceGame/*.sln
+DefenceGame/*.slnx
+
+# ---- OS ----
+Thumbs.db
+.DS_Store

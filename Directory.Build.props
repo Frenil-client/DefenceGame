@@ -1,0 +1,12 @@
+<Project>
+
+  <!-- STEP 1. 기반 도구 - 모든 dotnet 프로젝트의 bin/obj 를 저장소 루트 artifacts/ 로 모은다.
+       Shared/Synthesis.Core 는 Unity(DefenceGame/Assets/.../Core.Link)로 junction 링크되므로,
+       소스 폴더에 bin/obj 가 생기면 Unity 가 그 DLL/생성 .cs 를 임포트해 충돌한다.
+       artifacts 레이아웃으로 소스 폴더를 순수하게 유지한다. -->
+  <PropertyGroup>
+    <UseArtifactsOutput>true</UseArtifactsOutput>
+    <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts</ArtifactsPath>
+  </PropertyGroup>
+
+</Project>

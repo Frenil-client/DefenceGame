@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Shared/">
+    <Project Path="Shared/Synthesis.Core/Synthesis.Core.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/Synthesis.Core.Tests/Synthesis.Core.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Tools/" />
+  <Folder Name="/Tools/Linter/">
+    <Project Path="Tools/Linter/Synthesis.Linter.csproj" />
+  </Folder>
+</Solution>
