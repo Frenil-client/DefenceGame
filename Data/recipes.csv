@@ -26,7 +26,7 @@ U05,R06,R07,fixed,false,true
 U06,R03,R08,fixed,false,true
 H01,U05,R04,fixed,true,false
 H02,U02,R09,fixed,true,false
-H03,U04,R05,fixed,true,false
+H03,U04,R10,fixed,true,false
 H04,U06,R03,fixed,true,false
 H05,U03,R12,fixed,true,false
 H06,U01,U02,fixed,true,false

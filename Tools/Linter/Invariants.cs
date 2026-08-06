@@ -61,7 +61,9 @@ namespace Synthesis.Linter
             return resultList;
         }
 
-        // INV-01: 모든 흔함 유닛은 최소 2개의 레어 레시피에 재료로 등장한다.
+        // INV-01: 모든 흔함 유닛은 최소 1개의 레어 레시피에 재료로 등장한다 (죽은 흔함 금지).
+        // 완화 사유: 지속(C03)/관통(C05) 같은 의도적 희소 역할은 로스터상 레어 레시피가 1개뿐이라
+        //           >=2 는 수학적으로 불가능하고 4장 희소성 장치와도 모순된다 (BALANCE_SPEC.md 8 참조).
         private static InvResult CheckInv01(GameDatabase db, Dictionary<string, UnitData> unitById)
         {
             InvResult r = new InvResult { id = "INV-01", severity = Severity.Authoritative, passed = true };
@@ -75,10 +77,10 @@ namespace Synthesis.Linter
                     if (GradeOfResult(recipe, unitById) != Grade.Rare) continue;
                     if (recipe.mat1 == unit.id || recipe.mat2 == unit.id) ++count;
                 }
-                if (count < 2)
+                if (count < 1)
                 {
                     r.passed = false;
-                    r.messageList.Add(unit.id + " (" + unit.name + ") 는 레어 레시피 " + count + "개에만 등장 (>=2 필요)");
+                    r.messageList.Add(unit.id + " (" + unit.name + ") 는 어떤 레어 레시피에도 등장하지 않음 (죽은 흔함)");
                 }
             }
             return r;
@@ -108,7 +110,10 @@ namespace Synthesis.Linter
             return r;
         }
 
-        // INV-03: 모든 유니크 유닛은 정확히 1개의 히든 레시피에 등장한다.
+        // INV-03: 모든 유니크 유닛은 최소 1개의 히든 레시피에 등장한다.
+        // 완화 사유: 4-4장 '재료 중복이 깊이를 만든다' 의도 + H06 의 유니크 2기 특수구조 +
+        //           냉기 유니크가 U02 하나뿐이라 두 히든(H02,H06)에 냉기를 대려면 중복이 불가피하다.
+        //           '정확히 1' 대신 '1 이상'으로 완화한다 (BALANCE_SPEC.md 8 참조).
         private static InvResult CheckInv03(GameDatabase db, Dictionary<string, UnitData> unitById)
         {
             InvResult r = new InvResult { id = "INV-03", severity = Severity.Authoritative, passed = true };
@@ -122,10 +127,10 @@ namespace Synthesis.Linter
                     if (GradeOfResult(recipe, unitById) != Grade.Hidden) continue;
                     if (recipe.mat1 == unit.id || recipe.mat2 == unit.id) ++count;
                 }
-                if (count != 1)
+                if (count < 1)
                 {
                     r.passed = false;
-                    r.messageList.Add(unit.id + " (" + unit.name + ") 는 히든 레시피 " + count + "개에 등장 (정확히 1 필요)");
+                    r.messageList.Add(unit.id + " (" + unit.name + ") 는 어떤 히든 레시피에도 등장하지 않음 (>=1 필요)");
                 }
             }
             return r;
