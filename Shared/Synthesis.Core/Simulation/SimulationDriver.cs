@@ -40,7 +40,7 @@ namespace Synthesis.Core.Simulation
                 waveByIndex[wave.waveIndex] = wave;
             }
 
-            Simulation sim = new Simulation(map, seed);
+            Simulator sim = new Simulator(map, seed);
             WaveRunResult result = new WaveRunResult();
 
             for (int i = 1; i <= waveCount; ++i)
