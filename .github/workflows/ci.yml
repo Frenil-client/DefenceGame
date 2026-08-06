@@ -1,0 +1,24 @@
+name: CI
+
+# STEP 1. 기반 도구 - Core 검증을 커밋마다 강제한다.
+# Unity 를 켜지 않고 Core/데이터/린터를 검증한다 (ARCHITECTURE.md 9).
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  core-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Run CI gate (build, test, linter, no-UnityEngine)
+        run: bash Tools/ci.sh
