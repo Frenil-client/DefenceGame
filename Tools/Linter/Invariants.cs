@@ -166,7 +166,8 @@ namespace Synthesis.Linter
         }
 
         // INV-05: 보스 1의 요구 조건을 만족하는 조합 경로가 2개 이상 존재한다.
-        // 보스 1은 관통(C05 계열) 또는 방깎(C09 계열)을 요구한다 (BALANCE_SPEC.md 7-2).
+        // 보스 1은 관통(전격, C05 계열) 또는 방깎(신성, C09 계열)을 요구한다 (BALANCE_SPEC.md 7-2).
+        // 관통은 역할이 아니라 전격 속성 효과이므로, 두 경로 모두 씨앗 흔함(C05/C09) 계보로 판정한다.
         private static InvResult CheckInv05(GameDatabase db, Dictionary<string, UnitData> unitById, Dictionary<string, RecipeData> recipeByResult)
         {
             InvResult r = new InvResult { id = "INV-05", severity = Severity.Authoritative, passed = true };
@@ -175,13 +176,9 @@ namespace Synthesis.Linter
             int armorPaths = 0;
             foreach (var recipe in db.recipeList)
             {
-                UnitData resultUnit;
-                if (!unitById.TryGetValue(recipe.resultId, out resultUnit)) continue;
-
-                if (resultUnit.role == Role.Pierce) ++piercePaths;
-
                 List<string> commons = new List<string>();
                 CollectTransitiveCommons(recipe.resultId, recipeByResult, unitById, commons, 0);
+                if (ContainsId(commons, "C05")) ++piercePaths;
                 if (ContainsId(commons, "C09")) ++armorPaths;
             }
 

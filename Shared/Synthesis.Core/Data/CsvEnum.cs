@@ -37,7 +37,6 @@ namespace Synthesis.Core.Data
             {
                 case "single":  return Role.Single;
                 case "splash":  return Role.Splash;
-                case "pierce":  return Role.Pierce;
                 case "dot":     return Role.Dot;
                 case "support": return Role.Support;
                 default: throw new FormatException("Unknown role '" + value + "'");

@@ -12,7 +12,7 @@ C01,불씨 정령,common,fire,single,ranged,6,100,10,1.0,5.0,0,160,false,TEMP-st
 C02,화염 검사,common,fire,splash,melee,7,100,10,1.0,1.5,1,160,false,저지1
 C03,서리 정령,common,ice,dot,ranged,6,100,10,1.0,5.0,0,160,false,유일한 지속/TEMP-stats
 C04,얼음 방패병,common,ice,support,melee,7,100,10,1.0,1.5,1,160,false,슬로우 저지1
-C05,뇌전 궁수,common,thunder,pierce,ranged,8,100,10,1.0,5.0,0,160,false,유일한 관통/TEMP-stats
+C05,뇌전 궁수,common,thunder,single,ranged,8,100,10,1.0,5.0,0,160,false,유일한 관통/TEMP-stats
 C06,번개 창병,common,thunder,single,melee,6,100,10,1.0,1.5,1,160,false,저지1
 C07,방패병,common,physical,support,melee,5,100,8,1.0,1.5,2,160,false,저지2 공격력 최저
 C08,석궁병,common,physical,single,ranged,5,100,10,1.0,5.0,0,160,false,가장 흔함/TEMP-stats
@@ -20,7 +20,7 @@ C09,사제,common,holy,support,ranged,7,100,10,1.0,5.0,0,160,false,유일한 방
 C10,수도사,common,holy,splash,melee,7,100,10,1.0,1.5,1,160,false,저지1 소량 회복
 R01,화염술사,rare,fire,splash,ranged,12,250,30,1.0,5.0,0,240,false,TEMP-element/stats
 R02,빙결술사,rare,ice,splash,ranged,12,250,30,1.0,5.0,0,240,false,TEMP-element/stats
-R03,뇌전술사,rare,thunder,pierce,ranged,12,250,30,1.0,5.0,0,240,false,TEMP-element/stats
+R03,뇌전술사,rare,thunder,splash,ranged,12,250,30,1.0,5.0,0,240,false,TEMP-element/stats
 R04,중장병,rare,physical,single,melee,12,250,30,1.0,1.5,2,240,false,저지2/TEMP-stats
 R05,성기사,rare,holy,support,melee,12,250,30,1.0,1.5,1,240,false,TEMP-role/stats
 R06,저격수,rare,physical,single,ranged,12,250,30,1.0,5.0,0,240,false,TEMP-element/stats
@@ -29,10 +29,10 @@ R08,폭격수,rare,fire,splash,melee,12,250,30,1.0,1.5,1,240,false,TEMP-element/
 R09,서리사제,rare,ice,support,ranged,12,250,30,1.0,5.0,0,240,false,TEMP-element/stats
 R10,수호사제,rare,physical,support,melee,12,250,30,1.0,1.5,2,240,false,TEMP-element/stats
 R11,얼음벽,rare,ice,support,melee,12,250,30,1.0,1.5,3,240,false,저지3/TEMP-stats
-R12,관통사수,rare,thunder,pierce,ranged,12,250,30,1.0,5.0,0,240,false,TEMP-element/stats
+R12,관통사수,rare,thunder,single,ranged,12,250,30,1.0,5.0,0,240,false,TEMP-element/stats
 U01,대현자,unique,thunder,splash,ranged,18,600,100,1.0,5.0,0,360,false,TEMP-element/stats
 U02,빙하군주,unique,ice,splash,ranged,18,600,100,1.0,5.0,0,360,false,TEMP-role/stats
-U03,파쇄기,unique,physical,pierce,ranged,18,600,100,1.0,5.0,0,360,false,TEMP-placement/stats
+U03,파쇄기,unique,physical,single,ranged,18,600,100,1.0,5.0,0,360,false,TEMP-placement/stats
 U04,대사제,unique,holy,support,ranged,18,600,100,1.0,5.0,0,360,false,TEMP-stats
 U05,처형인,unique,physical,single,melee,18,600,100,1.0,1.5,1,360,false,TEMP-placement/stats
 U06,폭풍술사,unique,thunder,splash,ranged,18,600,100,1.0,5.0,0,360,false,TEMP-stats
@@ -40,5 +40,5 @@ H01,불멸의 검성,hidden,physical,single,melee,26,1200,180,1.0,1.5,1,500,fals
 H02,서리여왕,hidden,ice,support,ranged,26,1200,180,1.0,5.0,0,500,false,TEMP-role/stats
 H03,심판자,hidden,holy,support,ranged,26,1200,180,1.0,5.0,0,500,false,TEMP-role/stats
 H04,폭풍의 왕,hidden,thunder,splash,ranged,26,1200,180,1.0,5.0,0,500,false,TEMP-stats
-H05,파멸의 포격수,hidden,physical,pierce,ranged,26,1200,180,1.0,5.0,0,500,false,TEMP-stats
+H05,파멸의 포격수,hidden,physical,splash,ranged,26,1200,180,1.0,5.0,0,500,false,TEMP-stats
 H06,태초의 정령,hidden,fire,splash,ranged,26,1200,180,1.0,5.0,0,500,false,TEMP-element/stats

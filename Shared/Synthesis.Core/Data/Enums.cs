@@ -20,11 +20,11 @@ namespace Synthesis.Core.Data
         Holy
     }
 
+    // 역할 4종. 관통(pierce)은 역할에서 제외하고 전격 속성 효과로 옮겼다 (BALANCE_SPEC.md 1-2, 개정).
     public enum Role
     {
         Single,
         Splash,
-        Pierce,
         Dot,
         Support
     }
