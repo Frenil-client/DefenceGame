@@ -345,6 +345,12 @@ namespace Synthesis.Core.Simulation
             return (int)ticks;
         }
 
+        // 렌더링용: 경로상 적의 실수 좌표를 공개한다(Presentation 이 위치 보간에 쓴다).
+        public void GetEnemyPosition(EnemyInstance enemy, out Fixed x, out Fixed y)
+        {
+            GetEnemyPos(enemy, out x, out y);
+        }
+
         private GridPos GetEnemyCell(EnemyInstance enemy)
         {
             Fixed x, y;

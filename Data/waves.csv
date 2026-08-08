@@ -2,30 +2,32 @@
 # 컬럼: waveIndex,enemySetId,spawnCount,spawnInterval,isBoss,bossId,difficultyScale
 #
 # [확정] 총 24웨이브, 보스 각성은 8/16/24 (SPEC.md 2-2). 이 구조만 확정이다.
-# [TEMP] enemySetId/spawnCount/spawnInterval/difficultyScale 는 BALANCE_SPEC.md 12장 미확정.
-#        적 구성과 스케일링 곡선은 STEP 2 이후 시뮬레이터로 확정한다. spawnInterval 단위는 틱(20틱/초).
+# [TEMP] enemySetId 는 STEP 2 스켈레톤에서 단일 적 원형 id 로 취급한다(적 세트 개념은 이후).
+#        spawnCount/spawnInterval/difficultyScale 와 원형 배치는 전부 임시 구성이며 STEP 7 시뮬로 확정한다.
+#        원형: E01 잡졸 / E02 돌격병(빠름) / E03 무리개미(약함 다수) / E04 강철병(탱커) / E05 광전사(고공격).
+#        spawnInterval 단위는 틱(20틱/초).
 waveIndex,enemySetId,spawnCount,spawnInterval,isBoss,bossId,difficultyScale
 1,E01,8,30,false,,1.0
 2,E01,10,28,false,,1.0
-3,E01,12,26,false,,1.1
-4,E01,12,26,false,,1.1
-5,E01,14,24,false,,1.2
-6,E01,14,24,false,,1.2
-7,E01,16,22,false,,1.3
+3,E03,16,16,false,,1.1
+4,E02,10,26,false,,1.1
+5,E03,18,14,false,,1.2
+6,E04,5,40,false,,1.2
+7,E02,14,22,false,,1.3
 8,boss,1,0,true,B01,1.3
-9,E01,16,22,false,,1.4
-10,E01,18,20,false,,1.4
-11,E01,18,20,false,,1.5
-12,E01,20,20,false,,1.5
-13,E01,20,18,false,,1.6
-14,E01,22,18,false,,1.6
-15,E01,22,18,false,,1.7
+9,E02,16,22,false,,1.4
+10,E04,7,36,false,,1.4
+11,E03,22,12,false,,1.5
+12,E05,10,24,false,,1.5
+13,E04,9,32,false,,1.6
+14,E05,12,22,false,,1.6
+15,E02,20,18,false,,1.7
 16,boss,1,0,true,B02,1.7
-17,E02,22,18,false,,1.8
-18,E02,24,16,false,,1.8
-19,E02,24,16,false,,1.9
-20,E02,26,16,false,,1.9
-21,E02,26,14,false,,2.0
-22,E02,28,14,false,,2.0
-23,E02,28,14,false,,2.1
+17,E05,14,20,false,,1.8
+18,E04,11,30,false,,1.8
+19,E05,16,18,false,,1.9
+20,E03,28,10,false,,1.9
+21,E05,18,16,false,,2.0
+22,E04,13,28,false,,2.0
+23,E05,20,14,false,,2.1
 24,boss,1,0,true,B03,2.1
