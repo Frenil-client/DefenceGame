@@ -6,6 +6,9 @@
     <Project Path="Tests/Synthesis.Core.Tests/Synthesis.Core.Tests.csproj" />
   </Folder>
   <Folder Name="/Tools/" />
+  <Folder Name="/Tools/Demo/">
+    <Project Path="Tools/Demo/Synthesis.Demo.csproj" />
+  </Folder>
   <Folder Name="/Tools/Linter/">
     <Project Path="Tools/Linter/Synthesis.Linter.csproj" />
   </Folder>

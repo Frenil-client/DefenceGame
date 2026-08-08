@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- STEP 2. 검증 - 헤드리스 데모(스모크) 러너.
+       시뮬레이션 한 판을 사람이 읽는 형태로 출력해 눈으로 확인하게 한다.
+       SIM_SPEC 의 정식 Sim 콘솔(정책/배치/리포트)은 STEP 7 산출물이며 이것과 별개다. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>synthesis-demo</AssemblyName>
+    <RootNamespace>Synthesis.Demo</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Shared\Synthesis.Core\Synthesis.Core.csproj" />
+  </ItemGroup>
+
+</Project>

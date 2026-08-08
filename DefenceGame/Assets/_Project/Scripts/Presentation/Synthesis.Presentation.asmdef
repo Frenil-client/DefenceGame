@@ -1,14 +1,11 @@
 {
-    "name": "Synthesis.Editor",
-    "rootNamespace": "Synthesis.Editor",
+    "name": "Synthesis.Presentation",
+    "rootNamespace": "Synthesis.Presentation",
     "references": [
         "Synthesis.Core",
-        "Synthesis.Data",
-        "Synthesis.Presentation"
+        "Synthesis.Data"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
