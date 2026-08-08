@@ -1,0 +1,11 @@
+# mapgen.csv - 루프 맵 생성 파라미터 (원본). 스키마: MAP_SPEC.md 6
+# 컬럼: gridWidth,gridHeight,baseRingInset,perimeterMin,perimeterMax,cornerMin,cornerMax,areaMin,areaMax,minLaneGap,coverageRadius,coverageMin,coverageMax,bumpCountMin,bumpCountMax,bumpDistMax,spawnCount,maxRetry
+#
+# [TEMP] 전 항목 임시값. MAP_SPEC 6장의 초기값이며 커버 목표 범위는 시뮬레이터로 확정한다.
+#        coverageMin/coverageMax=0 은 초기에 커버 검사를 끄는 의미다.
+# [TEMP-완화] 기본 링(inset2) 내부 면적이 60이라 MAP_SPEC 초기값 areaMax=50 으로는 유효 생성이
+#            사실상 불가능해 변별력이 죽는다(전부 폴백). 생성기 동작 확인을 위해 areaMax 를 90 으로 올리고
+#            bumpCountMax 를 3 으로 고정한다(코너 상한 16 = 요철 3개). 실제 목표는 기본 링 면적과 함께
+#            시뮬레이터로 재확정한다(MAP_SPEC 5, 6).
+gridWidth,gridHeight,baseRingInset,perimeterMin,perimeterMax,cornerMin,cornerMax,areaMin,areaMax,minLaneGap,coverageRadius,coverageMin,coverageMax,bumpCountMin,bumpCountMax,bumpDistMax,spawnCount,maxRetry
+16,12,2,44,56,8,16,30,90,2,4,0,0,3,3,2,3,30
