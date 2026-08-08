@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560" role="img" aria-labelledby="titleH descH">
+<title id="titleH">히어로 성장 루프와 이중 보상 구조</title>
+<desc id="descH">런 시작 전 히어로 선택과 덱 구성을 하고, 게임 중 조합이 상위 유닛과 히어로 경험치라는 두 가지 보상을 동시에 주며, 레벨업 시 스킬 카드 3택 1로 히어로가 성장해 공세 파견이 가능해지는 구조.</desc>
+
+<defs>
+<marker id="aH" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M1 1L9 5L1 9" fill="none" stroke="#4FD1C5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+<marker id="aH2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M1 1L9 5L1 9" fill="none" stroke="#C9A0FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+<marker id="aH3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M1 1L9 5L1 9" fill="none" stroke="#F4845F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+
+<style>
+.bg { fill: #111820; }
+.ttl { font-family: Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; font-size: 19px; font-weight: 700; fill: #E8EDF2; }
+.eyb { font-family: Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; font-size: 11px; font-weight: 600; fill: #6B7A8C; letter-spacing: 2px; }
+.bh  { font-family: Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; font-size: 14px; font-weight: 700; fill: #E8EDF2; }
+.bs  { font-family: Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; font-size: 11.5px; font-weight: 400; fill: #93A3B3; }
+.lb  { font-family: Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; font-size: 11px; font-weight: 600; }
+.cap { font-family: Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; font-size: 12px; font-weight: 500; fill: #F4845F; }
+.rule { stroke: #22303F; stroke-width: 1; }
+</style>
+
+<rect class="bg" x="0" y="0" width="900" height="560"/>
+
+<text class="eyb" x="40" y="30">HERO GROWTH LOOP</text>
+<text class="ttl" x="40" y="54">히어로 성장 - 조합 한 번에 보상 두 개</text>
+<line class="rule" x1="40" y1="66" x2="860" y2="66"/>
+
+<text class="eyb" x="40" y="92">런 시작 전</text>
+
+<rect x="40" y="104" width="400" height="58" rx="6" fill="#2A1F33" stroke="#C9A0FF" stroke-width="1.3"/>
+<text class="bh" x="60" y="128">히어로 선택</text>
+<text class="bs" x="60" y="148">5명 중 1명. 스킬 카드 풀과 시작 특전이 다르다</text>
+
+<rect x="460" y="104" width="400" height="58" rx="6" fill="#2A1F33" stroke="#C9A0FF" stroke-width="1.3"/>
+<text class="bh" x="480" y="128">덱 구성</text>
+<text class="bs" x="480" y="148">흔함 10종 중 6종 선택. 뽑기 풀을 직접 정한다</text>
+
+<line class="rule" x1="40" y1="184" x2="860" y2="184"/>
+<text class="eyb" x="40" y="210">런 진행 중</text>
+
+<rect x="40" y="222" width="230" height="58" rx="6" fill="#152430" stroke="#4FD1C5" stroke-width="1.3"/>
+<text class="bh" x="58" y="246">뽑기</text>
+<text class="bs" x="58" y="266">덱 안에서만 나온다</text>
+
+<line x1="273" y1="251" x2="303" y2="251" stroke="#4FD1C5" stroke-width="1.4" marker-end="url(#aH)"/>
+
+<rect x="308" y="222" width="230" height="58" rx="6" fill="#152430" stroke="#4FD1C5" stroke-width="1.3"/>
+<text class="bh" x="326" y="246">조합</text>
+<text class="bs" x="326" y="266">무엇을 만들 것인가</text>
+
+<path d="M541 240 L575 240 L575 205 L603 205" fill="none" stroke="#4FD1C5" stroke-width="1.4" marker-end="url(#aH)"/>
+<path d="M541 262 L575 262 L575 300 L603 300" fill="none" stroke="#C9A0FF" stroke-width="1.4" marker-end="url(#aH2)"/>
+
+<text class="lb" x="588" y="172" fill="#4FD1C5">보상 1</text>
+<rect x="607" y="178" width="253" height="54" rx="6" fill="#152430" stroke="#4FD1C5" stroke-width="1.3"/>
+<text class="bh" x="625" y="200">상위 등급 유닛</text>
+<text class="bs" x="625" y="220">방어선이 즉시 강해진다</text>
+
+<text class="lb" x="588" y="268" fill="#C9A0FF">보상 2</text>
+<rect x="607" y="274" width="253" height="54" rx="6" fill="#2A1F33" stroke="#C9A0FF" stroke-width="1.3"/>
+<text class="bh" x="625" y="296">히어로 경험치</text>
+<text class="bs" x="625" y="316">등급이 높을수록 많이</text>
+
+<path d="M733 331 L733 356 L400 356 L400 380" fill="none" stroke="#C9A0FF" stroke-width="1.4" marker-end="url(#aH2)"/>
+
+<rect x="270" y="384" width="260" height="58" rx="6" fill="#2A1F33" stroke="#C9A0FF" stroke-width="1.3"/>
+<text class="bh" x="288" y="408">레벨업 - 스킬 카드 3택 1</text>
+<text class="bs" x="288" y="428">공격형 / 방어형 / 지원형</text>
+
+<rect x="40" y="384" width="200" height="58" rx="6" fill="#1B222B" stroke="#6B7A8C" stroke-width="1.2"/>
+<text class="bh" x="58" y="408">카드 진화</text>
+<text class="bs" x="58" y="428">특정 2장 보유 시</text>
+
+<line x1="266" y1="413" x2="244" y2="413" stroke="#C9A0FF" stroke-width="1.4" marker-end="url(#aH2)"/>
+
+<rect x="560" y="384" width="300" height="58" rx="6" fill="#241A17" stroke="#F4845F" stroke-width="1.3"/>
+<text class="bh" x="578" y="408">공세 파견 가능</text>
+<text class="bs" x="578" y="428">히어로는 죽지 않는다. 리스크는 부재다</text>
+
+<line x1="534" y1="413" x2="556" y2="413" stroke="#F4845F" stroke-width="1.4" marker-end="url(#aH3)"/>
+
+<path d="M155 382 L155 300 L36 300 L36 251 L36 251" fill="none" stroke="#6B7A8C" stroke-width="1.2" stroke-dasharray="4 4"/>
+<line x1="36" y1="290" x2="36" y2="255" stroke="#6B7A8C" stroke-width="1.2" marker-end="url(#aH)"/>
+
+<text class="cap" x="40" y="490">조합할 이유가 두 개가 된다. 방어선을 위해서, 그리고 내가 키우는 캐릭터를 위해서</text>
+<text class="bs" x="40" y="514">히어로가 충분히 성장하면 스폰 포인트로 파견해 보스를 미리 깎는다. 캐릭터 오펜스의 공수 전환이 여기서 성립한다</text>
+</svg>

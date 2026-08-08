@@ -2,15 +2,19 @@
 
 SYNTHESIS (가칭) - 헤드리스 시뮬레이터 사양
 
-배치 위치: Docs/SIM_SPEC.md
+배치 위치: Docs/SIM_SPEC.md / 버전 0.3
+
+버전 0.3 변경: 공세 정책 삭제, 배치 정책 신설, 맵 생성 검증(SIM-10, SIM-11) 추가, RunResult에 누적과 맵 필드 추가
 
 ---
 
 ## 1. 목적
 
-밸런스 수치를 감으로 정하지 않기 위해 존재한다. Unity 없이 콘솔에서 수만 번의 런을 돌려 조합 도달률, 승률, 지배 전략 여부를 측정한다.
+밸런스 수치를 감으로 정하지 않기 위해 존재한다. Unity 없이 콘솔에서 수만 번의 런을 돌려 합성 도달률, 덱 균형, 누적 곡선, 히어로 성장, 맵 난이도 분산을 측정한다.
 
-BALANCE_SPEC.md 9장의 SIM-01부터 SIM-08까지를 자동으로 답하는 것이 최종 목표다.
+BALANCE_SPEC.md 12장의 SIM-01 부터 SIM-11까지를 자동으로 답하는 것이 최종 목표다.
+
+**우선순위 주의**: 시뮬레이터는 도구이지 목적이 아니다. 재미 판정은 직접 플레이로 하고, 시뮬은 "운이 나빠도 유저 선택으로 클리어 가능한가"를 확인하는 데 쓴다.
 
 ---
 
@@ -18,23 +22,36 @@ BALANCE_SPEC.md 9장의 SIM-01부터 SIM-08까지를 자동으로 답하는 것�
 
 ```
 Sim/Synthesis.Sim/
-  Program.cs           진입점, 인자 파싱
+  Program.cs                진입점, 인자 파싱
   Runner/
-    BatchRunner.cs     다중 런 병렬 실행
-    RunResult.cs       단일 런 결과 구조체
+    BatchRunner.cs          다중 런 병렬 실행
+    RunResult.cs            단일 런 결과
   Scenario/
-    Scenario.cs        시나리오 정의 로드
+    Scenario.cs             시나리오 정의
   Policy/
-    IPlayerPolicy.cs   자동 플레이 정책 인터페이스
-    GreedyPolicy.cs    가능한 조합을 즉시 수행
-    HoarderPolicy.cs   상위 조합을 노리고 재료를 아낌
-    AdvancePolicy.cs   공세를 적극적으로 수행
-    TurtlePolicy.cs    공세를 전혀 하지 않음
+    PolicySet.cs            4개 축의 정책 묶음
+    Deck/
+      IDeckPolicy.cs        런 시작 전 덱 6종 선택
+      SynergyDeck.cs        합성 도달 수 최대화
+      GuardDeck.cs          관통 또는 방깎 + 라인 반드시 포함
+      RandomDeck.cs         무작위 6종 (하한 측정)
+    Fusion/
+      IFusionPolicy.cs      합성 판단
+      GreedyFusion.cs       가능하면 즉시 합성
+      HoarderFusion.cs      상위 레시피 재료를 아낌
+    Card/
+      ICardPolicy.cs        스킬 카드 3택 1
+      CombatCard.cs         전투형 우선
+      AuraCard.cs           오라형 우선
+    Placement/
+      IPlacementPolicy.cs   유닛과 히어로 배치 위치 결정
+      GreedyCoverage.cs     커버 효율이 가장 높은 타일부터
+      AuraCluster.cs        히어로 오라 반경 안에 아군을 몰아넣음
   Report/
-    ReportWriter.cs    CSV 출력
+    ReportWriter.cs         CSV 출력
 ```
 
-Synthesis.Core.csproj를 참조한다. 전투 로직을 다시 구현하지 않는다.
+Synthesis.Core.csproj를 참조한다. 전투 로직과 맵 생성기를 다시 구현하지 않는다.
 
 ---
 
@@ -45,8 +62,11 @@ dotnet run --project Sim/Synthesis.Sim -- \
   --data ./Data \
   --runs 100000 \
   --seed 1 \
-  --policy greedy \
-  --scenario default \
+  --deck guard \
+  --fusion greedy \
+  --card combat \
+  --placement coverage \
+  --hero all \
   --threads 8 \
   --out ./Reports/sim-001
 ```
@@ -54,11 +74,18 @@ dotnet run --project Sim/Synthesis.Sim -- \
 | 인자 | 기본값 | 설명 |
 |---|---|---|
 | --data | ./Data | CSV 디렉터리 |
-| --runs | 10000 | 실행할 런 수 |
-| --seed | 1 | 시작 시드. 런 i는 seed + i를 사용 |
-| --policy | greedy | 플레이어 정책 |
-| --scenario | default | 시나리오 이름 |
-| --threads | 코어 수 | 병렬 스레드 수 |
+| --runs | 10000 | 런 수 |
+| --seed | 1 | 시작 시드. 런 i는 seed + i |
+| --deck | guard | 덱 정책 |
+| --fusion | greedy | 합성 정책 |
+| --card | combat | 카드 선택 정책 |
+| --placement | coverage | 배치 정책 |
+| --hero | all | all이면 런마다 무작위, ID 지정 시 고정 |
+| --deck-sweep | false | 210가지 덱 전수 순회 (SIM-06) |
+| --map-sweep | false | 맵 1000개 생성 후 각각 측정 (SIM-10, SIM-11) |
+| --map-seed | 런 시드와 동일 | 맵 시드를 분리하고 싶을 때 |
+| --ascension | 0 | 승급 단계 |
+| --threads | 코어 수 | 병렬 스레드 |
 | --out | ./Reports/latest | 출력 디렉터리 |
 | --verify | false | 같은 시드 2회 실행 후 해시 대조 |
 
@@ -66,153 +93,162 @@ dotnet run --project Sim/Synthesis.Sim -- \
 
 ## 4. 플레이어 정책
 
-시뮬레이터는 사람이 아니므로 플레이 방침을 코드로 정의한다. **한 정책만 쓰면 그 정책에 최적화된 밸런스가 나온다.** 최소 4개 정책으로 교차 검증한다.
+한 정책만 쓰면 그 정책에 최적화된 밸런스가 나온다. 4개 축을 조합해 교차 검증한다.
 
-| 정책 | 조합 | 공세 | 용도 |
-|---|---|---|---|
-| Greedy | 가능한 즉시 조합 | 하지 않음 | 하한선. 초보 플레이 근사 |
-| Hoarder | 상위 조합 재료를 아낌 | 하지 않음 | 조합 트리 도달률 상한 측정 |
-| Advance | 즉시 조합 | 적극 파견 | 공세 가치 측정 |
-| Turtle | 즉시 조합 | 절대 안 함 | Advance와 대조군 |
+### 4-1. 배치 정책이 새로 중요해진 이유
 
-정책은 매 틱이 아니라 **의사결정 시점에만** 호출된다. 뽑기 직후, 웨이브 시작 전, 조합 가능 시점.
+루프형에서 배치는 곧 커버 효율이다. 그리고 히어로 오라가 들어오면 커버 효율과 오라 밀집도가 충돌한다. 두 극단 정책으로 상하한을 잡는다.
+
+| 정책 | 방침 | 용도 |
+|---|---|---|
+| GreedyCoverage | 커버 효율이 높은 타일부터 채운다. 오라 무시 | 오라 없는 하한 |
+| AuraCluster | 히어로 오라 반경 안에 아군을 최대한 몰아넣는다 | 오라 활용 상한 |
+
+두 정책의 승률 차이가 **오라 시스템의 실질 가치**다. 차이가 작으면 오라가 장식이라는 뜻이므로 auraValue를 올려야 한다.
+
+### 4-2. 호출 시점
+
+정책은 의사결정 시점에만 호출된다.
 
 ```csharp
-public interface IPlayerPolicy
+public interface IPlacementPolicy
 {
-    // STEP 3. 핵심 - 웨이브 시작 전 조합과 배치를 결정한다
-    void OnWaveStart(GameState gameState, ActionBuffer actionBuffer);
-    void OnUnitGranted(GameState gameState, string unitId, ActionBuffer actionBuffer);
+    // STEP 4. 핵심 - 새 유닛을 어느 배치 타일에 놓을지 결정한다
+    int GetPlacementTile(GameState gameState, string unitId);
+    int GetHeroPlacementTile(GameState gameState);
 }
 ```
 
-정책은 GameState를 읽기 전용으로 받고, 행동을 ActionBuffer에 적재한다. 정책이 상태를 직접 수정하면 결정성이 깨진다.
+정책은 GameState를 읽기 전용으로 받고 행동을 ActionBuffer에 적재한다.
 
 ---
 
-## 5. 시나리오
-
-Scenario는 무엇을 고정하고 무엇을 변화시킬지 정의한다.
-
-```json
-{
-  "name": "default",
-  "leaderId": null,
-  "ascension": 0,
-  "mapId": "map01",
-  "forceUnitPool": null,
-  "disableGuarantee": false
-}
-```
-
-| 필드 | 용도 |
-|---|---|
-| leaderId | null이면 런마다 무작위 선택. 고정하면 리더별 측정 |
-| ascension | 승급 단계. 뮤테이터 적용 |
-| forceUnitPool | 특정 유닛만 뽑히게 강제. 최악 시드 재현용 |
-| disableGuarantee | 보장 규칙 G1-G5 해제. 5승급 검증용 |
-
----
-
-## 6. 단일 런 결과
+## 5. 단일 런 결과
 
 ```csharp
 public struct RunResult
 {
     public long seed;
-    public int clearedWave;          // 몇 웨이브까지 갔는가
-    public bool isCleared;           // 24웨이브 완주 여부
-    public string leaderId;
-    public int policyId;
+    public long mapSeed;
+    public int clearedWave;
+    public bool isCleared;
 
-    public List<string> madeUnitList;      // 이 런에서 만든 유닛 전부
-    public List<string> hiddenReachedList; // 도달한 히든 조합
-    public int advanceCount;               // 파견 시도 횟수
-    public int advanceFailCount;           // 파견 중 사망 횟수
-    public int zoneUnlockedMax;            // 최대 해금 구역
-    public int spawnDestroyedCount;        // 파괴한 스폰 수
-    public long boss1PreDamage;            // 보스별 사전 타격량
-    public long boss2PreDamage;
-    public long boss3PreDamage;
-    public int firstGuardKeyWave;          // 관통 또는 방깎을 처음 얻은 웨이브
-    public ulong stateHash;                // 결정성 검증용
+    public string heroId;
+    public List<string> deckList;
+    public int policyHash;
+
+    public List<string> madeUnitList;
+    public List<string> hiddenReachedList;
+    public List<string> cardTakenList;
+    public List<string> evolvedList;
+
+    public int heroLevelFinal;
+    public int heroLevelAtWave10;
+    public int heroLevelAtWave20;
+    public int heroTileIndex;          // 최종 히어로 배치 타일
+
+    public int accumMax;               // 런 중 최대 누적
+    public int accumAtWave10;
+    public int accumAtWave20;
+    public int accumAtWave25;
+    public int failWave;               // 누적 상한 도달 웨이브. 클리어 시 -1
+
+    public bool deckHasGuardKey;       // 관통 또는 방깎
+    public bool deckHasLine;           // 라인 역할
+    public int firstLineWave;          // 라인딜 수단을 처음 확보한 웨이브
+
+    public int mapPerimeter;
+    public int mapCornerCount;
+    public int mapBuildArea;
+    public int mapCoverageIndex;
+
+    public ulong stateHash;
 }
 ```
 
 ---
 
-## 7. 리포트 출력
-
-출력 디렉터리에 CSV로 쓴다. 사람이 읽는 요약은 stdout에 낸다.
+## 6. 리포트 출력
 
 | 파일 | 내용 |
 |---|---|
-| runs.csv | 런 단위 원본 결과 |
-| hidden-reach.csv | 히든 조합별 도달 비율 |
-| unit-usage.csv | 유닛별 제작 횟수와 그 런의 클리어율 |
-| wave-death.csv | 웨이브별 사망 히스토그램 |
-| advance-value.csv | 공세 정책과 무공세 정책의 승률 비교 |
-| leader-balance.csv | 리더별 승률과 신뢰구간 |
-| violations.txt | 불변식 위반 목록 |
+| runs.csv | 런 단위 원본 |
+| hidden-reach.csv | 히든별 도달 비율 |
+| accum-curve.csv | 웨이브별 평균 누적과 분위수 |
+| deck-balance.csv | 덱 210조합별 클리어율 |
+| hero-balance.csv | 히어로별 승률과 신뢰구간 |
+| hero-growth.csv | 웨이브별 히어로 평균 레벨 |
+| skillcard-balance.csv | 카드별 선택률과 클리어율 |
+| aura-value.csv | GreedyCoverage 대 AuraCluster 승률 비교 |
+| map-variance.csv | 맵별 클리어율과 커버 지수 |
+| map-optimal-tile.csv | 맵별 최적 히어로 배치 타일 |
+| violations.txt | 자동 판정 실패 목록 |
 
 stdout 요약 예시:
 
 ```
-runs=100000  policy=greedy  cleared=31.4%
-hidden reach:  H01 18.2%  H02 15.7%  H03 21.0%  H04 12.9%  H05 9.1%  H06 4.4%
+runs=100000  deck=guard fusion=greedy card=combat placement=coverage
+cleared=28.6%
+hidden reach:  H01 17.4%  H02 15.1%  H03 19.8%  H04 22.6%  H05 8.7%  H06 4.1%
   WARN  H05 below target range (10-25%)
-  WARN  H06 below target range (5-12%)
-guard key by wave 8: 100.0%   OK
-wave death peaks: 8 (22.1%), 16 (28.4%), 24 (18.0%)   OK
+accum curve:  w10 avg 12  w20 avg 28  w25 avg 41  peak 47   OK
+line damage by wave 15 (line decks only): 96.2%   OK
+aura value:  coverage 28.6%  cluster 34.1%  delta 5.5%p   OK
+map variance: mean 28.6%  stdev 3.1%  (11% of mean)   OK
+map optimal tile: 82% of maps differ from the modal tile   OK
 determinism hash: stable
 ```
 
 ---
 
-## 8. 검증 항목 구현
-
-BALANCE_SPEC.md 9장과 1대1로 대응한다.
+## 7. 검증 항목 구현
 
 | ID | 측정 방법 | 판정 |
 |---|---|---|
 | SIM-01 | hiddenReachedList 집계 | H01-H05가 10-25%, H06이 5-12% |
-| SIM-02 | 하위 5% 시드 추출 후 재실행 | 보스 1 격파율 80% 이상 |
-| SIM-03 | firstGuardKeyWave <= 8 비율 | 100% |
-| SIM-04 | Advance 정책과 Turtle 정책 승률 비교 | 둘 다 클리어 가능, Advance가 5-15%p 유리 |
+| SIM-02 | 하위 5% 시드 재실행 | 보스 1 격파율 80% 이상 |
+| SIM-03 | deckHasLine이 true인 런의 firstLineWave <= 15 비율 | 95% 이상 |
+| SIM-04 | accumAtWave25 평균 | 45 미만 |
 | SIM-05 | 유닛별 제작 시 클리어율과 전체 클리어율의 차 | 상위 15% 초과 없음 |
-| SIM-06 | 관통 경로 런과 방깎 경로 런 분리 집계 | 승률 차이 10%p 이내 |
-| SIM-07 | clearedWave 히스토그램 | 8, 16, 24에 피크. 중간 절벽 없음 |
-| SIM-08 | leaderId별 집계 | 승률 신뢰구간이 서로 겹침 |
+| SIM-06 | --deck-sweep 210조합 각 1000런 | 클리어율 0% 없음, 최고와 최저 차이 40%p 이내 |
+| SIM-07 | heroId별 집계 | 승률 신뢰구간이 서로 겹침 |
+| SIM-08 | heroLevelAtWave10 / 20 / Final 평균 | 각각 3-4, 5-6, 7-8 |
+| SIM-09 | cardTakenList 집계 | 선택률 60% 초과 또는 5% 미만 카드 없음 |
+| SIM-10 | --map-sweep 1000맵 각 200런 | 클리어율 표준편차가 평균의 15% 이내 |
+| SIM-11 | 맵별 최적 heroTileIndex 분포 | 최빈 타일과 다른 맵이 70% 이상 |
 
-각 항목은 통과와 실패를 자동 판정하고 violations.txt에 기록한다. 사람이 CSV를 눈으로 읽어 판단하는 구조로 만들지 않는다.
+**SIM-11이 랜덤 맵 생성의 존재 이유를 검증한다.** 맵이 달라도 최적 배치가 같다면 랜덤화는 장식이므로 mapgen 파라미터를 다시 잡거나 맵 랜덤화를 포기한다.
+
+추가 측정(판정 없음, 참고용):
+
+- GreedyCoverage 대 AuraCluster 승률 차이. 5%p 미만이면 오라가 약하다는 신호
 
 ---
 
-## 9. 성능 목표
+## 8. 성능 목표
 
 - 10만 런을 8스레드에서 5분 이내
-- 단일 런은 24웨이브, 웨이브당 최대 60초, 20틱이므로 최대 약 29,000틱
-- 렌더링과 애셋 로드가 없으므로 순수 로직만 돈다
-- 병렬화는 런 단위로만 한다. 런 내부는 단일 스레드로 유지해 결정성을 지킨다
-
-메모리 할당을 줄이기 위해 런마다 상태 객체를 재사용한다. GC 스파이크가 나면 처리량이 급감한다.
-
----
-
-## 10. 결정성 검증
-
---verify 옵션으로 같은 시드를 두 번 돌려 stateHash를 대조한다.
-
-- CI에서 커밋마다 100런 verify를 돌린다
-- stateHash는 매 웨이브 종료 시점의 전체 상태를 순서 고정으로 직렬화해 해시한다
-- 해시가 불일치하면 즉시 실패시킨다. 결정성이 깨진 채로 쌓인 밸런싱은 전부 무효다
-
-**Unity 빌드와 Sim 콘솔의 대조**는 STEP 6 이후 주기적으로 수행한다. Unity 쪽에 동일 시드로 헤드리스 런을 돌리고 stateHash를 비교하는 에디터 메뉴를 둔다.
+- SIM-06의 21만 런은 15분 이내
+- SIM-10의 20만 런은 15분 이내
+- 단일 런은 30웨이브, 웨이브당 최대 45초, 20틱이므로 최대 약 27,000틱
+- 병렬화는 런 단위로만. 런 내부는 단일 스레드로 결정성을 지킨다
+- 런마다 상태 객체를 재사용해 GC 스파이크를 막는다
 
 ---
 
-## 11. 주의
+## 9. 결정성 검증
 
-- 시뮬레이터는 **밸런스가 균형 잡혔는지**를 답하지 **재미있는지**를 답하지 못한다
-- 지배 전략이 완전히 제거된 게임이 밋밋해지는 경우가 있다. 로그라이트는 오히려 "이번 판 사기 조합 떴다"가 핵심 쾌감이므로, SIM-05의 기준을 지나치게 엄격하게 잡지 않는다
-- 수치 판정은 시뮬로, 재미 판정은 직접 플레이로 한다. 둘을 섞지 않는다
+- --verify로 같은 시드를 두 번 돌려 stateHash 대조
+- CI에서 커밋마다 100런 verify
+- stateHash는 매 웨이브 종료 시점 전체 상태를 순서 고정으로 직렬화해 해시
+- **맵 생성 재현성도 함께 검증한다.** 같은 mapSeed가 같은 LoopMap을 내는지 확인
+- 불일치 시 즉시 실패
+
+---
+
+## 10. 주의
+
+- 시뮬레이터는 밸런스가 균형 잡혔는지를 답하지 재미있는지를 답하지 못한다
+- 지배 전략이 완전히 제거된 게임이 밋밋해진다. 로그라이트는 "이번 판 사기 조합 떴다"가 핵심 쾌감이므로 SIM-05와 SIM-09 기준을 지나치게 엄격하게 잡지 않는다
+- 특히 히어로 스킬 카드는 강력한 카드가 존재하는 것 자체가 재미다. SIM-09는 "아무도 안 고르는 카드"와 "항상 고르는 카드"를 잡아내는 용도다
+- 수치 판정은 시뮬로, 재미 판정은 직접 플레이로. 둘을 섞지 않는다

@@ -2,7 +2,9 @@
 
 SYNTHESIS (가칭) - 아키텍처 사양
 
-배치 위치: Docs/ARCHITECTURE.md
+배치 위치: Docs/ARCHITECTURE.md / 버전 0.3
+
+버전 0.3 변경: Core/Map 모듈 추가, Advance 모듈 삭제, 데이터 파일 목록 갱신, 린터 검증 범위 갱신
 
 ---
 
@@ -33,19 +35,23 @@ SYNTHESIS (가칭) - 아키텍처 사양
     waves.csv
     bosses.csv
     relics.csv
-    leaders.csv
+    heroes.csv
+    skillcards.csv
+    mapgen.csv
   Shared/
     Synthesis.Core/          순수 C#. Unity와 Sim이 공유
       Synthesis.Core.csproj
       Data/                  데이터 모델과 CSV 파서
       Simulation/            틱 루프, 전투 해결
       Units/                 유닛 상태와 행동
-      Combination/           조합 판정
-      Waves/                 웨이브 스폰과 보스
-      Advance/               구역 해금과 파견
+      Fusion/                합성 판정
+      Deck/                  덱 구성과 도달 계산
+      Hero/                  히어로 상태, 경험치, 스킬 카드, 진화, 오라
+      Map/                   루프 맵 생성과 검증 (MAP_SPEC.md)
+      Waves/                 웨이브 스폰, 누적 관리, 보스
       Random/                시드 기반 PRNG
       Fixed/                 long 기반 고정소수점
-  DefenceGame/                 Unity 프로젝트 루트 (문서 초안의 Unity/ 에 해당)
+  Unity/
     Assets/
       _Project/
         Scripts/
@@ -142,6 +148,8 @@ Data/*.csv
 
 - **CSV가 원본이다.** ScriptableObject는 런타임 로딩 속도를 위한 캐시다
 - 파서는 Core에 한 벌만 둔다. Sim과 Editor가 같은 파서를 쓴다
+- **덱 도달 계산기와 맵 검증기도 Core에 둔다.** 덱 구성 UI, 린터, 시뮬레이터가 전부 같은 구현을 써야 한다. 세 곳에서 따로 구현하면 반드시 갈라진다
+- **맵 생성기는 Core/Map에 둔다.** Unity 없이 dotnet에서 1000개 맵을 생성해 분산을 측정할 수 있어야 한다
 - SO로 변환한 결과가 CSV 파싱 결과와 동일한지 검증하는 테스트를 둔다. 두 경로가 갈라지면 시뮬 검증이 무효가 된다
 - 조합식과 유닛 데이터를 코드에 하드코딩하지 않는다
 
@@ -177,7 +185,7 @@ Core는 ViewModel의 존재를 모른다. 상태 변경은 Core가 발행하는 
 터치와 마우스를 하나의 경로로 처리한다.
 
 ```
-InputSource (터치 / 마우스)  ->  PointerEvent  ->  Interaction (선택, 배치, 회수, 파견)
+InputSource (터치 / 마우스)  ->  PointerEvent  ->  Interaction (선택, 배치, 회수, 합성, 카드 선택)
 ```
 
 - Presentation은 PointerEvent만 소비한다. 플랫폼 분기는 InputSource 안에서 끝낸다
@@ -192,6 +200,9 @@ InputSource (터치 / 마우스)  ->  PointerEvent  ->  Interaction (선택, 배
 - 유닛 초상화, 도감 아이콘, 조합 연출은 3D 모델의 NPR 렌더로 생성한다. 별도 2D 일러를 만들지 않는다
 - 오프스크린 RenderTexture로 초상화를 베이크하거나 런타임 렌더한다
 - 카메라 고정이므로 컬링과 배칭이 단순하다. MaterialPropertyBlock으로 인스턴스별 색 변형을 처리해 SetPass Call을 억제한다
+- **순회 몬스터는 GPU 인스턴싱으로 그린다.** 동시 60기가 성능 상한 기준이다
+- 루프 경로에 스크롤 UV 이미시브를 얹어 흐름 방향을 보여준다
+- 배치 타일은 지면보다 올려 높이차와 그림자로 배치 가능 여부를 읽히게 한다
 
 ---
 
@@ -202,10 +213,11 @@ STEP 1에서 골격을 만들고 이후 확장한다.
 | 툴 | 역할 |
 |---|---|
 | CSV 임포터 | Data/*.csv를 ScriptableObject로 변환 |
-| 조합 트리 뷰어 | 레시피 그래프를 시각화하고 고아 노드를 표시 |
-| 불변식 린터 | BALANCE_SPEC.md 8장의 INV-01부터 INV-10까지 검증 |
+| 합성 트리 뷰어 | 레시피 그래프를 시각화하고 고아 노드를 표시 |
+| 불변식 린터 | BALANCE_SPEC.md 11장의 INV, MAP_SPEC.md 4장의 MAP 검증 |
+| 맵 생성 프리뷰 | 시드를 넣어 루프 맵을 미리 보고 커버 효율을 확인 |
 | 시뮬 리포트 뷰어 | Reports/의 CSV를 읽어 도달률과 승률을 표시 |
-| 맵 에디터 | 그리드, 경로, 구역, 배치 타일 편집 |
+| 맵 파라미터 편집기 | mapgen.csv를 편집하고 즉시 생성 결과를 확인 |
 
 린터는 CLI로도 돌 수 있어야 한다. Unity를 켜지 않고 CI에서 검증하기 위함이다.
 
@@ -213,7 +225,7 @@ STEP 1에서 골격을 만들고 이후 확장한다.
 
 ## 10. 빌드 파이프라인
 
-STEP 9 이후 구축한다.
+STEP 11 이후 구축한다.
 
 - Jenkins에서 안드로이드와 윈도우를 동시 빌드
 - Addressables Content Update로 콘텐츠만 갱신하는 경로 확보
@@ -229,7 +241,8 @@ STEP 9 이후 구축한다.
 |---|---|---|
 | 결정성 테스트 | 같은 시드 두 번 실행 시 결과 해시 일치 | STEP 1부터 상시 |
 | 파서 일치 테스트 | CSV 직접 파싱 결과와 SO 변환 결과 동일 | STEP 1부터 상시 |
-| 불변식 테스트 | INV-01부터 INV-10 | 데이터 변경 시마다 |
-| 크로스 플랫폼 대조 | Unity 빌드와 Sim 콘솔의 동일 시드 결과 비교 | STEP 6 이후 주기적 |
+| 불변식 테스트 | INV 전체와 MAP 전체 | 데이터 변경 시마다 |
+| 맵 생성 재현성 | 같은 시드가 같은 맵을 내는가 | STEP 1부터 상시 |
+| 크로스 플랫폼 대조 | Unity 빌드와 Sim 콘솔의 동일 시드 결과 비교 | STEP 7 이후 주기적 |
 
 Core는 Unity 의존이 없으므로 일반 dotnet test로 검증한다. Unity Test Runner는 Presentation 계층에만 쓴다.
