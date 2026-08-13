@@ -23,7 +23,7 @@ namespace Synthesis.Linter
             Console.WriteLine("[linter] Data 경로: " + dataDir);
             GameDatabase db = DataLoader.Load(dataDir);
             Console.WriteLine("[linter] 로드: 유닛 " + db.unitList.Count + " / 레시피 " + db.recipeList.Count
-                + " / 웨이브 " + db.waveList.Count + " / 보스 " + db.bossList.Count + " / 유물 " + db.relicList.Count);
+                + " / 웨이브 " + db.waveList.Count + " / 보스 " + db.bossList.Count);
             Console.WriteLine("");
 
             List<InvResult> resultList = Invariants.RunAll(db);

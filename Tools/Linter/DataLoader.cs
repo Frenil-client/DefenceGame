@@ -31,7 +31,6 @@ namespace Synthesis.Linter
             db.recipeList = CsvParsers.LoadRecipes(ReadIfExists(dataDir, "recipes.csv"));
             db.waveList   = CsvParsers.LoadWaves(ReadIfExists(dataDir, "waves.csv"));
             db.bossList   = CsvParsers.LoadBosses(ReadIfExists(dataDir, "bosses.csv"));
-            db.relicList  = CsvParsers.LoadRelics(ReadIfExists(dataDir, "relics.csv"));
 
             return db;
         }
