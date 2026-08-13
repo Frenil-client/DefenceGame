@@ -31,6 +31,13 @@ DefenceGame/*.csproj
 DefenceGame/*.sln
 DefenceGame/*.slnx
 
+# ---- Unity 크래시 복구 / 생성 캐시 ----
+DefenceGame/Assets/_Recovery/
+DefenceGame/Assets/_Recovery.meta
+# CSV 에서 임포터로 재생성되는 SO 캐시(원본은 Data/*.csv)
+DefenceGame/Assets/_Project/Data/Generated/
+DefenceGame/Assets/_Project/Data/Generated.meta
+
 # ---- OS ----
 Thumbs.db
 .DS_Store

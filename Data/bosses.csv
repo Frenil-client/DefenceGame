@@ -1,11 +1,9 @@
-# bosses.csv - 보스 데이터 (원본). 스키마: BALANCE_SPEC.md 10
-# 컬럼: id,name,element,hp,armor,moveSpeed,isFlying,ignorePath,summonId,summonInterval,preDamageCapRatio
-#
-# [확정] 3기의 정체/속성/특성/등장 웨이브는 BALANCE_SPEC.md 7-2, SPEC.md 2-2 그대로다.
-# [확정] preDamageCapRatio=0.40 (사전 타격 상한 40%, BALANCE_SPEC.md 7-1).
-# [TEMP] hp/armor/moveSpeed/summonInterval 은 BALANCE_SPEC.md 12장 미확정. 시뮬레이터로 확정한다.
-# [TEMP] summonId 는 적 세트가 아직 정의되지 않아 비워둔다(부하 소환은 STEP 4에서 확정).
-id,name,element,hp,armor,moveSpeed,isFlying,ignorePath,summonId,summonInterval,preDamageCapRatio
-B01,강철 성채,physical,5000,50,0.5,false,false,,0,0.40
-B02,창공의 눈,ice,4000,10,1.0,true,true,,0,0.40
-B03,잠든 왕,fire,8000,20,0.6,false,false,,40,0.40
+# bosses.csv - 보스 데이터 (원본, v0.4). 스키마: id,name,hp,armor,moveSpeed,timeLimitSec,doppelReward,note
+# [확정] 4보스(11/21/31/41), 제한시간 패배(BALANCE 13). 격파 시 도플갱어 지급(SPEC 3-6).
+# [TEMP] hp/armor/제한시간/도플갱어 전부 임시값. 헤드리스 오토플레이가 1사이클 클리어 가능하도록 잡은 초기값이며
+#        실제 밸런스(특히 최종 보스 5성 요구, 집중 명령/마법)는 STEP 7 시뮬로 재확정한다(BALANCE 13).
+id,name,hp,armor,moveSpeed,timeLimitSec,doppelReward,note
+B01,강철 성채,1900,80,0.5,60,3,고방어
+B02,창공의 눈,1900,20,1.2,60,3,고속 소환
+B03,잠든 왕,4000,40,0.5,75,4,무력화 기믹
+B04,파멸의 군주,9000,60,0.5,90,4,광역 삭제

@@ -1,33 +1,45 @@
-# waves.csv - 웨이브 데이터 (원본). 스키마: BALANCE_SPEC.md 10
+# waves.csv - 웨이브 데이터 (원본, v0.4). 41웨이브, 보스 11/21/31/41 (BALANCE 12,13)
 # 컬럼: waveIndex,enemySetId,spawnCount,spawnInterval,isBoss,bossId,difficultyScale
-#
-# [확정] 총 24웨이브, 보스 각성은 8/16/24 (SPEC.md 2-2). 이 구조만 확정이다.
-# [TEMP] enemySetId 는 STEP 2 스켈레톤에서 단일 적 원형 id 로 취급한다(적 세트 개념은 이후).
-#        spawnCount/spawnInterval/difficultyScale 와 원형 배치는 전부 임시 구성이며 STEP 7 시뮬로 확정한다.
-#        원형: E01 잡졸 / E02 돌격병(빠름) / E03 무리개미(약함 다수) / E04 강철병(탱커) / E05 광전사(고공격).
-#        spawnInterval 단위는 틱(20틱/초).
+# [확정] 41웨이브, 보스 위치. [TEMP] 스폰 수/간격/스케일은 시뮬로 확정.
 waveIndex,enemySetId,spawnCount,spawnInterval,isBoss,bossId,difficultyScale
-1,E01,8,30,false,,1.0
-2,E01,10,28,false,,1.0
-3,E03,16,16,false,,1.1
-4,E02,10,26,false,,1.1
-5,E03,18,14,false,,1.2
-6,E04,5,40,false,,1.2
-7,E02,14,22,false,,1.3
-8,boss,1,0,true,B01,1.3
-9,E02,16,22,false,,1.4
-10,E04,7,36,false,,1.4
-11,E03,22,12,false,,1.5
-12,E05,10,24,false,,1.5
-13,E04,9,32,false,,1.6
-14,E05,12,22,false,,1.6
-15,E02,20,18,false,,1.7
-16,boss,1,0,true,B02,1.7
-17,E05,14,20,false,,1.8
-18,E04,11,30,false,,1.8
-19,E05,16,18,false,,1.9
-20,E03,28,10,false,,1.9
-21,E05,18,16,false,,2.0
-22,E04,13,28,false,,2.0
-23,E05,20,14,false,,2.1
-24,boss,1,0,true,B03,2.1
+1,E01,22,10,false,,1.0
+2,E02,24,10,false,,1.05
+3,E03,26,10,false,,1.1
+4,E04,26,10,false,,1.15
+5,E05,28,10,false,,1.2
+6,E01,30,10,false,,1.25
+7,E02,30,10,false,,1.3
+8,E03,32,10,false,,1.35
+9,E04,32,10,false,,1.4
+10,E05,34,10,false,,1.45
+11,boss,1,0,true,B01,1.5
+12,E01,34,10,false,,1.55
+13,E02,36,10,false,,1.6
+14,E03,36,10,false,,1.65
+15,E04,38,10,false,,1.7
+16,E05,38,10,false,,1.75
+17,E01,40,10,false,,1.8
+18,E02,40,10,false,,1.85
+19,E03,42,10,false,,1.9
+20,E04,42,10,false,,1.95
+21,boss,1,0,true,B02,2.0
+22,E05,44,9,false,,2.05
+23,E01,44,9,false,,2.1
+24,E02,46,9,false,,2.15
+25,E03,46,9,false,,2.2
+26,E04,48,9,false,,2.25
+27,E05,48,9,false,,2.3
+28,E01,50,9,false,,2.35
+29,E02,50,9,false,,2.4
+30,E03,52,9,false,,2.45
+31,boss,1,0,true,B03,2.5
+32,E04,52,8,false,,2.55
+33,E05,54,8,false,,2.6
+34,E01,54,8,false,,2.65
+35,E02,56,8,false,,2.7
+36,E03,56,8,false,,2.75
+37,E04,58,8,false,,2.8
+38,E05,58,8,false,,2.85
+39,E01,60,8,false,,2.9
+40,E02,60,8,false,,2.95
+41,boss,1,0,true,B04,3.0

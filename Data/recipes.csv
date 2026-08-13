@@ -1,32 +1,40 @@
-# recipes.csv - 조합식 (원본). 스키마: BALANCE_SPEC.md 10
-# 컬럼: resultId,mat1,mat2,conditionType,isHidden,unlockedByDefault
+# recipes.csv - 조합식 (원본, v0.4). 스키마: resultId,mat1,mat2,mat3,mat4
 #
-# [확정] 재료 구성은 BALANCE_SPEC.md 4장 표 그대로다.
-# [확정] conditionType: 4-2 '속성 페어'(R01-R05)=sameElement, '역할 페어'(R06-R12)=sameRole, 레어 이상=fixed (4-1).
-# [TEMP] unlockedByDefault: 히든 조합식은 공세 보상으로 해금된다는 서술(SPEC 3-4, 6-3)에 근거해 false 로 둔다.
-#        레어/유니크는 기본 해금(true). 이 값은 STEP 3(뽑기/조합)에서 재확정한다.
-resultId,mat1,mat2,conditionType,isHidden,unlockedByDefault
-R01,C01,C02,sameElement,false,true
-R02,C03,C04,sameElement,false,true
-R03,C05,C06,sameElement,false,true
-R04,C07,C08,sameElement,false,true
-R05,C09,C10,sameElement,false,true
-R06,C01,C08,sameRole,false,true
-R07,C06,C08,sameRole,false,true
-R08,C02,C10,sameRole,false,true
-R09,C04,C09,sameRole,false,true
-R10,C07,C09,sameRole,false,true
-R11,C04,C07,sameRole,false,true
-R12,C05,C08,sameRole,false,true
-U01,R01,R03,fixed,false,true
-U02,R02,R11,fixed,false,true
-U03,R04,R12,fixed,false,true
-U04,R05,R09,fixed,false,true
-U05,R06,R07,fixed,false,true
-U06,R03,R08,fixed,false,true
-H01,U05,R04,fixed,true,false
-H02,U02,R09,fixed,true,false
-H03,U04,R10,fixed,true,false
-H04,U06,R03,fixed,true,false
-H05,U03,R12,fixed,true,false
-H06,U01,U02,fixed,true,false
+# [확정] 재료 구성은 BALANCE 4~7장 표 그대로다(2성=1성2, 3성=2성2+1성1, 4성=3성2+2성1, 5성=4성2+3성1+2성1).
+resultId,mat1,mat2,mat3,mat4
+T2-WAR-01,T1-WAR,T1-WAR,,
+T2-ARC-02,T1-ARC,T1-ARC,,
+T2-MAG-03,T1-MAG,T1-MAG,,
+T2-PRI-04,T1-PRI,T1-PRI,,
+T2-THI-05,T1-THI,T1-THI,,
+T2-SPI-06,T1-SPI,T1-SPI,,
+T2-WAR-07,T1-WAR,T1-PRI,,
+T2-WAR-08,T1-WAR,T1-MAG,,
+T2-ARC-09,T1-ARC,T1-THI,,
+T2-PRI-10,T1-PRI,T1-ARC,,
+T2-MAG-11,T1-MAG,T1-SPI,,
+T2-SPI-12,T1-SPI,T1-THI,,
+T3-WAR-01,T2-WAR-08,T2-WAR-07,T1-WAR,
+T3-WAR-02,T2-WAR-01,T2-PRI-10,T1-WAR,
+T3-ARC-03,T2-ARC-02,T2-ARC-09,T1-ARC,
+T3-ARC-04,T2-ARC-09,T2-PRI-04,T1-ARC,
+T3-MAG-05,T2-MAG-03,T2-MAG-11,T1-MAG,
+T3-MAG-06,T2-MAG-11,T2-SPI-12,T1-MAG,
+T3-PRI-07,T2-PRI-04,T2-SPI-06,T1-PRI,
+T3-PRI-08,T2-WAR-07,T2-WAR-01,T1-PRI,
+T3-THI-09,T2-THI-05,T2-ARC-09,T1-THI,
+T3-THI-10,T2-THI-05,T2-SPI-12,T1-THI,
+T3-SPI-11,T2-SPI-06,T2-SPI-12,T1-SPI,
+T3-SPI-12,T2-MAG-03,T2-SPI-06,T1-SPI,
+T4-WAR-01,T3-WAR-01,T3-PRI-08,T2-WAR-07,
+T4-WAR-02,T3-WAR-02,T3-THI-10,T2-WAR-01,
+T4-ARC-03,T3-ARC-03,T3-ARC-04,T2-ARC-02,
+T4-MAG-04,T3-MAG-05,T3-MAG-06,T2-MAG-03,
+T4-MAG-05,T3-MAG-06,T3-ARC-04,T2-MAG-11,
+T4-PRI-06,T3-PRI-07,T3-PRI-08,T2-PRI-04,
+T4-THI-07,T3-THI-09,T3-THI-10,T2-THI-05,
+T4-SPI-08,T3-SPI-11,T3-SPI-12,T2-SPI-06,
+T5-WAR-01,T4-WAR-01,T4-WAR-02,T3-WAR-01,T2-WAR-08
+T5-MAG-02,T4-MAG-04,T4-MAG-05,T3-MAG-05,T2-MAG-11
+T5-ARC-03,T4-ARC-03,T4-THI-07,T3-THI-09,T2-ARC-09
+T5-PRI-04,T4-PRI-06,T4-SPI-08,T3-PRI-07,T2-SPI-06
