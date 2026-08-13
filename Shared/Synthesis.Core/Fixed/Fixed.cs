@@ -44,6 +44,19 @@ namespace Synthesis.Core
         public static readonly Fixed Zero = new Fixed(0);
         public static readonly Fixed One  = new Fixed(Scale);
 
+        // 결정적 제곱근. 음수는 0. 정수 floor 보정으로 플랫폼 무관하게 같은 값을 낸다.
+        public static Fixed Sqrt(Fixed v)
+        {
+            if (v.raw <= 0) return Zero;
+            // sqrt(value) 를 Fixed 로: result.raw = floor( sqrt(v.raw * Scale) )
+            long n = v.raw * Scale;
+            long x = (long)System.Math.Sqrt((double)n); // 근사 씨앗
+            // 정수 floor 로 보정(정수 비교라 결정적)
+            while (x > 0 && x * x > n) --x;
+            while ((x + 1) * (x + 1) <= n) ++x;
+            return new Fixed(x);
+        }
+
         // ---- 변환 ----
 
         public long ToIntTruncated()
