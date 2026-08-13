@@ -1,45 +1,14 @@
 namespace Synthesis.Core.Data
 {
-    // STEP 1. 기반 도구 - 용어집(SPEC.md 6)과 데이터 스키마(BALANCE_SPEC.md 10)의 축 정의.
-    // CSV 문자열 값과의 매핑은 CsvEnum.cs 가 담당한다.
-
-    public enum Grade
+    // STEP 1. 기반 도구 - v0.4 계열 축 (BALANCE_SPEC.md 1). 유닛의 유일한 분류 축이다.
+    // 속성/역할/배치 축은 v0.4 에서 폐기했다.
+    public enum Klass
     {
-        Common,
-        Rare,
-        Unique,
-        Hidden
-    }
-
-    public enum Element
-    {
-        Fire,
-        Ice,
-        Thunder,
-        Physical,
-        Holy
-    }
-
-    // 역할 4종. 관통(pierce)은 역할에서 제외하고 전격 속성 효과로 옮겼다 (BALANCE_SPEC.md 1-2, 개정).
-    public enum Role
-    {
-        Single,
-        Splash,
-        Dot,
-        Support
-    }
-
-    public enum Placement
-    {
-        Melee,
-        Ranged
-    }
-
-    // 흔함 -> 레어 성립 조건 (BALANCE_SPEC.md 4-1). 레어 이상은 Fixed(고정 레시피).
-    public enum ConditionType
-    {
-        SameElement,
-        SameRole,
-        Fixed
+        War,   // 전사 - 근거리 단일 고피해, 이동 빠름
+        Arc,   // 궁수 - 원거리 단일, 사거리 최장
+        Mag,   // 법사 - 광역, 사거리 김
+        Pri,   // 사제 - 아군 강화/적 약화
+        Thi,   // 도적 - 고속 공격, 치명타
+        Spi    // 정령 - 지속 피해/상태이상
     }
 }
