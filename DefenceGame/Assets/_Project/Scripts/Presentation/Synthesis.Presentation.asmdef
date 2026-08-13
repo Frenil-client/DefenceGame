@@ -3,7 +3,8 @@
     "rootNamespace": "Synthesis.Presentation",
     "references": [
         "Synthesis.Core",
-        "Synthesis.Data"
+        "Synthesis.Data",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

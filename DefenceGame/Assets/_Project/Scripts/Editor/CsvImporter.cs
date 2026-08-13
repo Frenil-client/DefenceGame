@@ -66,18 +66,14 @@ namespace Synthesis.Editor
                 UnitData a = direct[i];
                 UnitData b = roundTrip[i];
                 bool same = a.id == b.id
-                    && a.grade == b.grade
-                    && a.element == b.element
-                    && a.role == b.role
-                    && a.placement == b.placement
+                    && a.tier == b.tier
+                    && a.klass == b.klass
                     && a.cost == b.cost
                     && a.hp.raw == b.hp.raw
                     && a.atk.raw == b.atk.raw
                     && a.atkSpeed.raw == b.atkSpeed.raw
                     && a.range.raw == b.range.raw
-                    && a.blockCount == b.blockCount
-                    && a.redeployCd == b.redeployCd
-                    && a.isAdvance == b.isAdvance;
+                    && a.isDoppel == b.isDoppel;
                 if (!same) ++mismatch;
             }
             return mismatch;

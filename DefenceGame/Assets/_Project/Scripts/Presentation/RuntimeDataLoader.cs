@@ -47,17 +47,6 @@ namespace Synthesis.Presentation
             return MapGenParser.Load(text);
         }
 
-        public static MapData LoadMap(string mapId)
-        {
-            string dataDir = FindDataDir();
-            if (dataDir == null) return null;
-
-            string mapsDir = Path.Combine(dataDir, "maps");
-            string grid = ReadIfExists(mapsDir, mapId + "_grid.csv");
-            string path = ReadIfExists(mapsDir, mapId + "_path.csv");
-            return MapParser.CsvToMap(grid, path);
-        }
-
         private static string ReadIfExists(string dir, string fileName)
         {
             var path = Path.Combine(dir, fileName);

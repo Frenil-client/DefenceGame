@@ -9,9 +9,17 @@ namespace Synthesis.Presentation
     {
         [Tooltip("이 시드로 mapgen.csv 파라미터를 써서 루프 맵을 생성한다")]
         public long seed = 1;
+        [Tooltip("켜면 요철 없는 기본 직사각형 맵을 쓴다(미리보기와 런타임 동일). 끄면 시드 변주 맵")]
+        public bool useDefaultMap = false;
         public float cellSize = 1f;
 
         public Vector3 CellToWorld(int x, int y)
+        {
+            return new Vector3(x * cellSize, 0f, -y * cellSize);
+        }
+
+        // 몬스터처럼 셀 사이를 보간한 위치용(소수 좌표).
+        public Vector3 CellToWorldF(float x, float y)
         {
             return new Vector3(x * cellSize, 0f, -y * cellSize);
         }

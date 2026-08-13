@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Synthesis.Core.Map;
+using Synthesis.Data;
 using Synthesis.Presentation;
 
 namespace Synthesis.Editor
@@ -11,12 +13,75 @@ namespace Synthesis.Editor
     // STEP 1/2. 에디터 툴 - LoopMapView 에 시드 기반 루프 맵 타일을 굽는다(런타임 아님).
     public static class LoopMapBaker
     {
+        // 시드 기반 변주 맵(요철 포함). 런타임도 같은 모드를 쓰도록 useDefaultMap 을 끈다.
         public static void Bake(LoopMapView view)
         {
             if (view == null) return;
+            view.useDefaultMap = false;
+            MapGenParams p = RuntimeDataLoader.LoadMapGenParams();
+            BakeMap(view, LoopMapGenerator.Generate(p, view.seed));
+        }
+
+        // 기본 직사각형 맵(요철 없음). 런타임도 이 맵을 쓰도록 useDefaultMap 을 켠다.
+        public static void BakeDefault(LoopMapView view)
+        {
+            if (view == null) return;
+            view.useDefaultMap = true;
+            MapGenParams p = RuntimeDataLoader.LoadMapGenParams();
+            BakeMap(view, LoopMapGenerator.GenerateRectangular(p, view.seed));
+        }
+
+        // 현재 뷰의 맵(모드 반영)을 그대로 생성해 돌려준다. SO 저장/미리보기 공용.
+        private static LoopMap GenerateForView(LoopMapView view)
+        {
+            MapGenParams p = RuntimeDataLoader.LoadMapGenParams();
+            return view.useDefaultMap
+                ? LoopMapGenerator.GenerateRectangular(p, view.seed)
+                : LoopMapGenerator.Generate(p, view.seed);
+        }
+
+        // 현재 뷰의 맵을 MapSO 애셋으로 저장한다. 런타임이 이 SO 를 로드해 같은 경로를 쓴다.
+        public static void SaveToSO(LoopMapView view)
+        {
+            if (view == null) return;
+
+            const string dir = "Assets/_Project/Data/Maps";
+            EnsureFolder(dir);
+
+            LoopMap map = GenerateForView(view);
+            string mode = view.useDefaultMap ? "rect" : "seed";
+            string path = dir + "/Map_" + mode + "_" + view.seed + ".asset";
+
+            MapSO so = AssetDatabase.LoadAssetAtPath<MapSO>(path);
+            bool created = false;
+            if (so == null)
+            {
+                so = ScriptableObject.CreateInstance<MapSO>();
+                created = true;
+            }
 
             MapGenParams p = RuntimeDataLoader.LoadMapGenParams();
-            LoopMap map = LoopMapGenerator.Generate(p, view.seed);
+            so.coverageRadius = p.coverageRadius;
+            so.FromLoopMap(map);
+
+            if (created) AssetDatabase.CreateAsset(so, path);
+            EditorUtility.SetDirty(so);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("[LoopMapBaker] 맵 SO 저장: " + path
+                + " (경로 " + map.perimeter + " 셀 / 스폰 " + map.spawnIndexList.Count + " / 석상 " + map.statueList.Count + ")");
+        }
+
+        private static void EnsureFolder(string path)
+        {
+            if (AssetDatabase.IsValidFolder(path)) return;
+            Directory.CreateDirectory(Path.GetFullPath(path));
+            AssetDatabase.Refresh();
+        }
+
+        private static void BakeMap(LoopMapView view, LoopMap map)
+        {
+            if (view == null || map == null) return;
 
             Clear(view);
 
@@ -134,6 +199,10 @@ namespace Synthesis.Editor
             LoopMapView view = (LoopMapView)target;
 
             EditorGUILayout.Space();
+            if (GUILayout.Button("기본(직사각형) 생성"))
+            {
+                LoopMapBaker.BakeDefault(view);
+            }
             if (GUILayout.Button("시드로 생성"))
             {
                 LoopMapBaker.Bake(view);
@@ -146,6 +215,12 @@ namespace Synthesis.Editor
             if (GUILayout.Button("지우기"))
             {
                 LoopMapBaker.Clear(view);
+            }
+
+            EditorGUILayout.Space();
+            if (GUILayout.Button("이 맵을 SO로 저장"))
+            {
+                LoopMapBaker.SaveToSO(view);
             }
         }
     }
