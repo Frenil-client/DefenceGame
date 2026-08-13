@@ -29,6 +29,12 @@ namespace Synthesis.Core.Map
             p.bumpDistMax   = CsvUtil.StringToInt(split[15]);
             p.spawnCount    = CsvUtil.StringToInt(split[16]);
             p.maxRetry      = CsvUtil.StringToInt(split[17]);
+
+            // 석상 파라미터는 뒤에 선택적으로 붙는다(구 스키마 호환). 없으면 기본값.
+            MapGenParams def = MapGenParams.Defaults();
+            p.statueCountMin = split.Length > 18 ? CsvUtil.StringToInt(split[18]) : def.statueCountMin;
+            p.statueCountMax = split.Length > 19 ? CsvUtil.StringToInt(split[19]) : def.statueCountMax;
+            p.statueHp       = split.Length > 20 ? CsvUtil.StringToInt(split[20]) : def.statueHp;
             return p;
         }
 

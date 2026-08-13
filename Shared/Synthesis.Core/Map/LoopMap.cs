@@ -24,6 +24,8 @@ namespace Synthesis.Core.Map
         public List<GridPos> interiorTileList = new List<GridPos>(); // 루프 내부 셀 (형태 지표/커버 기준)
         public List<int> spawnIndexList = new List<int>();       // loopWaypointList 인덱스
         public List<int> cornerIndexList = new List<int>();
+        public List<GridPos> statueList = new List<GridPos>();   // 석상 위치 (맵 외곽, 파괴 시 도플갱어 드랍)
+        public Fixed statueHp;                                   // 석상 체력 (TEMP)
 
         public int perimeter;                                     // 둘레 타일 수 = loopWaypointList.Count
         public int buildArea;                                     // 배치 가능 타일 수 (경로 외 전체)
@@ -59,6 +61,9 @@ namespace Synthesis.Core.Map
         public int bumpDistMax;
         public int spawnCount;
         public int maxRetry;
+        public int statueCountMin;
+        public int statueCountMax;
+        public int statueHp;
 
         public static MapGenParams Defaults()
         {
@@ -70,6 +75,7 @@ namespace Synthesis.Core.Map
             p.minLaneGap = 2; p.coverageRadius = 4; p.coverageMin = 0; p.coverageMax = 0;
             p.bumpCountMin = 3; p.bumpCountMax = 6; p.bumpDistMax = 2;
             p.spawnCount = 3; p.maxRetry = 30;
+            p.statueCountMin = 1; p.statueCountMax = 2; p.statueHp = 1200;
             return p;
         }
     }
