@@ -7,7 +7,7 @@ using Synthesis.Core.Simulation;
 
 namespace Synthesis.Demo
 {
-    // STEP 3(v0.4). 헤드리스 데모 - 뽑기->조합->배치->41웨이브->보스를 한 사이클 돌려 결과를 출력한다.
+    // 헤드리스 데모(축소판). 전투/유닛 이동은 시뮬에서 제거됐으므로 데이터 로드/맵 생성/몬스터 스폰만 확인한다.
     // 사용: synthesis-demo [dataDir] [seed]
     public static class Program
     {
@@ -27,23 +27,21 @@ namespace Synthesis.Demo
             MapGenParams p = MapGenParser.Load(ReadIfExists(dataDir, "mapgen.csv"));
             LoopMap map = LoopMapGenerator.Generate(p, seed);
 
-            Console.WriteLine("SYNTHESIS v0.4 데모 - 시드 " + seed + " (뽑기->조합->배치->41웨이브)");
-            Console.Write("석상 " + map.statueList.Count + "개: ");
-            foreach (var s in map.statueList) Console.Write("(" + s.x + "," + s.y + ") ");
-            Console.WriteLine("hp=" + map.statueHp.ToIntRounded());
-            Console.WriteLine("------------------------------------------------------------");
+            Console.WriteLine("SYNTHESIS 데모 - 시드 " + seed);
+            Console.WriteLine("데이터: 유닛 " + db.unitList.Count + " / 레시피 " + db.recipeList.Count
+                + " / 적 " + db.enemyList.Count + " / 보스 " + db.bossList.Count + " / 웨이브 " + db.waveList.Count);
+            Console.WriteLine("맵: 둘레 " + map.perimeter + " / 배치칸 " + map.buildArea
+                + " / 스폰 " + map.spawnIndexList.Count + " / 석상 " + map.statueList.Count
+                + (map.isFallback ? " (폴백)" : ""));
 
-            LoopRunController run = new LoopRunController(db, map, seed);
-            LoopRunResult result = run.RunFullCycle();
-
-
-            foreach (var line in result.waveLog) Console.WriteLine("  " + line);
-
-            Console.WriteLine("------------------------------------------------------------");
-            Console.WriteLine("도달 웨이브 " + result.wavesReached + " / 41   총 처치 " + result.killedTotal);
-            Console.WriteLine("결과: " + (result.cleared ? "클리어" : (result.defeated ? "패배" : "미완")));
-            Console.WriteLine("final hash: " + result.finalHash.ToString("x16"));
-            return result.cleared ? 0 : 1;
+            // 첫 웨이브를 스폰해 몬스터가 순회하는지만 확인(전투 없음).
+            LoopSimulator sim = new LoopSimulator(map, seed);
+            EnemyData e = db.enemyList.Count > 0 ? db.enemyList[0] : null;
+            sim.StartWave(e, 10, 8);
+            for (int i = 0; i < 200; ++i) sim.Tick();
+            Console.WriteLine("200틱 후 필드 몬스터 " + sim.state.aliveCount + " (스폰만, 처치 없음)");
+            Console.WriteLine("final hash: " + sim.ComputeStateHash().ToString("x16"));
+            return 0;
         }
 
         private static GameDatabase LoadDatabase(string dataDir)

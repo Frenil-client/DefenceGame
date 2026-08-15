@@ -88,29 +88,6 @@ namespace Synthesis.Core.Tests
             Assert.False(sim.PlaceUnit(mag, buildCell.x, buildCell.y)); // 중복 불가
         }
 
-        [Fact]
-        public void Units_KillLoopingMonsters()
-        {
-            UnitData mag = FindUnit("T1-MAG");
-
-            LoopMap map = MakeMap(1);
-            LoopSimulator sim = new LoopSimulator(map, 1);
-            sim.state.cost = Fixed.FromInt(40);
-
-            int placed = 0;
-            for (int i = 0; i < map.interiorTileList.Count && placed < 6; ++i)
-            {
-                GridPos c = map.interiorTileList[i];
-                if (sim.PlaceUnit(mag, c.x, c.y)) ++placed;
-                sim.state.cost = Fixed.FromInt(40);
-            }
-            Assert.True(placed > 0);
-
-            sim.StartWave(E01(), 20, 10);
-            for (int i = 0; i < 1200; ++i) sim.Tick();
-
-            Assert.True(sim.state.killedCount > 0);
-        }
 
         [Fact]
         public void Determinism_Holds()

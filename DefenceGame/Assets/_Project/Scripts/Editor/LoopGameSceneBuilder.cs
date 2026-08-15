@@ -97,7 +97,7 @@ namespace Synthesis.Editor
             SetPopupPrefabs(uiManager);
             if (hud != null) { SetRef(hud, "game", gm); SetRef(hud, "waves", wm); }
             if (inv != null) SetRef(inv, "game", gm);
-            if (hpBars != null) { SetRef(hpBars, "game", gm); SetRef(hpBars, "cam", cam); SetRef(hpBars, "baseCanvas", baseCanvas); }
+            if (hpBars != null) { SetRef(hpBars, "game", gm); SetRef(hpBars, "cam", cam); SetRef(hpBars, "baseCanvas", baseCanvas); SetRef(hpBars, "entityView", entityView); }
 
             string dir = Path.GetDirectoryName(ScenePath);
             if (!AssetDatabase.IsValidFolder(dir))

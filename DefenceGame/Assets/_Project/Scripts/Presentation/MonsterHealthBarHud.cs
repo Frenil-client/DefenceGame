@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Synthesis.Core;
 using Synthesis.Core.Simulation;
 
 namespace Synthesis.Presentation
@@ -12,6 +11,7 @@ namespace Synthesis.Presentation
         [SerializeField] private GameManager game;
         [SerializeField] private Camera cam;               // 게임 카메라. 인스펙터 등록
         [SerializeField] private Canvas baseCanvas;        // 상위 UI Canvas(스케일 기준). 인스펙터 등록
+        [SerializeField] private EntityView entityView;    // 보간된 몬스터 몸체 위치 출처. 인스펙터 등록
         [SerializeField] private MonsterHpBarView barPrefab; // HP 바 아이템 프리팹
         [SerializeField] private float barWidth = 44f;     // 바 폭(프리팹과 일치, 중앙 정렬 보정용)
         [SerializeField] private float screenYOffset = 30f;
@@ -22,10 +22,9 @@ namespace Synthesis.Presentation
         private void Update()
         {
             if (game == null || game.Context == null || !game.Context.IsValid()) return;
-            if (cam == null || barPrefab == null) return;
+            if (cam == null || barPrefab == null || entityView == null) return;
 
             LoopSimulator sim = game.Context.sim;
-            LoopMapView mapView = game.MapView;
             float sf = baseCanvas != null && baseCanvas.scaleFactor > 0f ? baseCanvas.scaleFactor : 1f;
 
             int used = 0;
@@ -38,9 +37,9 @@ namespace Synthesis.Presentation
                 long max;
                 if (!maxHp.TryGetValue(m, out max)) { max = m.hp.raw > 0 ? m.hp.raw : 1; maxHp[m] = max; }
 
-                Fixed fx, fy;
-                sim.GetMonsterPosition(m, out fx, out fy);
-                Vector3 world = mapView.CellToWorldF((float)fx.ToDoubleForDisplay(), (float)fy.ToDoubleForDisplay()) + new Vector3(0f, 0.35f, 0f);
+                // 시뮬 위치가 아니라 보간된 몸체 위치를 투영해 몬스터와 정확히 정렬(함께 부드럽게).
+                Vector3 world;
+                if (!entityView.TryGetMonsterWorld(m, out world)) continue;
                 Vector3 screen = cam.WorldToScreenPoint(world);
                 if (screen.z < 0f) continue; // 카메라 뒤
 

@@ -26,14 +26,17 @@ namespace Synthesis.Presentation
 
         private readonly Dictionary<LoopMonster, GameObject> monsterViews = new Dictionary<LoopMonster, GameObject>();
         private readonly Dictionary<LoopUnit, GameObject> unitViews = new Dictionary<LoopUnit, GameObject>();
-        private readonly Dictionary<LoopUnit, LineRenderer> unitBeams = new Dictionary<LoopUnit, LineRenderer>();
         private readonly Dictionary<Color, Material> matCache = new Dictionary<Color, Material>();
         private Shader tileShader;
-        private Material beamMaterial;
 
         private static readonly Color MonsterColor = new Color(0.85f, 0.25f, 0.25f);
-        private static readonly Color BeamColor = new Color(1f, 0.92f, 0.35f);
-        private const int BeamVisibleTicks = 4; // 공격 후 빔이 보이는 틱 수(20틱/초 기준 약 0.2초)
+        private const float MoveSmoothing = 25f; // 시뮬(20Hz)과 렌더(고FPS) 사이 위치 보간 강도
+
+        // 시뮬 위치는 틱마다만 바뀌므로, 렌더는 프레임마다 부드럽게 추종해 버벅임을 없앤다(프레임률 무관).
+        private static Vector3 SmoothPos(Vector3 current, Vector3 target)
+        {
+            return Vector3.Lerp(current, target, 1f - Mathf.Exp(-MoveSmoothing * Time.deltaTime));
+        }
 
         private void Start()
         {
@@ -90,61 +93,19 @@ namespace Synthesis.Presentation
             if (game == null || game.Context == null || !game.Context.IsValid()) return;
             SyncMonsters(game.Context.sim);
             SyncUnits(game.Context.sim, game.MapView);
-            SyncAttackBeams(game.Context.sim, game.MapView);
         }
 
-        // 유닛이 최근에 공격했으면 대상까지 빔을 그린다(공격이 일어나는 것을 눈으로 확인).
-        private void SyncAttackBeams(LoopSimulator sim, LoopMapView mapView)
+        // 몬스터 몸체(보간된) 월드 위치. HP바 등이 몸체에 정렬해 함께 부드럽게 움직이도록 노출.
+        public bool TryGetMonsterWorld(LoopMonster m, out Vector3 pos)
         {
-            foreach (var pair in unitViews)
+            GameObject go;
+            if (monsterViews.TryGetValue(m, out go) && go != null)
             {
-                LoopUnit u = pair.Key;
-                GameObject go = pair.Value;
-
-                LineRenderer lr;
-                if (!unitBeams.TryGetValue(u, out lr))
-                {
-                    lr = CreateBeam(go);
-                    unitBeams[u] = lr;
-                }
-
-                bool recent = sim.state.tick - u.lastAttackTick <= BeamVisibleTicks;
-                lr.enabled = recent;
-                if (!recent) continue;
-
-                Vector3 from = go.transform.position;
-                Vector3 to = mapView.CellToWorldF((float)u.lastTargetX.ToDoubleForDisplay(), (float)u.lastTargetY.ToDoubleForDisplay()) + new Vector3(0f, 0.35f, 0f);
-                lr.SetPosition(0, from);
-                lr.SetPosition(1, to);
+                pos = go.transform.position;
+                return true;
             }
-        }
-
-        private LineRenderer CreateBeam(GameObject unitGo)
-        {
-            GameObject beamGo = new GameObject("AttackBeam");
-            beamGo.transform.SetParent(unitGo.transform, false);
-            LineRenderer lr = beamGo.AddComponent<LineRenderer>();
-            lr.useWorldSpace = true;
-            lr.positionCount = 2;
-            lr.widthMultiplier = 0.07f;
-            lr.numCapVertices = 2;
-            lr.sharedMaterial = GetBeamMaterial();
-            lr.startColor = BeamColor;
-            lr.endColor = new Color(BeamColor.r, BeamColor.g, BeamColor.b, 0.35f);
-            lr.enabled = false;
-            return lr;
-        }
-
-        private Material GetBeamMaterial()
-        {
-            if (beamMaterial != null) return beamMaterial;
-            Shader s = Shader.Find("Universal Render Pipeline/Unlit");
-            if (s == null) s = Shader.Find("Sprites/Default");
-            if (s == null) s = Shader.Find("Unlit/Color");
-            beamMaterial = new Material(s);
-            beamMaterial.color = BeamColor;
-            if (beamMaterial.HasProperty("_BaseColor")) beamMaterial.SetColor("_BaseColor", BeamColor);
-            return beamMaterial;
+            pos = Vector3.zero;
+            return false;
         }
 
         private void SyncMonsters(LoopSimulator sim)
@@ -179,7 +140,9 @@ namespace Synthesis.Presentation
 
                 Fixed fx, fy;
                 sim.GetMonsterPosition(m, out fx, out fy);
-                go.transform.position = mapView.CellToWorldF((float)fx.ToDoubleForDisplay(), (float)fy.ToDoubleForDisplay()) + new Vector3(0f, 0.35f, 0f);
+                Vector3 target = mapView.CellToWorldF((float)fx.ToDoubleForDisplay(), (float)fy.ToDoubleForDisplay()) + new Vector3(0f, 0.35f, 0f);
+                // 새로 생성된 뷰는 스냅, 기존 뷰는 부드럽게 추종.
+                go.transform.position = has ? SmoothPos(go.transform.position, target) : target;
             }
         }
 
@@ -187,7 +150,7 @@ namespace Synthesis.Presentation
         {
             var list = sim.state.unitList;
 
-            // 조합 등으로 필드에서 빠진 유닛의 뷰/빔을 정리한다.
+            // 조합 등으로 필드에서 빠진 유닛의 뷰를 정리한다.
             HashSet<LoopUnit> present = new HashSet<LoopUnit>(list);
             List<LoopUnit> stale = null;
             foreach (var pair in unitViews)
@@ -200,8 +163,6 @@ namespace Synthesis.Presentation
             {
                 foreach (var u in stale)
                 {
-                    LineRenderer lr;
-                    if (unitBeams.TryGetValue(u, out lr)) { if (lr != null) Destroy(lr.gameObject); unitBeams.Remove(u); }
                     Destroy(unitViews[u]);
                     unitViews.Remove(u);
                 }
@@ -226,7 +187,8 @@ namespace Synthesis.Presentation
                 }
                 go.name = "Unit_" + u.data.id;
                 go.transform.SetParent(unitRoot, false);
-                go.transform.position = mapView.CellToWorld(u.cellX, u.cellY) + new Vector3(0f, 0.3f, 0f);
+                // 유닛은 배치 칸에 고정(시뮬에서 이동 제거). 배치된 셀에 그대로 놓는다.
+                go.transform.position = mapView.CellToWorldF(u.cellX, u.cellY) + new Vector3(0f, 0.3f, 0f);
                 unitViews.Add(u, go);
             }
         }

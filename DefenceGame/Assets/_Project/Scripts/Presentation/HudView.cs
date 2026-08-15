@@ -32,7 +32,7 @@ namespace Synthesis.Presentation
             statsText.text =
                 "웨이브 " + shownWave + " / " + game.MaxWave + "  [" + phaseLabel + "]  x" + game.Speed + "\n"
                 + "코스트 " + s.cost + " / " + s.costCap + "\n"
-                + "필드 몬스터 " + s.aliveCount + "   처치 " + s.killedCount + "\n"
+                + "필드 몬스터 " + s.aliveCount + "\n"
                 + "인벤토리 " + game.Context.inventory.Count + "   최근 뽑기 " + granted;
         }
     }
