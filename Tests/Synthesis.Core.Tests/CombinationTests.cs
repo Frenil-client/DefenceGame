@@ -43,5 +43,23 @@ namespace Synthesis.Core.Tests
             Assert.True(engine.TryGetRecipe("T5-WAR-01", out r));
             Assert.Equal(4, r.materials.Count);
         }
+
+        [Fact]
+        public void RecipesUsing_ReverseIndex()
+        {
+            var engine = Engine();
+            var recipes = engine.RecipesUsing("T1-WAR");
+
+            var ids = new HashSet<string>();
+            foreach (var r in recipes) ids.Add(r.resultId);
+
+            // 전사가 재료로 들어가는 조합식(UNIT_RECIPES 역참조): T2-WAR-01(전사x2), T2-WAR-07, T2-WAR-08, T3-WAR-01, T3-WAR-02
+            Assert.Equal(5, recipes.Count);
+            Assert.Contains("T2-WAR-01", ids);
+            Assert.Contains("T2-WAR-07", ids);
+            Assert.Contains("T2-WAR-08", ids);
+            Assert.Contains("T3-WAR-01", ids);
+            Assert.Contains("T3-WAR-02", ids);
+        }
     }
 }

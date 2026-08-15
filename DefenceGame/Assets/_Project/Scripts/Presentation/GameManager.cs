@@ -20,17 +20,14 @@ namespace Synthesis.Presentation
         public int MaxWave => maxWave;
         public float Speed = 1f;
 
-        // UI에서 고른 배치할 유닛 id (비어 있으면 감당 가능한 첫 유닛)
-        public string SelectedUnitId = "";
-
         private float tickAccum;
 
         private void Awake()
         {
-            if (mapView == null) mapView = Object.FindFirstObjectByType<LoopMapView>();
+            // mapView 는 인스펙터에 등록한다(씬에 미리 배치). LoopMapRuntimeRenderer/UIManager 도 씬에 미리 둔다.
             if (mapView == null)
             {
-                Debug.LogError("[GameManager] 씬에 LoopMapView 가 없습니다.");
+                Debug.LogError("[GameManager] mapView 가 할당되지 않았습니다(인스펙터에서 등록).");
                 enabled = false;
                 return;
             }
@@ -39,7 +36,12 @@ namespace Synthesis.Presentation
             {
                 Debug.LogError("[GameManager] Data 를 읽지 못했습니다.");
                 enabled = false;
+                return;
             }
+
+            // 로드한 맵 크기를 뷰에 반영해 원점 중심 좌표가 맞도록 한다(카메라도 원점을 봄).
+            mapView.gridWidth = Context.map.gridWidth;
+            mapView.gridHeight = Context.map.gridHeight;
         }
 
         private void Update()

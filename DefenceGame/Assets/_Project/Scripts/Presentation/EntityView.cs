@@ -37,8 +37,6 @@ namespace Synthesis.Presentation
 
         private void Start()
         {
-            if (game == null) game = Object.FindFirstObjectByType<GameManager>();
-
             unitPrefab = Resources.Load<GameObject>("Entities/Units/_Base");
             monsterPrefab = Resources.Load<GameObject>("Entities/Monsters/Monster");
 

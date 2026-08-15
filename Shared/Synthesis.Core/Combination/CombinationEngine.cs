@@ -27,6 +27,22 @@ namespace Synthesis.Core.Combination
             return byResult.TryGetValue(resultId, out recipe);
         }
 
+        // 이 유닛을 재료로 쓰는 조합식 목록(역참조). 조합 UI 가 "이 유닛으로 만들 수 있는 것"을 보여줄 때 쓴다.
+        public List<RecipeData> RecipesUsing(string unitId)
+        {
+            List<RecipeData> result = new List<RecipeData>();
+            for (int i = 0; i < recipeList.Count; ++i)
+            {
+                RecipeData recipe = recipeList[i];
+                if (recipe == null || recipe.materials == null) continue;
+                for (int m = 0; m < recipe.materials.Count; ++m)
+                {
+                    if (recipe.materials[m] == unitId) { result.Add(recipe); break; }
+                }
+            }
+            return result;
+        }
+
         // 재료별 필요 개수를 센다(같은 재료 반복 처리).
         public static Dictionary<string, int> Needs(RecipeData recipe)
         {

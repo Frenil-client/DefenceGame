@@ -17,11 +17,7 @@ namespace Synthesis.Presentation
 
         private static readonly Color StatueColor = new Color(0.55f, 0.35f, 0.75f);
 
-        private void Start()
-        {
-            if (game == null) game = Object.FindFirstObjectByType<GameManager>();
-            if (mapView == null) mapView = Object.FindFirstObjectByType<LoopMapView>();
-        }
+        // game/mapView 는 인스펙터에 등록한다(씬에 미리 배치).
 
         private void Update()
         {

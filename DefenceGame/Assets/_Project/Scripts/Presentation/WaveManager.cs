@@ -29,7 +29,7 @@ namespace Synthesis.Presentation
 
         private void Awake()
         {
-            if (game == null) game = Object.FindFirstObjectByType<GameManager>();
+            // game 은 인스펙터에 등록한다(씬에 미리 배치).
             waveCountdown = prepSeconds;
         }
 

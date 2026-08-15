@@ -35,7 +35,7 @@ namespace Synthesis.Presentation
 
         public Renderer GetModelRenderer()
         {
-            return model != null ? model.GetComponent<Renderer>() : GetComponentInChildren<Renderer>();
+            return model != null ? model.GetComponent<Renderer>() : null;
         }
 
         public void SetSelected(bool selected)

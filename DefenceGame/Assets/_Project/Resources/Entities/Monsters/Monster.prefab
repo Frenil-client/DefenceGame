@@ -136,6 +136,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Synthesis.Presentation::Synthesis.Presentation.MonsterView
   model: {fileID: 6694996091829602173}
-  hpBar: {fileID: 0}
   enemyId: 
   waypointIndex: 0
