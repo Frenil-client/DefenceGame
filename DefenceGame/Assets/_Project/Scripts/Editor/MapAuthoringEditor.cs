@@ -21,6 +21,9 @@ namespace Synthesis.Editor
         private Mode mode = Mode.Path;
         private MapSO loadTarget;
 
+        private bool painting;
+        private Vector2Int lastPaintCell;
+
         private static readonly Color GridColor = new Color(0.5f, 0.5f, 0.55f, 0.4f);
         private static readonly Color PathColor = new Color(0.35f, 0.55f, 0.95f, 0.55f);
         private static readonly Color SpawnColor = new Color(0.90f, 0.30f, 0.30f, 0.75f);
@@ -43,10 +46,11 @@ namespace Synthesis.Editor
             MapAuthoring m = (MapAuthoring)target;
 
             EditorGUILayout.HelpBox(
-                "Scene 뷰에서 타일 클릭으로 편집.\n" +
-                "경로: 좌클릭으로 순서대로 추가(마지막 재클릭=취소)\n" +
-                "스폰: 경로 셀 좌클릭으로 토글\n" +
-                "지우기: 경로 셀 좌클릭으로 제거", MessageType.Info);
+                "Scene 뷰에서 타일 클릭/드래그로 편집(드래그로 연속 칠하기).\n" +
+                "경로: 좌클릭/드래그로 순서대로 추가(단일 클릭 시 마지막 재클릭=취소)\n" +
+                "스폰: 경로 셀 좌클릭 토글(드래그로 여러 셀 지정)\n" +
+                "지우기: 경로 셀 좌클릭/드래그로 제거\n" +
+                "저장 시 닫힌 루프/끊김/스폰 유무를 검사합니다.", MessageType.Info);
 
             mode = (Mode)GUILayout.Toolbar((int)mode, new string[] { "경로", "스폰", "지우기" });
 
@@ -98,16 +102,55 @@ namespace Synthesis.Editor
             DrawSpawns(m);
             if (hasCell) DrawCell(m, cell, HoverColor, 0.42f);
 
-            // alt 는 카메라 조작이므로 건드리지 않는다.
-            if (!e.alt && e.type == EventType.MouseDown && e.button == 0 && hasCell)
+            // alt 는 카메라 조작이므로 건드리지 않는다. 좌클릭=클릭 편집, 좌드래그=칠하기.
+            if (!e.alt && e.button == 0)
             {
-                Undo.RecordObject(m, "Edit Map");
-                ApplyClick(m, cell);
-                EditorUtility.SetDirty(m);
-                e.Use();
+                if (e.type == EventType.MouseDown && hasCell)
+                {
+                    Undo.RecordObject(m, "Edit Map");
+                    ApplyClick(m, cell);
+                    painting = true;
+                    lastPaintCell = cell;
+                    EditorUtility.SetDirty(m);
+                    e.Use();
+                }
+                else if (e.type == EventType.MouseDrag && painting && hasCell && cell != lastPaintCell)
+                {
+                    Undo.RecordObject(m, "Paint Map");
+                    Paint(m, cell);
+                    lastPaintCell = cell;
+                    EditorUtility.SetDirty(m);
+                    e.Use();
+                }
+                else if (e.type == EventType.MouseUp)
+                {
+                    painting = false;
+                }
             }
 
             if (e.type == EventType.MouseMove) SceneView.RepaintAll();
+        }
+
+        // 드래그로 칠할 때: 경로는 직선 보간으로 빈 셀까지 이어붙이고(빠른 드래그 대비), 지우기는 제거, 스폰은 설정.
+        private void Paint(MapAuthoring m, Vector2Int cell)
+        {
+            if (mode == Mode.Path)
+            {
+                foreach (Vector2Int step in LineCells(lastPaintCell, cell))
+                {
+                    if (m.InBounds(step) && m.IndexOfCell(step) < 0) m.path.Add(step);
+                }
+            }
+            else if (mode == Mode.Spawn)
+            {
+                int idx = m.IndexOfCell(cell);
+                if (idx >= 0 && !m.spawnIndices.Contains(idx)) m.spawnIndices.Add(idx);
+            }
+            else // Erase
+            {
+                int idx = m.IndexOfCell(cell);
+                if (idx >= 0) RemoveAt(m, idx);
+            }
         }
 
         private void ApplyClick(MapAuthoring m, Vector2Int cell)
@@ -136,6 +179,28 @@ namespace Synthesis.Editor
             }
         }
 
+        // a(제외)에서 b(포함)까지 격자 직선 위의 셀들(Bresenham). 드래그 보간용.
+        private static List<Vector2Int> LineCells(Vector2Int a, Vector2Int b)
+        {
+            List<Vector2Int> cells = new List<Vector2Int>();
+            int dx = Mathf.Abs(b.x - a.x);
+            int dy = Mathf.Abs(b.y - a.y);
+            int sx = a.x < b.x ? 1 : -1;
+            int sy = a.y < b.y ? 1 : -1;
+            int err = dx - dy;
+            int x = a.x, y = a.y;
+            int guard = 0;
+            while (guard++ < 4096)
+            {
+                if (!(x == a.x && y == a.y)) cells.Add(new Vector2Int(x, y));
+                if (x == b.x && y == b.y) break;
+                int e2 = 2 * err;
+                if (e2 > -dy) { err -= dy; x += sx; }
+                if (e2 < dx) { err += dx; y += sy; }
+            }
+            return cells;
+        }
+
         // 경로에서 index 제거 + 스폰 인덱스 보정(제거/시프트).
         private void RemoveAt(MapAuthoring m, int index)
         {
@@ -156,27 +221,28 @@ namespace Synthesis.Editor
             Plane plane = new Plane(Vector3.up, Vector3.zero);
             float enter;
             if (!plane.Raycast(ray, out enter)) return false;
-            Vector3 wp = ray.GetPoint(enter);
-            int x = Mathf.RoundToInt(wp.x / m.cellSize);
-            int y = Mathf.RoundToInt(-wp.z / m.cellSize);
-            cell = new Vector2Int(x, y);
+            cell = m.WorldToCell(ray.GetPoint(enter));
             return m.InBounds(cell);
         }
 
+        // 그리드는 CellToWorld(원점 중심) 기준으로 그린다.
         private void DrawGrid(MapAuthoring m)
         {
             Handles.color = GridColor;
+            float half = m.cellSize * 0.5f;
+            Vector3 origin = m.CellToWorld(0, 0);
+            float minX = origin.x - half;
+            float topZ = origin.z + half;
+
             for (int x = 0; x <= m.gridWidth; ++x)
             {
-                Vector3 a = new Vector3(x * m.cellSize - m.cellSize * 0.5f, 0f, m.cellSize * 0.5f);
-                Vector3 b = new Vector3(x * m.cellSize - m.cellSize * 0.5f, 0f, -(m.gridHeight - 0.5f) * m.cellSize);
-                Handles.DrawLine(a, b);
+                float px = minX + x * m.cellSize;
+                Handles.DrawLine(new Vector3(px, 0f, topZ), new Vector3(px, 0f, topZ - m.gridHeight * m.cellSize));
             }
             for (int y = 0; y <= m.gridHeight; ++y)
             {
-                Vector3 a = new Vector3(-m.cellSize * 0.5f, 0f, -(y * m.cellSize - m.cellSize * 0.5f));
-                Vector3 b = new Vector3((m.gridWidth - 0.5f) * m.cellSize, 0f, -(y * m.cellSize - m.cellSize * 0.5f));
-                Handles.DrawLine(a, b);
+                float pz = topZ - y * m.cellSize;
+                Handles.DrawLine(new Vector3(minX, 0f, pz), new Vector3(minX + m.gridWidth * m.cellSize, 0f, pz));
             }
         }
 
@@ -223,11 +289,56 @@ namespace Synthesis.Editor
             Handles.DrawSolidRectangleWithOutline(verts, color, new Color(color.r, color.g, color.b, 0.9f));
         }
 
+        // 저장 전 경로 완전성 검사: 닫힌 루프인지, 끊긴 구간/중복 없는지, 스폰이 있는지.
+        private bool ValidatePath(MapAuthoring m, out string issues)
+        {
+            List<string> problems = new List<string>();
+
+            if (m.path.Count < 3)
+            {
+                problems.Add("경로가 3셀 미만입니다 (루프가 되려면 최소 3셀).");
+            }
+
+            HashSet<Vector2Int> seen = new HashSet<Vector2Int>();
+            foreach (var c in m.path)
+            {
+                if (!seen.Add(c)) { problems.Add("같은 셀이 두 번 이상 들어갔습니다: " + c.x + "," + c.y); break; }
+            }
+
+            // 이웃 연결성(닫힘 포함): 이웃한 웨이포인트는 상하좌우/대각으로 인접해야 한다.
+            if (m.path.Count >= 2)
+            {
+                for (int i = 0; i < m.path.Count; ++i)
+                {
+                    Vector2Int a = m.path[i];
+                    Vector2Int b = m.path[(i + 1) % m.path.Count];
+                    int cheb = Mathf.Max(Mathf.Abs(a.x - b.x), Mathf.Abs(a.y - b.y));
+                    if (cheb != 1)
+                    {
+                        bool closing = (i == m.path.Count - 1);
+                        problems.Add(closing
+                            ? "루프가 닫히지 않았습니다 (마지막 셀과 첫 셀이 떨어져 있음)."
+                            : "끊긴 구간이 있습니다 (" + i + "번과 " + (i + 1) + "번 셀이 인접하지 않음).");
+                        break;
+                    }
+                }
+            }
+
+            if (m.spawnIndices.Count == 0)
+            {
+                problems.Add("스폰 지점이 없습니다 (최소 1곳 필요).");
+            }
+
+            issues = string.Join("\n", problems);
+            return problems.Count == 0;
+        }
+
         private void SaveToSO(MapAuthoring m)
         {
-            if (m.path.Count < 2)
+            string issues;
+            if (!ValidatePath(m, out issues))
             {
-                EditorUtility.DisplayDialog("맵 저장", "경로 셀이 최소 2개는 있어야 합니다.", "확인");
+                EditorUtility.DisplayDialog("맵 저장 불가", "경로가 완전하지 않습니다:\n\n" + issues, "확인");
                 return;
             }
 

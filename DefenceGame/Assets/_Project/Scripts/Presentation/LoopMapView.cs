@@ -13,15 +13,22 @@ namespace Synthesis.Presentation
         public bool useDefaultMap = false;
         public float cellSize = 1f;
 
+        [Tooltip("맵 그리드 크기. 원점 중심 배치에 쓴다. 런타임엔 로드한 맵 크기로 GameManager 가 설정한다")]
+        public int gridWidth = 16;
+        public int gridHeight = 12;
+
+        // 그리드를 원점 중심으로 배치한다(MapAuthoring 과 동일 규칙). 카메라도 원점을 바라본다.
         public Vector3 CellToWorld(int x, int y)
         {
-            return new Vector3(x * cellSize, 0f, -y * cellSize);
+            return CellToWorldF(x, y);
         }
 
         // 몬스터처럼 셀 사이를 보간한 위치용(소수 좌표).
         public Vector3 CellToWorldF(float x, float y)
         {
-            return new Vector3(x * cellSize, 0f, -y * cellSize);
+            float ox = (gridWidth - 1) * 0.5f;
+            float oy = (gridHeight - 1) * 0.5f;
+            return new Vector3((x - ox) * cellSize, 0f, -(y - oy) * cellSize);
         }
 
         public static Color TileColor(LoopTile tile)

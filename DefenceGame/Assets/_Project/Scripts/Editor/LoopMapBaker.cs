@@ -83,6 +83,10 @@ namespace Synthesis.Editor
         {
             if (view == null || map == null) return;
 
+            // 원점 중심 좌표가 맞도록 뷰에 맵 크기를 반영한다.
+            view.gridWidth = map.gridWidth;
+            view.gridHeight = map.gridHeight;
+
             Clear(view);
 
             Shader shader = Shader.Find("Universal Render Pipeline/Lit");

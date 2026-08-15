@@ -31,9 +31,22 @@ namespace Synthesis.Presentation
         }
 #endif
 
+        // 그리드를 원점 중심으로 배치한다. gridWidth/gridHeight 를 키우면 중심을 기준으로 사방으로 확장된다.
         public Vector3 CellToWorld(int x, int y)
         {
-            return new Vector3(x * cellSize, 0f, -y * cellSize);
+            float ox = (gridWidth - 1) * 0.5f;
+            float oy = (gridHeight - 1) * 0.5f;
+            return new Vector3((x - ox) * cellSize, 0f, -(y - oy) * cellSize);
+        }
+
+        // 월드 좌표를 셀 인덱스로(CellToWorld 역변환).
+        public Vector2Int WorldToCell(Vector3 wp)
+        {
+            float ox = (gridWidth - 1) * 0.5f;
+            float oy = (gridHeight - 1) * 0.5f;
+            int x = Mathf.RoundToInt(wp.x / cellSize + ox);
+            int y = Mathf.RoundToInt(-wp.z / cellSize + oy);
+            return new Vector2Int(x, y);
         }
 
         public int IndexOfCell(Vector2Int cell)
