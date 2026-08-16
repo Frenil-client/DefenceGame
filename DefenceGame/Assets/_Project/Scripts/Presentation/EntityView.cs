@@ -12,6 +12,7 @@ namespace Synthesis.Presentation
     public sealed class EntityView : MonoBehaviour
     {
         [SerializeField] private GameManager game;
+        [SerializeField] private float unitSpeedMultiplier = 1.2f; // 유닛 걷기 속도 = 몬스터 기본 이동속도 * 이 배수
 
         private Transform monsterRoot;
         private Transform unitRoot;
@@ -32,10 +33,25 @@ namespace Synthesis.Presentation
         private static readonly Color MonsterColor = new Color(0.85f, 0.25f, 0.25f);
         private const float MoveSmoothing = 25f; // 시뮬(20Hz)과 렌더(고FPS) 사이 위치 보간 강도
 
+        private float unitMoveSpeed = 1.848f; // 유닛 걷기 속도(셀/초). 몬스터 기본속도 * 배수. Context 준비 시 갱신
+        private bool unitSpeedResolved;
+
         // 시뮬 위치는 틱마다만 바뀌므로, 렌더는 프레임마다 부드럽게 추종해 버벅임을 없앤다(프레임률 무관).
         private static Vector3 SmoothPos(Vector3 current, Vector3 target)
         {
             return Vector3.Lerp(current, target, 1f - Mathf.Exp(-MoveSmoothing * Time.deltaTime));
+        }
+
+        // 유닛 걷기 속도를 몬스터 기본 이동속도(웨이브 몬스터 통일값) * 배수로 정한다. 한 번만 계산해 캐시.
+        private void ResolveUnitSpeed()
+        {
+            unitSpeedResolved = true;
+            var enemies = game.Context.db.enemyList;
+            if (enemies != null && enemies.Count > 0)
+            {
+                double baseSpeed = enemies[0].moveSpeed.ToDoubleForDisplay();
+                if (baseSpeed > 0.0) unitMoveSpeed = (float)(baseSpeed * unitSpeedMultiplier);
+            }
         }
 
         private void Start()
@@ -187,9 +203,19 @@ namespace Synthesis.Presentation
                 }
                 go.name = "Unit_" + u.data.id;
                 go.transform.SetParent(unitRoot, false);
-                // 유닛은 배치 칸에 고정(시뮬에서 이동 제거). 배치된 셀에 그대로 놓는다.
+                // 생성 시엔 배치 셀로 스냅(원점에서 미끄러져 들어오지 않게).
                 go.transform.position = mapView.CellToWorldF(u.cellX, u.cellY) + new Vector3(0f, 0.3f, 0f);
                 unitViews.Add(u, go);
+            }
+
+            // 유닛은 재배치(RelocateUnit)로 셀이 바뀔 수 있으므로 매 프레임 배치 셀로 일정 속도로 걸어간다.
+            if (!unitSpeedResolved) ResolveUnitSpeed();
+            float step = unitMoveSpeed * Time.deltaTime * game.Speed;
+            foreach (var pair in unitViews)
+            {
+                LoopUnit u = pair.Key;
+                Vector3 target = mapView.CellToWorldF(u.cellX, u.cellY) + new Vector3(0f, 0.3f, 0f);
+                pair.Value.transform.position = Vector3.MoveTowards(pair.Value.transform.position, target, step);
             }
         }
 

@@ -5,39 +5,45 @@ using Synthesis.Core.Data;
 using Synthesis.Core.Map;
 using Synthesis.Core.Units;
 using Synthesis.Core.Waves;
+using Synthesis.Core.Simulation;
 
 namespace Synthesis.Presentation
 {
     // STEP 2/3(재작업). 매니저 - 웨이브 스케줄 + 유닛 자동 배치.
+    // 각 웨이브에는 제한시간이 있다. 제한시간은 기본적으로 다음 웨이브가 시작될 때까지 남은 시간이다(SPEC 2-3).
+    // 일반 웨이브: 제한시간이 끝나거나 필드 몬스터가 0이 되면 다음 웨이브로 진행한다.
+    // 보스 웨이브: 제한시간 안에 보스를 처치하면 진행(마지막 라운드면 클리어), 못 처치하면 패배(SPEC 2-4).
     // 유닛은 플레이어가 위치를 고르지 않고 맵 중앙에서 바깥으로 퍼지며 자동 배치된다(중앙 우선).
-    // 필드 몬스터가 0이 되면 즉시 다음 웨이브(BALANCE v0.4 12). 없으면 대기시간 후 진행.
     public sealed class WaveManager : MonoBehaviour
     {
         [SerializeField] private GameManager game;
         [SerializeField] private float prepSeconds = 1.5f;
-        [SerializeField] private float waveHoldSeconds = 6f;
+        // [TEMP] 웨이브 제한시간(초). 8x12 둘레(36셀)를 몬스터가 약 1.5바퀴 도는 시간(BALANCE 12). 시뮬로 재확정.
+        [SerializeField] private float waveTimeLimit = 35f;
         // [TEMP] 게임 시작 시 미리 지급하는 1성 유닛 수(최초 지급, BALANCE 6-1). 시뮬로 재확정.
         [SerializeField] private int startUnitCount = 5;
 
         public int NextWave { get; private set; } = 1;
         public string LastGranted { get; private set; } = "-";
+        public bool Cleared { get; private set; }
+        public float WaveTimer => waveTimer;
 
-        private float waveCountdown;
+        private float waveTimer;
         private float placeTimer;
         private List<GridPos> centerTiles;
         private bool startGranted;
 
         private void Awake()
         {
-            // game 은 인스펙터에 등록한다(씬에 미리 배치).
-            waveCountdown = prepSeconds;
+            // game 은 인스펙터에 등록한다(씬에 미리 배치). 첫 웨이브 전 준비시간.
+            waveTimer = prepSeconds;
         }
 
         private void Update()
         {
             if (game == null || game.Context == null || !game.Context.IsValid()) return;
             var ctx = game.Context;
-            if (ctx.sim.state.defeated) return;
+            if (ctx.sim.state.defeated || Cleared) return;
 
             // 게임 시작 시 1성 유닛을 미리 지급한다(최초 지급). 컨텍스트가 준비된 첫 프레임에 1회.
             if (!startGranted)
@@ -58,18 +64,61 @@ namespace Synthesis.Presentation
                 placeTimer = 0.25f;
             }
 
-            if (NextWave > game.MaxWave || !ctx.sim.IsSpawningDone()) return;
+            waveTimer -= Time.deltaTime * game.Speed;
 
-            waveCountdown -= Time.deltaTime * game.Speed;
-            bool timeUp = waveCountdown <= 0f;
-            bool fieldClear = NextWave > 1 && ctx.sim.IsFieldClear();
+            int activeWave = NextWave - 1; // 현재 진행 중 웨이브(0 = 첫 웨이브 전 준비 단계)
 
-            if (timeUp || fieldClear)
+            // 준비 단계: 제한시간이 끝나면 첫 웨이브를 시작한다.
+            if (activeWave <= 0)
             {
-                BeginWave(ctx, NextWave);
-                ++NextWave;
-                waveCountdown = waveHoldSeconds;
+                if (waveTimer <= 0f) StartNextWave(ctx);
+                return;
             }
+
+            WaveData active;
+            bool isBoss = ctx.waveByIndex.TryGetValue(activeWave, out active) && active.isBoss;
+
+            if (isBoss)
+            {
+                // 보스 처치 = 스폰이 끝났고(보스 1기 등장 완료) 살아있는 보스가 없다.
+                bool bossDefeated = ctx.sim.IsSpawningDone() && !AnyBossAlive(ctx);
+                if (bossDefeated)
+                {
+                    // 마지막 라운드는 보스 처치가 곧 클리어. 잔여 몬스터가 남아도 즉시 클리어.
+                    if (activeWave >= game.MaxWave) { Cleared = true; return; }
+                    StartNextWave(ctx);
+                    return;
+                }
+                // 제한시간 안에 보스를 못 잡으면 패배(다음 웨이브로 넘어가지 않는다).
+                if (waveTimer <= 0f) ctx.sim.state.defeated = true;
+                return;
+            }
+
+            // 일반 웨이브: 제한시간 만료 또는 필드 클리어 시 다음 웨이브로.
+            if (waveTimer <= 0f || ctx.sim.IsFieldClear())
+            {
+                if (activeWave >= game.MaxWave) { Cleared = true; return; } // 방어적(마지막은 보스지만)
+                StartNextWave(ctx);
+            }
+        }
+
+        private void StartNextWave(RunContext ctx)
+        {
+            BeginWave(ctx, NextWave);
+            ++NextWave;
+            waveTimer = waveTimeLimit;
+        }
+
+        // 살아있는 보스 몬스터가 하나라도 있으면 true. 보스 id 는 bossById 로 판별한다.
+        private bool AnyBossAlive(RunContext ctx)
+        {
+            var list = ctx.sim.state.monsterList;
+            for (int i = 0; i < list.Count; ++i)
+            {
+                LoopMonster m = list[i];
+                if (m.alive && ctx.bossById.ContainsKey(m.enemyId)) return true;
+            }
+            return false;
         }
 
         private void BeginWave(RunContext ctx, int idx)

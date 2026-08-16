@@ -71,6 +71,19 @@ namespace Synthesis.Editor
             viewGo.transform.SetParent(managers.transform, false);
             EntityView entityView = viewGo.AddComponent<EntityView>();
 
+            // 실시간 전투(유닛 자동 공격).
+            GameObject combatGo = new GameObject("CombatController");
+            combatGo.transform.SetParent(managers.transform, false);
+            CombatController combat = combatGo.AddComponent<CombatController>();
+
+            // 유닛 재배치 입력(홀드 후 클릭업으로 이동).
+            GameObject moveGo = new GameObject("UnitMoveController");
+            moveGo.transform.SetParent(managers.transform, false);
+            UnitMoveController move = moveGo.AddComponent<UnitMoveController>();
+
+            // 드래그 중 선택 칸 2D 표시(지면에 눕힌 반투명 쿼드).
+            GameObject tileIndicator = CreateTileIndicator(env.transform);
+
             // ---- UI ----
             Canvas baseCanvas = CreateBaseCanvas();
             UIManager uiManager = baseCanvas.gameObject.AddComponent<UIManager>();
@@ -93,6 +106,13 @@ namespace Synthesis.Editor
             SetRef(renderer, "game", gm);
             SetRef(renderer, "mapView", view);
             SetRef(entityView, "game", gm);
+            SetRef(combat, "game", gm);
+            SetRef(combat, "mapView", view);
+            SetRef(combat, "entityView", entityView);
+            SetRef(move, "game", gm);
+            SetRef(move, "mapView", view);
+            SetRef(move, "cam", cam);
+            SetRef(move, "tileIndicator", tileIndicator);
             SetRef(uiManager, "baseCanvas", baseCanvas);
             SetPopupPrefabs(uiManager);
             if (hud != null) { SetRef(hud, "game", gm); SetRef(hud, "waves", wm); }
@@ -122,6 +142,43 @@ namespace Synthesis.Editor
             scaler.matchWidthOrHeight = 0.5f;
             go.AddComponent<GraphicRaycaster>();
             return canvas;
+        }
+
+        // 지면에 눕힌 반투명 쿼드(선택 칸 2D 데칼). 처음엔 비활성. 앞면이 위를 향하도록 x축 90도로 눕힌다.
+        private static GameObject CreateTileIndicator(Transform parent)
+        {
+            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            go.name = "TileIndicator";
+            go.transform.SetParent(parent, false);
+            go.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            go.transform.localScale = new Vector3(0.9f, 0.9f, 1f);
+
+            Collider col = go.GetComponent<Collider>();
+            if (col != null) Object.DestroyImmediate(col);
+
+            Renderer r = go.GetComponent<Renderer>();
+            if (r != null) r.sharedMaterial = CreateDecalMaterial(new Color(0.95f, 0.9f, 0.3f, 0.4f));
+
+            go.SetActive(false);
+            return go;
+        }
+
+        private static Material CreateDecalMaterial(Color color)
+        {
+            Shader sh = Shader.Find("Universal Render Pipeline/Unlit");
+            if (sh == null) sh = Shader.Find("Sprites/Default");
+            Material mat = new Material(sh);
+            mat.color = color;
+            if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", color);
+            // URP 투명 블렌드
+            if (mat.HasProperty("_Surface")) mat.SetFloat("_Surface", 1f);
+            if (mat.HasProperty("_Blend")) mat.SetFloat("_Blend", 0f);
+            if (mat.HasProperty("_SrcBlend")) mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            if (mat.HasProperty("_DstBlend")) mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            if (mat.HasProperty("_ZWrite")) mat.SetInt("_ZWrite", 0);
+            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            mat.renderQueue = 3000;
+            return mat;
         }
 
         private static T InstantiateHudPrefab<T>(string name, Transform parent) where T : Component

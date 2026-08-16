@@ -31,6 +31,14 @@ namespace Synthesis.Presentation
             return new Vector3((x - ox) * cellSize, 0f, -(y - oy) * cellSize);
         }
 
+        // 월드 좌표(지면)를 셀 소수 좌표로 역변환(CellToWorldF 의 역). 유닛 재배치 입력에 쓴다.
+        public Vector2 WorldToCellF(Vector3 world)
+        {
+            float ox = (gridWidth - 1) * 0.5f;
+            float oy = (gridHeight - 1) * 0.5f;
+            return new Vector2(world.x / cellSize + ox, -world.z / cellSize + oy);
+        }
+
         public static Color TileColor(LoopTile tile)
         {
             switch (tile)

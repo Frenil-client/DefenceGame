@@ -24,13 +24,16 @@ namespace Synthesis.Presentation
             var s = game.Context.sim.state;
             int next = waves != null ? waves.NextWave : 1;
             string granted = waves != null ? waves.LastGranted : "-";
+            bool cleared = waves != null && waves.Cleared;
             int shownWave = Mathf.Clamp(next - 1, 0, game.MaxWave);
             string phaseLabel = s.defeated ? "패배"
-                : (next > game.MaxWave && s.aliveCount == 0 ? "클리어"
-                : (s.pendingSpawns > 0 ? "전투" : "대기"));
+                : cleared ? "클리어"
+                : (s.pendingSpawns > 0 ? "전투" : "대기");
+            float remain = waves != null ? Mathf.Max(0f, waves.WaveTimer) : 0f;
 
             statsText.text =
                 "웨이브 " + shownWave + " / " + game.MaxWave + "  [" + phaseLabel + "]  x" + game.Speed + "\n"
+                + "제한시간 " + remain.ToString("F1") + "s\n"
                 + "코스트 " + s.cost + " / " + s.costCap + "\n"
                 + "필드 몬스터 " + s.aliveCount + "\n"
                 + "인벤토리 " + game.Context.inventory.Count + "   최근 뽑기 " + granted;

@@ -11,7 +11,7 @@ namespace Synthesis.Presentation
         [SerializeField] private LoopMapView mapView;
         [Tooltip("지정하면 이 저장된 맵을 로드한다(경로/스폰/석상 고정). 비우면 LoopMapView 의 시드/기본 모드로 생성")]
         [SerializeField] private MapSO mapAsset;
-        [SerializeField] private int maxWave = 30;
+        [SerializeField] private int maxWave = 40;
 
         public const float TickInterval = 1f / 20f;
 

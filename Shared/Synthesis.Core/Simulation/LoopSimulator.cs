@@ -228,6 +228,70 @@ namespace Synthesis.Core.Simulation
             return true;
         }
 
+        // 목표 칸에서 이 유닛이 놓일 수 있는(BUILD, 석상/경로/타 유닛 아님) 가장 가까운 칸을 찾는다. 자기 칸은 허용.
+        // 목표 자체가 유효하면 그대로 반환한다. 유효 칸이 하나도 없으면 false. 드래그 프리뷰와 실제 재배치가 같은 판정을 공유한다.
+        public bool FindPlacementCell(LoopUnit unit, int destX, int destY, out int resultx, out int resulty)
+        {
+            resultx = 0;
+            resulty = 0;
+            if (unit == null) return false;
+
+            if (CanOccupy(unit, destX, destY))
+            {
+                resultx = destX;
+                resulty = destY;
+                return true;
+            }
+
+            var tiles = state.map.buildTileList;
+            int bestIndex = -1;
+            long bestSq = long.MaxValue;
+            for (int i = 0; i < tiles.Count; ++i)
+            {
+                GridPos c = tiles[i];
+                if (!CanOccupy(unit, c.x, c.y))
+                {
+                    continue;
+                }
+                long dx = c.x - destX;
+                long dy = c.y - destY;
+                long d2 = dx * dx + dy * dy;
+                if (d2 < bestSq) { bestSq = d2; bestIndex = i; }
+            }
+            if (bestIndex < 0) return false;
+
+            resultx = tiles[bestIndex].x;
+            resulty = tiles[bestIndex].y;
+            return true;
+        }
+
+        // 유닛을 목표 칸으로 재배치한다. 즉시 칸을 재할당하고(가장 가까운 유효 칸으로 보정), 걷는 연출은 Unity 실시간이 맡는다.
+        public bool RelocateUnit(LoopUnit unit, int destX, int destY)
+        {
+            int cellx, celly;
+            if (!FindPlacementCell(unit, destX, destY, out cellx, out celly)) return false;
+            unit.cellX = cellx;
+            unit.cellY = celly;
+            return true;
+        }
+
+        // 이 유닛을 해당 칸에 놓을 수 있는지 공개 판정(드래그 프리뷰의 최근접 타일 탐색에 쓴다).
+        public bool CanPlaceUnitAt(LoopUnit unit, int x, int y)
+        {
+            if (unit == null) return false;
+            return CanOccupy(unit, x, y);
+        }
+
+        // 해당 칸에 이 유닛을 놓을 수 있나. BUILD 타일, 석상 아님, 다른 유닛 점유 아님(자기 칸은 허용).
+        private bool CanOccupy(LoopUnit self, int x, int y)
+        {
+            if (state.map.GetTile(x, y) != LoopTile.Build) return false;
+            if (IsStatueAt(x, y)) return false;
+            LoopUnit at = GetUnitAt(x, y);
+            if (at != null && at != self) return false;
+            return true;
+        }
+
         public bool RecallUnit(int x, int y)
         {
             for (int i = 0; i < state.unitList.Count; ++i)
@@ -250,6 +314,22 @@ namespace Synthesis.Core.Simulation
                 if (state.unitList[i].cellX == x && state.unitList[i].cellY == y) return state.unitList[i];
             }
             return null;
+        }
+
+        // 몬스터에 피해를 적용한다. 전투 판단(타겟팅/쿨다운)은 Unity 실시간에서 하고, 여기선 hp/처치 상태 전이만 담당한다.
+        // 죽으면 alive=false, aliveCount 감소. 반환값은 이번 타격으로 죽었는지 여부.
+        public bool DamageMonster(LoopMonster m, Fixed damage)
+        {
+            if (m == null || !m.alive) return false;
+            m.hp = m.hp - damage;
+            if (m.hp.raw <= 0)
+            {
+                m.hp = Fixed.Zero;
+                m.alive = false;
+                if (state.aliveCount > 0) --state.aliveCount;
+                return true;
+            }
+            return false;
         }
 
         // 렌더링용 몬스터 실수 좌표(구간 보간).
