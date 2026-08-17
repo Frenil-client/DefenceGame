@@ -5,7 +5,7 @@ using Synthesis.Core.Random;
 namespace Synthesis.Core.Combination
 {
     // STEP 3. 핵심 - 뽑기 (v0.4). 웨이브마다 1성 1기를 균등 확률(1/6)로 지급한다.
-    // 덱/보장 규칙 없음. 랜덤성 통제는 도플갱어가 담당한다 (BALANCE 9).
+    // 덱/보장 규칙 없음. 랜덤성 통제는 선택권(석상/보스 보상 + 상점)이 담당한다 (BALANCE 9).
     public sealed class GachaEngine
     {
         private readonly List<string> tier1List = new List<string>();
@@ -16,7 +16,7 @@ namespace Synthesis.Core.Combination
             foreach (var unit in allUnits)
             {
                 if (unit == null) continue;
-                if (unit.tier == 1 && !unit.isDoppel) tier1List.Add(unit.id);
+                if (unit.tier == 1) tier1List.Add(unit.id);
             }
             rng = new DeterministicRandom(seed);
         }

@@ -1,8 +1,8 @@
-# bosses.csv - 보스 데이터 (원본, v0.4). 스키마: id,name,hp,armor,moveSpeed,timeLimitSec,doppelReward,note
-# [확정] 4보스(10/20/30/40, 10의 배수), 제한시간 패배(BALANCE 13). 격파 시 도플갱어 지급(SPEC 3-6).
-# [TEMP] hp/armor/제한시간/도플갱어 전부 임시값. 헤드리스 오토플레이가 1사이클 클리어 가능하도록 잡은 초기값이며
+# bosses.csv - 보스 데이터 (원본, v0.4). 스키마: id,name,hp,armor,moveSpeed,timeLimitSec,selectionReward,note
+# [확정] 4보스(10/20/30/40, 10의 배수), 제한시간 패배(BALANCE 13). 격파 시 선택권 지급(SPEC 3-6).
+# [TEMP] hp/armor/제한시간/선택권 전부 임시값. 헤드리스 오토플레이가 1사이클 클리어 가능하도록 잡은 초기값이며
 #        실제 밸런스(특히 최종 보스 5성 요구, 집중 명령/마법)는 STEP 7 시뮬로 재확정한다(BALANCE 13).
-id,name,hp,armor,moveSpeed,timeLimitSec,doppelReward,note
+id,name,hp,armor,moveSpeed,timeLimitSec,selectionReward,note
 B01,강철 성채,1900,80,0.5,60,3,고방어
 B02,창공의 눈,1900,20,1.2,60,3,고속 소환
 B03,잠든 왕,4000,40,0.5,75,4,무력화 기믹

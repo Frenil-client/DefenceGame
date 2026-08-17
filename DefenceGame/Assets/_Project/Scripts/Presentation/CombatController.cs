@@ -38,20 +38,58 @@ namespace Synthesis.Presentation
             for (int i = 0; i < units.Count; ++i)
             {
                 LoopUnit u = units[i];
-                if (u.data.isDoppel) continue; // 도플갱어는 변환 전 공격 불가(SPEC 2-2)
 
                 float cd;
                 cooldownByUnit.TryGetValue(u, out cd);
                 if (cd > 0f) cd -= dt;
 
+                Vector2 uCell = UnitCell(u); // 현재 렌더 위치의 셀 좌표(집중 추격 중에는 홈 셀이 아니다)
+
                 if (cd <= 0f)
                 {
-                    LoopMonster target = FindTarget(sim, u);
-                    if (target != null)
+                    if (u.focusMonster != null && u.focusMonster.alive)
                     {
-                        sim.DamageMonster(target, u.data.atk);
-                        ShowBeam(sim, u, target);
-                        cd = AttackInterval(u);
+                        // 집중(추격): 대상이 사거리 안이면 이동 중에도 공격한다. 대상 사망 처리와 재배치는 EntityView 가 맡는다.
+                        LoopMonster fm = u.focusMonster;
+                        if (InRangeMonster(sim, u, uCell, fm))
+                        {
+                            sim.DamageMonster(fm, u.data.atk);
+                            ShowBeamTo(u, MonsterWorld(sim, fm));
+                            cd = AttackInterval(u);
+                        }
+                    }
+                    else if (u.focusStatue != null && u.focusStatue.alive)
+                    {
+                        LoopStatue fs = u.focusStatue;
+                        if (InRangeStatue(u, uCell, fs))
+                        {
+                            bool destroyed = sim.DamageStatue(fs, u.data.atk);
+                            ShowBeamTo(u, StatueWorld(fs));
+                            if (destroyed) game.Context.selectionTokens += game.Context.statueTokenReward;
+                            cd = AttackInterval(u);
+                        }
+                    }
+                    else if (entityView == null || entityView.IsUnitArrived(u))
+                    {
+                        // 집중 없음: 홈에 도착한 경우에만 자동 공격(재배치 이동 중에는 공격 안 함). 몬스터 우선, 없으면 석상.
+                        LoopMonster mTarget = FindMonsterTarget(sim, u, uCell);
+                        if (mTarget != null)
+                        {
+                            sim.DamageMonster(mTarget, u.data.atk);
+                            ShowBeamTo(u, MonsterWorld(sim, mTarget));
+                            cd = AttackInterval(u);
+                        }
+                        else
+                        {
+                            LoopStatue sTarget = FindStatueTarget(sim, u, uCell);
+                            if (sTarget != null)
+                            {
+                                bool destroyed = sim.DamageStatue(sTarget, u.data.atk);
+                                ShowBeamTo(u, StatueWorld(sTarget));
+                                if (destroyed) game.Context.selectionTokens += game.Context.statueTokenReward;
+                                cd = AttackInterval(u);
+                            }
+                        }
                     }
                 }
                 cooldownByUnit[u] = cd;
@@ -67,14 +105,10 @@ namespace Synthesis.Presentation
             return (float)(1.0 / aps);
         }
 
-        // 사거리 내 가장 가까운 살아있는 몬스터(셀 거리 제곱 비교). 없으면 null.
-        private LoopMonster FindTarget(LoopSimulator sim, LoopUnit u)
+        // 사거리 내 가장 가까운 살아있는 몬스터(유닛 현재 셀 기준, 거리 제곱 비교). 없으면 null.
+        private LoopMonster FindMonsterTarget(LoopSimulator sim, LoopUnit u, Vector2 uCell)
         {
-            double ux = u.cellX;
-            double uy = u.cellY;
-            double range = u.data.range.ToDoubleForDisplay();
-            double rangeSq = range * range;
-
+            double rangeSq = RangeSq(u);
             LoopMonster best = null;
             double bestSq = double.MaxValue;
             var list = sim.state.monsterList;
@@ -85,8 +119,8 @@ namespace Synthesis.Presentation
 
                 Fixed fx, fy;
                 sim.GetMonsterPosition(m, out fx, out fy);
-                double dx = fx.ToDoubleForDisplay() - ux;
-                double dy = fy.ToDoubleForDisplay() - uy;
+                double dx = fx.ToDoubleForDisplay() - uCell.x;
+                double dy = fy.ToDoubleForDisplay() - uCell.y;
                 double d2 = dx * dx + dy * dy;
                 if (d2 > rangeSq) continue;
                 if (d2 < bestSq) { bestSq = d2; best = m; }
@@ -94,21 +128,86 @@ namespace Synthesis.Presentation
             return best;
         }
 
+        // 사거리 내 가장 가까운 살아있는 석상. 없으면 null.
+        private LoopStatue FindStatueTarget(LoopSimulator sim, LoopUnit u, Vector2 uCell)
+        {
+            double rangeSq = RangeSq(u);
+            LoopStatue best = null;
+            double bestSq = double.MaxValue;
+            var list = sim.state.statueList;
+            for (int i = 0; i < list.Count; ++i)
+            {
+                LoopStatue s = list[i];
+                if (!s.alive) continue;
+
+                double dx = s.cellX - uCell.x;
+                double dy = s.cellY - uCell.y;
+                double d2 = dx * dx + dy * dy;
+                if (d2 > rangeSq) continue;
+                if (d2 < bestSq) { bestSq = d2; best = s; }
+            }
+            return best;
+        }
+
+        private bool InRangeMonster(LoopSimulator sim, LoopUnit u, Vector2 uCell, LoopMonster m)
+        {
+            Fixed fx, fy;
+            sim.GetMonsterPosition(m, out fx, out fy);
+            double dx = fx.ToDoubleForDisplay() - uCell.x;
+            double dy = fy.ToDoubleForDisplay() - uCell.y;
+            return dx * dx + dy * dy <= RangeSq(u);
+        }
+
+        private bool InRangeStatue(LoopUnit u, Vector2 uCell, LoopStatue s)
+        {
+            double dx = s.cellX - uCell.x;
+            double dy = s.cellY - uCell.y;
+            return dx * dx + dy * dy <= RangeSq(u);
+        }
+
+        private double RangeSq(LoopUnit u)
+        {
+            double range = u.data.range.ToDoubleForDisplay();
+            return range * range;
+        }
+
+        // 유닛의 현재 렌더 위치를 셀 소수 좌표로. 뷰가 없으면 홈 셀.
+        private Vector2 UnitCell(LoopUnit u)
+        {
+            Vector3 w;
+            if (entityView != null && entityView.TryGetUnitWorld(u, out w)) return mapView.WorldToCellF(w);
+            return new Vector2(u.cellX, u.cellY);
+        }
+
+        // 유닛의 현재 렌더 월드 위치(빔 시작점). 뷰가 없으면 홈 셀 월드.
+        private Vector3 UnitWorld(LoopUnit u)
+        {
+            Vector3 w;
+            if (entityView != null && entityView.TryGetUnitWorld(u, out w)) return w;
+            return mapView.CellToWorldF(u.cellX, u.cellY) + new Vector3(0f, 0.35f, 0f);
+        }
+
+        // 보간된 몬스터 몸체 위치(없으면 시뮬 위치).
+        private Vector3 MonsterWorld(LoopSimulator sim, LoopMonster m)
+        {
+            Vector3 world;
+            if (entityView != null && entityView.TryGetMonsterWorld(m, out world)) return world;
+            Fixed fx, fy;
+            sim.GetMonsterPosition(m, out fx, out fy);
+            return mapView.CellToWorldF((float)fx.ToDoubleForDisplay(), (float)fy.ToDoubleForDisplay()) + new Vector3(0f, 0.35f, 0f);
+        }
+
+        private Vector3 StatueWorld(LoopStatue s)
+        {
+            return mapView.CellToWorldF(s.cellX, s.cellY) + new Vector3(0f, 0.5f, 0f);
+        }
+
         // ---- 공격 빔(짧게 번쩍이는 선) ----
 
-        private void ShowBeam(LoopSimulator sim, LoopUnit u, LoopMonster target)
+        private void ShowBeamTo(LoopUnit u, Vector3 to)
         {
             LineRenderer lr = GetBeam(u);
-
-            Vector3 from = mapView.CellToWorldF(u.cellX, u.cellY) + new Vector3(0f, 0.35f, 0f);
-            Vector3 to;
-            if (entityView == null || !entityView.TryGetMonsterWorld(target, out to))
-            {
-                Fixed fx, fy;
-                sim.GetMonsterPosition(target, out fx, out fy);
-                to = mapView.CellToWorldF((float)fx.ToDoubleForDisplay(), (float)fy.ToDoubleForDisplay()) + new Vector3(0f, 0.35f, 0f);
-            }
-
+            Vector3 from = UnitWorld(u); // 유닛의 현재 위치에서 발사(추격 중에도 실제 위치 기준)
             lr.SetPosition(0, from);
             lr.SetPosition(1, to);
             lr.enabled = true;

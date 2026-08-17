@@ -41,7 +41,7 @@ namespace Synthesis.Linter
             InvResult r = new InvResult { id = id, severity = Severity.Authoritative, passed = true };
             foreach (var unit in db.unitList)
             {
-                if (unit.tier != fromTier || unit.isDoppel) continue;
+                if (unit.tier != fromTier) continue;
                 int count = CountOccurrences(db, unitById, unit.id, toTier);
                 if (count < minCount || count > maxCount)
                 {
@@ -58,7 +58,7 @@ namespace Synthesis.Linter
             InvResult r = new InvResult { id = id, severity = Severity.Authoritative, passed = true };
             foreach (var unit in db.unitList)
             {
-                if (unit.tier != fromTier || unit.isDoppel) continue;
+                if (unit.tier != fromTier) continue;
                 int count = 0;
                 foreach (int t in toTiers) count += CountOccurrences(db, unitById, unit.id, t);
                 if (count < 1)
@@ -77,7 +77,7 @@ namespace Synthesis.Linter
             bool[] seen = new bool[6];
             foreach (var unit in db.unitList)
             {
-                if (unit.isDoppel || unit.tier < 1 || unit.tier > 5) continue;
+                if (unit.tier < 1 || unit.tier > 5) continue;
                 if (!seen[unit.tier]) { tierCost[unit.tier] = unit.cost; seen[unit.tier] = true; }
             }
             for (int t = 2; t <= 5; ++t)

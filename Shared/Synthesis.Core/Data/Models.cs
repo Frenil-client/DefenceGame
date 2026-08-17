@@ -9,14 +9,13 @@ namespace Synthesis.Core.Data
     {
         public string id;
         public string name;
-        public int tier;           // 1..5, 도플갱어는 0
+        public int tier;           // 1..5
         public Klass klass;
         public int cost;
         public Fixed hp;
         public Fixed atk;
         public Fixed atkSpeed;     // 초당 공격 횟수
         public Fixed range;
-        public bool isDoppel;      // 도플갱어(변환 전 공격 불가)
         public string note;
     }
 
@@ -44,7 +43,7 @@ namespace Synthesis.Core.Data
         public Fixed armor;
         public Fixed moveSpeed;
         public int timeLimitTicks;   // 제한시간(틱). 넘기면 패배 (BALANCE 13)
-        public int doppelReward;     // 격파 보상 도플갱어 수 (SPEC 3-6)
+        public int selectionReward;  // 격파 보상 선택권 수 (SPEC 3-6)
         public string note;
     }
 

@@ -112,6 +112,7 @@ namespace Synthesis.Editor
             SetRef(move, "game", gm);
             SetRef(move, "mapView", view);
             SetRef(move, "cam", cam);
+            SetRef(move, "entityView", entityView);
             SetRef(move, "tileIndicator", tileIndicator);
             SetRef(uiManager, "baseCanvas", baseCanvas);
             SetPopupPrefabs(uiManager);
@@ -197,12 +198,14 @@ namespace Synthesis.Editor
         private static void SetPopupPrefabs(UIManager manager)
         {
             UIPanel combine = AssetDatabase.LoadAssetAtPath<UIPanel>(UiDir + "/CombinePopup.prefab");
+            UIPanel shop = AssetDatabase.LoadAssetAtPath<UIPanel>(UiDir + "/ShopPopup.prefab");
             UIPanel sample = AssetDatabase.LoadAssetAtPath<UIPanel>(UiDir + "/SamplePopup.prefab");
 
             var so = new SerializedObject(manager);
             var arr = so.FindProperty("popupPrefabs");
             arr.ClearArray();
             AddIfNotNull(arr, combine);
+            AddIfNotNull(arr, shop);
             AddIfNotNull(arr, sample);
             so.ApplyModifiedProperties();
         }

@@ -26,6 +26,11 @@ namespace Synthesis.Presentation
         public Dictionary<string, BossData> bossById;
         public Dictionary<int, WaveData> waveByIndex;
 
+        // 선택권: 석상 파괴와 보스 격파로 얻는 재화. 상점에서 원하는 1성 1기로 교환한다(SPEC 2-2).
+        public int selectionTokens;
+        public int statueTokenReward = 1; // [TEMP] 석상 1기 파괴 보상. 시뮬로 재확정
+        public int selectionCost = 3;     // [TEMP] 1성 1기 구매에 드는 선택권 수. 시뮬로 재확정
+
         public static RunContext Build(long seed, bool useDefaultMap = false, MapSO mapAsset = null)
         {
             MapGenParams p = RuntimeDataLoader.LoadMapGenParams();
@@ -58,6 +63,35 @@ namespace Synthesis.Presentation
         public bool IsValid()
         {
             return map != null && db != null && db.unitList.Count > 0;
+        }
+
+        // 구매 가능한 1성 목록(계열당 1종). 상점 UI 가 버튼으로 나열한다.
+        public List<UnitData> SelectableTier1List()
+        {
+            List<UnitData> list = new List<UnitData>();
+            for (int i = 0; i < db.unitList.Count; ++i)
+            {
+                UnitData u = db.unitList[i];
+                if (u != null && u.tier == 1) list.Add(u);
+            }
+            return list;
+        }
+
+        public bool CanBuySelected()
+        {
+            return selectionTokens >= selectionCost;
+        }
+
+        // 선택권으로 원하는 1성을 구매해 인벤토리에 넣는다. 상점/히어로가 공유하는 로직(상점에 종속시키지 않음).
+        public bool BuySelectedUnit(string tier1Id)
+        {
+            if (selectionTokens < selectionCost) return false;
+            UnitData data;
+            if (!unitById.TryGetValue(tier1Id, out data)) return false;
+            if (data.tier != 1) return false;
+            selectionTokens -= selectionCost;
+            inventory.Add(tier1Id);
+            return true;
         }
 
         // 인벤토리 + 필드 배치 유닛의 보유 개수 합산(조합 재료 판정에 쓴다. SPEC 3-2 필드 유닛도 재료).

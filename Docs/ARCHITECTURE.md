@@ -10,11 +10,11 @@ SYNTHESIS (가칭) - 아키텍처 사양
 
 ## 1. 핵심 결정: Core를 Unity 밖에서도 돌린다
 
-이 프로젝트의 존재 이유는 **밸런스를 감이 아니라 10만 런 시뮬레이션으로 검증하는 것**이다. 그러려면 전투 로직이 Unity 없이 콘솔에서 돌아가야 한다.
+Core 어셈블리는 UnityEngine을 참조하지 않는 순수 C#으로 작성하고, Unity 프로젝트와 (추후) Sim 콘솔 프로젝트가 **같은 소스를 공유**한다. Core가 순수하게 유지되어야 헤드리스 검증과 결정적 재현이 가능하다.
 
-따라서 Core 어셈블리는 UnityEngine을 참조하지 않는 순수 C#으로 작성하고, Unity 프로젝트와 Sim 콘솔 프로젝트가 **같은 소스를 공유**한다.
+단, **전투/유닛 이동/투사체는 Core(결정적 시뮬)에서 들어내 Unity 실시간으로 처리한다.** Core 시뮬이 결정적으로 소유하는 것은 맵 생성, 몬스터 스폰과 루프 순회, 유닛 배치(칸 점유)와 재배치, 코스트 경제, 조합/뽑기다. 전투 판단(타겟팅/쿨다운/피해)과 유닛 걷기는 Presentation의 실시간 로직이 맡고, 몬스터 hp/처치 상태 전이만 Core에 위임한다.
 
-이 규칙이 깨지면 시뮬레이터를 별도로 다시 짜야 하고, 두 구현이 갈라지는 순간 검증은 의미를 잃는다. 모든 설계 판단에서 이 규칙이 최우선이다.
+전투 밸런스는 직접 플레이로 판정하고, 시뮬/검증은 기능 구현 이후 필요할 때 사후 추가한다. 시뮬 제약이 기능을 막지 않는다. Core가 UnityEngine을 참조하는 순간 이 분리가 무너지므로, Core 순수성 규칙은 여전히 최우선이다.
 
 ---
 
@@ -32,45 +32,43 @@ SYNTHESIS (가칭) - 아키텍처 사양
   Data/
     units.csv
     recipes.csv
+    enemies.csv
     waves.csv
     bosses.csv
     relics.csv
-    heroes.csv
-    skillcards.csv
+    leaders.csv             히어로(리더) 데이터. 스키마는 STEP 4에서 확정
     mapgen.csv
   Shared/
-    Synthesis.Core/          순수 C#. Unity와 Sim이 공유
+    Synthesis.Core/          순수 C#. Unity와 (추후) Sim이 공유
       Synthesis.Core.csproj
       Data/                  데이터 모델과 CSV 파서
-      Simulation/            틱 루프, 전투 해결
-      Units/                 유닛 상태와 행동
-      Fusion/                합성 판정
-      Deck/                  덱 구성과 도달 계산
-      Hero/                  히어로 상태, 경험치, 스킬 카드, 진화, 오라
+      Simulation/            틱 루프, 스폰/순회, 배치, 코스트 (전투는 제외, Unity 실시간)
+      Units/                 유닛 데이터와 인벤토리
+      Combination/           합성 판정과 뽑기 (GachaEngine, CombinationEngine)
       Map/                   루프 맵 생성과 검증 (MAP_SPEC.md)
-      Waves/                 웨이브 스폰, 누적 관리, 보스
+      Waves/                 웨이브 데이터 조회와 보스 해석
       Random/                시드 기반 PRNG
       Fixed/                 long 기반 고정소수점
-  Unity/
+      (Hero/ 는 STEP 4에서 신설 예정. Deck/ 은 덱 시스템 폐기로 두지 않는다)
+  DefenceGame/               Unity 프로젝트 루트 (문서 초안의 Unity/ 에 해당)
     Assets/
       _Project/
         Scripts/
-          Core.Link/         Synthesis.Core.asmdef (Shared 소스를 링크)
-          Data/              Synthesis.Data.asmdef (ScriptableObject 정의)
-          Presentation/      Synthesis.Presentation.asmdef (View, ViewModel)
-          Bootstrap/         Synthesis.Bootstrap.asmdef (진입점, DI 조립)
-        Editor/              Synthesis.Editor.asmdef (임포터, 조합 트리 뷰어)
+          Core.Link/         Shared/Synthesis.Core 를 junction 으로 링크
+          Data/              ScriptableObject 정의
+          Presentation/      Synthesis.Presentation.asmdef (View, 매니저, 실시간 전투/이동)
+        Editor/              임포터, 씬 빌더, 맵 저작 툴
         Art/
         Addressables/
   Sim/
-    Synthesis.Sim/           콘솔 실행 프로젝트
-      Synthesis.Sim.csproj   Synthesis.Core.csproj 참조
+    Synthesis.Sim/           콘솔 실행 프로젝트 (아직 없음, STEP 7에서 신설)
   Tools/
     Linter/                  불변식 검증 CLI
+    Demo/                    헤드리스 데모 (데이터/맵/스폰 확인)
   Reports/                   시뮬 출력 (git 무시)
 ```
 
-Unity 쪽 Core.Link는 Shared/Synthesis.Core의 소스를 심볼릭 링크 또는 asmdef 참조로 끌어온다. 소스는 한 벌만 존재한다.
+Unity 쪽 Core.Link는 Shared/Synthesis.Core의 소스를 junction 으로 끌어온다. 소스는 한 벌만 존재한다.
 
 ---
 
@@ -105,8 +103,9 @@ Linter     ->  Core
 ### 4-2. 시간
 
 - Time.deltaTime, DateTime.Now 금지
-- 로직은 고정 틱으로 돈다. 초당 20틱, 1틱 = 50ms
-- 모든 시간 값은 정수 틱으로 저장한다. 재배치 쿨타임 12초는 240틱이다
+- Core 로직은 고정 틱으로 돈다. 초당 20틱, 1틱 = 50ms
+- Core 시간 값은 정수 틱으로 저장한다. 예: 스폰 간격 0.5초는 10틱이다
+- 단, 전투/유닛 이동은 Unity 실시간(가변 프레임, Time.deltaTime 기반)에서 처리하므로 틱이 아니며 결정성 대상이 아니다
 - 렌더링은 틱 사이를 보간한다. 보간은 Presentation의 책임이며 Core는 관여하지 않는다
 
 ### 4-3. 수치
@@ -148,7 +147,7 @@ Data/*.csv
 
 - **CSV가 원본이다.** ScriptableObject는 런타임 로딩 속도를 위한 캐시다
 - 파서는 Core에 한 벌만 둔다. Sim과 Editor가 같은 파서를 쓴다
-- **덱 도달 계산기와 맵 검증기도 Core에 둔다.** 덱 구성 UI, 린터, 시뮬레이터가 전부 같은 구현을 써야 한다. 세 곳에서 따로 구현하면 반드시 갈라진다
+- **맵 검증기와 조합/뽑기 판정을 Core에 둔다.** 린터, 시뮬레이터, UI가 전부 같은 구현을 써야 한다. 여러 곳에서 따로 구현하면 반드시 갈라진다 (덱 도달 계산기는 덱 시스템 폐기로 함께 폐기됨)
 - **맵 생성기는 Core/Map에 둔다.** Unity 없이 dotnet에서 1000개 맵을 생성해 분산을 측정할 수 있어야 한다
 - SO로 변환한 결과가 CSV 파싱 결과와 동일한지 검증하는 테스트를 둔다. 두 경로가 갈라지면 시뮬 검증이 무효가 된다
 - 조합식과 유닛 데이터를 코드에 하드코딩하지 않는다
@@ -189,7 +188,7 @@ InputSource (터치 / 마우스)  ->  PointerEvent  ->  Interaction (선택, 배
 ```
 
 - Presentation은 PointerEvent만 소비한다. 플랫폼 분기는 InputSource 안에서 끝낸다
-- 실시간 조작이 없으므로 입력 지연 요구가 낮다. 복잡한 예측 처리는 넣지 않는다
+- 유닛 재배치(홀드 후 클릭업)와 자동 전투는 Unity 실시간에서 처리한다. 다만 조작 밀도가 낮아 복잡한 예측 처리는 넣지 않는다
 
 ---
 

@@ -35,6 +35,7 @@ namespace Synthesis.Editor
             BuildInventoryView(unitButton);
             BuildMonsterHpHud(hpBar);
             BuildCombinePopup(recipeRow);
+            BuildShopPopup(recipeRow);
             BuildSamplePopup();
 
             AssetDatabase.SaveAssets();
@@ -121,9 +122,26 @@ namespace Synthesis.Editor
             BuildSpeedButton(root.transform, view, "1x", 16f, 1f);
             BuildSpeedButton(root.transform, view, "2x", 76f, 2f);
             BuildSpeedButton(root.transform, view, "4x", 136f, 4f);
+            BuildShopButton(root.transform, view, 200f);
 
             SetRef(view, "statsText", stats);
             SaveAs<HudView>(root, HudDir + "/HudView.prefab");
+        }
+
+        // 상점 열기 버튼(하단, 배속 버튼 옆).
+        private static void BuildShopButton(Transform parent, HudView view, float x)
+        {
+            GameObject go = MakeRect("Shop", parent, new Vector2(84f, 36f));
+            RectTransform rt = (RectTransform)go.transform;
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.zero; rt.pivot = Vector2.zero;
+            rt.anchoredPosition = new Vector2(x, 16f);
+            Image img = go.AddComponent<Image>();
+            img.color = new Color(0.30f, 0.42f, 0.30f, 0.95f);
+            Button btn = go.AddComponent<Button>();
+            UnityEventTools.AddPersistentListener(btn.onClick, view.OpenShop);
+
+            Text t = MakeLabel(go.transform, "Label", "상점", 18, TextAnchor.MiddleCenter);
+            Stretch((RectTransform)t.transform);
         }
 
         private static void BuildSpeedButton(Transform parent, HudView view, string label, float x, float value)
@@ -221,6 +239,54 @@ namespace Synthesis.Editor
             SetRef(popup, "listRoot", lrt);
             SetRef(popup, "rowPrefab", rowPrefab);
             SaveAs<CombinePopup>(root, UiDir + "/CombinePopup.prefab");
+        }
+
+        private static void BuildShopPopup(RecipeRowView rowPrefab)
+        {
+            GameObject root = MakeRect("ShopPopup", null, Vector2.zero);
+            Stretch((RectTransform)root.transform);
+            Image backdrop = root.AddComponent<Image>();
+            backdrop.color = new Color(0f, 0f, 0f, 0.5f); // 모달(아래 입력 차단)
+            ShopPopup popup = root.AddComponent<ShopPopup>();
+            popup.panelId = "ShopPopup";
+            popup.modal = true;
+
+            GameObject box = MakeRect("Box", root.transform, new Vector2(720f, 480f));
+            RectTransform brt = (RectTransform)box.transform;
+            brt.anchorMin = brt.anchorMax = new Vector2(0.5f, 0.5f); brt.pivot = new Vector2(0.5f, 0.5f);
+            brt.anchoredPosition = Vector2.zero;
+            Image boxImg = box.AddComponent<Image>();
+            boxImg.color = new Color(0.16f, 0.18f, 0.24f, 0.98f);
+
+            Text title = MakeLabel(box.transform, "Title", "상점", 30, TextAnchor.MiddleCenter);
+            RectTransform trt = (RectTransform)title.transform;
+            trt.anchorMin = new Vector2(0f, 1f); trt.anchorMax = new Vector2(1f, 1f); trt.pivot = new Vector2(0.5f, 1f);
+            trt.sizeDelta = new Vector2(0f, 64f); trt.anchoredPosition = new Vector2(0f, -16f);
+
+            GameObject list = MakeRect("List", box.transform, Vector2.zero);
+            RectTransform lrt = (RectTransform)list.transform;
+            lrt.anchorMin = new Vector2(0f, 0f); lrt.anchorMax = new Vector2(1f, 1f);
+            lrt.offsetMin = new Vector2(24f, 88f); lrt.offsetMax = new Vector2(-24f, -80f);
+            VerticalLayoutGroup v = list.AddComponent<VerticalLayoutGroup>();
+            v.spacing = 6f; v.childControlWidth = true; v.childControlHeight = false;
+            v.childForceExpandWidth = true; v.childForceExpandHeight = false;
+            v.childAlignment = TextAnchor.UpperCenter;
+
+            GameObject close = MakeRect("Close", box.transform, new Vector2(180f, 56f));
+            RectTransform crt = (RectTransform)close.transform;
+            crt.anchorMin = crt.anchorMax = new Vector2(0.5f, 0f); crt.pivot = new Vector2(0.5f, 0f);
+            crt.anchoredPosition = new Vector2(0f, 16f);
+            Image closeImg = close.AddComponent<Image>();
+            closeImg.color = new Color(0.30f, 0.36f, 0.48f, 1f);
+            Button closeBtn = close.AddComponent<Button>();
+            UnityEventTools.AddPersistentListener(closeBtn.onClick, popup.Close);
+            Text closeLabel = MakeLabel(close.transform, "Label", "닫기", 22, TextAnchor.MiddleCenter);
+            Stretch((RectTransform)closeLabel.transform);
+
+            SetRef(popup, "titleText", title);
+            SetRef(popup, "listRoot", lrt);
+            SetRef(popup, "rowPrefab", rowPrefab);
+            SaveAs<ShopPopup>(root, UiDir + "/ShopPopup.prefab");
         }
 
         private static void BuildSamplePopup()

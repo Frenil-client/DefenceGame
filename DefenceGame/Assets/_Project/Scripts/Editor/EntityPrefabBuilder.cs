@@ -11,7 +11,7 @@ namespace Synthesis.Editor
     // 프로토는 프리미티브 Model. 이후 STEP 8 에서 Addressables NPR 모델로 스왑(코드 불변).
     // 생성 위치: Resources/Entities (EntityView 가 Resources.Load 로 찾는다).
     // 폴더 구성(나중에 몬스터/소환물/구조물과 구별):
-    //   Entities/Units/<KLASS>/<id>  유닛별 프리팹(계열 폴더: WAR/ARC/MAG/PRI/THI/SPI, 도플갱어는 DOPP)
+    //   Entities/Units/<KLASS>/<id>  유닛별 프리팹(계열 폴더: WAR/ARC/MAG/PRI/THI/SPI)
     //   Entities/Units/_Base         개별 프리팹이 없을 때 쓰는 공용 폴백
     //   Entities/Monsters/Monster    몬스터 폴백(추후 적별)
     //   Entities/Summons/            소환물(예정)
@@ -83,8 +83,8 @@ namespace Synthesis.Editor
             foreach (var unit in db.unitList)
             {
                 if (unit == null || string.IsNullOrEmpty(unit.id)) continue;
-                // 색은 계열 기준(도플갱어는 별도)이라 머티리얼을 계열 단위로 공유한다.
-                string matKey = unit.isDoppel ? "Unit_DOPP" : "Unit_Klass_" + unit.klass;
+                // 색은 계열 기준이라 머티리얼을 계열 단위로 공유한다.
+                string matKey = "Unit_Klass_" + unit.klass;
                 Material klassMat = GetOrCreateMat(matKey, KlassColor(unit));
                 BuildOneUnitPrefab(unit, klassMat, rangeMat, pipMat);
                 ++count;
@@ -140,10 +140,9 @@ namespace Synthesis.Editor
             Object.DestroyImmediate(root);
         }
 
-        // 유닛이 들어갈 계열 폴더명. 도플갱어는 별도(DOPP).
+        // 유닛이 들어갈 계열 폴더명.
         public static string KlassFolder(UnitData unit)
         {
-            if (unit.isDoppel) return "DOPP";
             switch (unit.klass)
             {
                 case Klass.War: return "WAR";
@@ -156,10 +155,9 @@ namespace Synthesis.Editor
             }
         }
 
-        // 계열별 색 (EntityView.KlassColor 와 동일). 도플갱어는 무채색.
+        // 계열별 색 (EntityView.KlassColor 와 동일).
         private static Color KlassColor(UnitData unit)
         {
-            if (unit.isDoppel) return new Color(0.60f, 0.60f, 0.62f);
             switch (unit.klass)
             {
                 case Klass.War: return new Color(0.80f, 0.30f, 0.25f);

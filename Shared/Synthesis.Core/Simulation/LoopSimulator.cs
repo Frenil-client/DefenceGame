@@ -11,25 +11,34 @@ namespace Synthesis.Core.Simulation
     {
         public string enemyId;
         public Fixed hp;
+        public Fixed armor;         // 피해에서 차감(보스 고방어). 관통/방깎은 STEP 4에서 처리
         public Fixed moveSpeed;     // 초당 셀 수
         public int waypointIndex;   // 현재 웨이포인트
         public Fixed progress;      // 구간 진행도 [0,1)
         public bool alive;
     }
 
-    // 배치된 유닛(칸 점유 기록). 전투/이동 상태는 없다.
+    // 배치된 유닛(칸 점유 기록). cellX/cellY 는 홈(배치) 셀이다.
     public sealed class LoopUnit
     {
         public UnitData data;
         public int cellX;
         public int cellY;
+
+        // 집중 명령 대상(실시간 전투 전용, Unity 가 설정/해제). 둘 중 하나만 설정된다. 둘 다 null 이면 홈 셀로 복귀한다.
+        // 결정적 시뮬/상태 해시와 무관한 transient 상태다.
+        public LoopMonster focusMonster;
+        public LoopStatue focusStatue;
     }
 
-    // 석상 위치(맵 오브젝트). 배치 금지 칸 판정에만 쓴다.
+    // 석상(맵 오브젝트). 유닛이 자동 공격으로 파괴하며(선택권 드랍), 살아있는 동안 배치를 막는다.
     public sealed class LoopStatue
     {
         public int cellX;
         public int cellY;
+        public Fixed hp;
+        public Fixed maxHp;
+        public bool alive = true;
     }
 
     public sealed class LoopState
@@ -40,6 +49,7 @@ namespace Synthesis.Core.Simulation
         public int tick;
         public Fixed cost;
         public int costCap = 40;
+        public int statueHp = 400; // [TEMP] 석상 체력. 유닛 자동 공격으로 파괴. 시뮬로 재확정
 
         public List<LoopMonster> monsterList = new List<LoopMonster>();
         public List<LoopUnit> unitList = new List<LoopUnit>();
@@ -49,6 +59,7 @@ namespace Synthesis.Core.Simulation
 
         // 스폰 스케줄
         public EnemyData spawnEnemy;
+        public Fixed spawnArmor;    // 이번 웨이브 스폰 몬스터의 방어력(보스 웨이브에서 지정)
         public int pendingSpawns;
         public int spawnIntervalTicks;
         public int nextSpawnTick;
@@ -69,27 +80,48 @@ namespace Synthesis.Core.Simulation
             state.map = map;
             state.rng = new DeterministicRandom(seed);
 
+            Fixed statueHp = Fixed.FromInt(state.statueHp);
             for (int i = 0; i < map.statueList.Count; ++i)
             {
                 LoopStatue statue = new LoopStatue();
                 statue.cellX = map.statueList[i].x;
                 statue.cellY = map.statueList[i].y;
+                statue.hp = statueHp;
+                statue.maxHp = statueHp;
+                statue.alive = true;
                 state.statueList.Add(statue);
             }
         }
 
+        // 살아있는 석상이 해당 칸에 있으면 true. 파괴된 석상은 칸을 막지 않는다(배치 가능해짐).
         private bool IsStatueAt(int x, int y)
         {
             for (int i = 0; i < state.statueList.Count; ++i)
             {
-                if (state.statueList[i].cellX == x && state.statueList[i].cellY == y) return true;
+                LoopStatue s = state.statueList[i];
+                if (s.alive && s.cellX == x && s.cellY == y) return true;
             }
             return false;
         }
 
-        public void StartWave(EnemyData enemy, int spawnCount, int spawnInterval)
+        // 석상에 피해를 적용한다(전투는 Unity 실시간). 죽으면 alive=false. 반환값은 이번 타격으로 파괴됐는지 여부.
+        public bool DamageStatue(LoopStatue statue, Fixed damage)
+        {
+            if (statue == null || !statue.alive) return false;
+            statue.hp = statue.hp - damage;
+            if (statue.hp.raw <= 0)
+            {
+                statue.hp = Fixed.Zero;
+                statue.alive = false;
+                return true;
+            }
+            return false;
+        }
+
+        public void StartWave(EnemyData enemy, int spawnCount, int spawnInterval, Fixed armor = default)
         {
             state.spawnEnemy = enemy;
+            state.spawnArmor = armor;
             state.pendingSpawns = spawnCount;
             state.spawnIntervalTicks = spawnInterval > 0 ? spawnInterval : 1;
             state.nextSpawnTick = state.tick;
@@ -136,6 +168,7 @@ namespace Synthesis.Core.Simulation
                 LoopMonster m = new LoopMonster();
                 m.enemyId = state.spawnEnemy.id;
                 m.hp = state.spawnEnemy.hp;
+                m.armor = state.spawnArmor;
                 m.moveSpeed = state.spawnEnemy.moveSpeed;
                 m.waypointIndex = spawnIdx;
                 m.progress = Fixed.Zero;
@@ -321,7 +354,12 @@ namespace Synthesis.Core.Simulation
         public bool DamageMonster(LoopMonster m, Fixed damage)
         {
             if (m == null || !m.alive) return false;
-            m.hp = m.hp - damage;
+
+            // 방어력만큼 피해를 깎는다. 방어력에 완전히 막히면 피해가 들어가지 않는다(관통/방깎 필요, SPEC 3-6).
+            Fixed dealt = damage - m.armor;
+            if (dealt.raw <= 0) return false;
+
+            m.hp = m.hp - dealt;
             if (m.hp.raw <= 0)
             {
                 m.hp = Fixed.Zero;

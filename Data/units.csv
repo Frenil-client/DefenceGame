@@ -1,50 +1,49 @@
 # units.csv - 유닛 데이터 (원본, v0.4). 스키마: BALANCE_SPEC.md 17
-# 컬럼: id,name,tier,klass,cost,hp,atk,atkSpeed,range,isDoppel,note
+# 컬럼: id,name,tier,klass,cost,hp,atk,atkSpeed,range,note
 #
 # [확정] 종수/계열/등급/재료 구조와 cost(등급별 5/10/18/30/48)는 BALANCE 2~11장 그대로다.
 # [TEMP] hp/atk/atkSpeed/range 는 전부 임시값이다(BALANCE 0장). 시뮬레이터로 확정한다.
 #        atk 는 등급별(10/28/70/160/360), range 는 계열별(WAR/THI 2.5, PRI/SPI 4.5, MAG 5.5, ARC 6.0), THI 는 공속 1.5.
-id,name,tier,klass,cost,hp,atk,atkSpeed,range,isDoppel,note
-T1-WAR,전사,1,WAR,5,100,10,1.0,2.5,false,TEMP
-T1-ARC,궁수,1,ARC,5,100,10,1.0,6.0,false,TEMP
-T1-MAG,법사,1,MAG,5,100,10,1.0,5.5,false,TEMP
-T1-PRI,사제,1,PRI,5,100,10,1.0,4.5,false,TEMP
-T1-THI,도적,1,THI,5,100,10,1.5,2.5,false,TEMP
-T1-SPI,정령,1,SPI,5,100,10,1.0,4.5,false,TEMP
-T2-WAR-01,버서커,2,WAR,10,100,28,1.0,2.5,false,TEMP
-T2-ARC-02,스나이퍼,2,ARC,10,100,28,1.0,6.0,false,TEMP
-T2-MAG-03,소서러,2,MAG,10,100,28,1.0,5.5,false,TEMP
-T2-PRI-04,프리스트,2,PRI,10,100,28,1.0,4.5,false,TEMP
-T2-THI-05,어쌔신,2,THI,10,100,28,1.5,2.5,false,TEMP
-T2-SPI-06,상급정령,2,SPI,10,100,28,1.0,4.5,false,TEMP
-T2-WAR-07,성기사,2,WAR,10,100,28,1.0,2.5,false,TEMP
-T2-WAR-08,마법검사,2,WAR,10,100,28,1.0,2.5,false,TEMP
-T2-ARC-09,레인저,2,ARC,10,100,28,1.0,6.0,false,TEMP
-T2-PRI-10,바드,2,PRI,10,100,28,1.0,4.5,false,TEMP
-T2-MAG-11,주술사,2,MAG,10,100,28,1.0,5.5,false,TEMP
-T2-SPI-12,인챈터,2,SPI,10,100,28,1.0,4.5,false,TEMP
-T3-WAR-01,룬나이트,3,WAR,18,100,70,1.0,2.5,false,TEMP
-T3-WAR-02,워로드,3,WAR,18,100,70,1.0,2.5,false,TEMP
-T3-ARC-03,스카우트,3,ARC,18,100,70,1.0,6.0,false,TEMP
-T3-ARC-04,헌터,3,ARC,18,100,70,1.0,6.0,false,TEMP
-T3-MAG-05,흑마도사,3,MAG,18,100,70,1.0,5.5,false,TEMP
-T3-MAG-06,네크로맨서,3,MAG,18,100,70,1.0,5.5,false,TEMP
-T3-PRI-07,드루이드,3,PRI,18,100,70,1.0,4.5,false,TEMP
-T3-PRI-08,크루세이더,3,PRI,18,100,70,1.0,4.5,false,TEMP
-T3-THI-09,닌자,3,THI,18,100,70,1.5,2.5,false,TEMP
-T3-THI-10,슬레이어,3,THI,18,100,70,1.5,2.5,false,TEMP
-T3-SPI-11,블랙스미스,3,SPI,18,100,70,1.0,4.5,false,TEMP
-T3-SPI-12,정령술사,3,SPI,18,100,70,1.0,4.5,false,TEMP
-T4-WAR-01,발키리,4,WAR,30,100,160,1.0,2.5,false,TEMP
-T4-WAR-02,데스나이트,4,WAR,30,100,160,1.0,2.5,false,TEMP
-T4-ARC-03,크리스탈슈터,4,ARC,30,100,160,1.0,6.0,false,TEMP
-T4-MAG-04,아크메이지,4,MAG,30,100,160,1.0,5.5,false,TEMP
-T4-MAG-05,세이지,4,MAG,30,100,160,1.0,5.5,false,TEMP
-T4-PRI-06,아크엔젤,4,PRI,30,100,160,1.0,4.5,false,TEMP
-T4-THI-07,상급어쌔신,4,THI,30,100,160,1.5,2.5,false,TEMP
-T4-SPI-08,정령왕,4,SPI,30,100,160,1.0,4.5,false,TEMP
-T5-WAR-01,검성 라그나로크,5,WAR,48,100,360,1.0,2.5,false,TEMP
-T5-MAG-02,그랜드마스터,5,MAG,48,100,360,1.0,5.5,false,TEMP
-T5-ARC-03,유니온 센티넬,5,ARC,48,100,360,1.0,6.0,false,TEMP
-T5-PRI-04,데미갓,5,PRI,48,100,360,1.0,4.5,false,TEMP
-DOPP,도플갱어,0,WAR,0,100,0,1.0,2.5,true,변환전 공격불가/TEMP
+id,name,tier,klass,cost,hp,atk,atkSpeed,range,note
+T1-WAR,전사,1,WAR,5,100,10,1.0,2.5,TEMP
+T1-ARC,궁수,1,ARC,5,100,10,1.0,6.0,TEMP
+T1-MAG,법사,1,MAG,5,100,10,1.0,5.5,TEMP
+T1-PRI,사제,1,PRI,5,100,10,1.0,4.5,TEMP
+T1-THI,도적,1,THI,5,100,10,1.5,2.5,TEMP
+T1-SPI,정령,1,SPI,5,100,10,1.0,4.5,TEMP
+T2-WAR-01,버서커,2,WAR,10,100,28,1.0,2.5,TEMP
+T2-ARC-02,스나이퍼,2,ARC,10,100,28,1.0,6.0,TEMP
+T2-MAG-03,소서러,2,MAG,10,100,28,1.0,5.5,TEMP
+T2-PRI-04,프리스트,2,PRI,10,100,28,1.0,4.5,TEMP
+T2-THI-05,어쌔신,2,THI,10,100,28,1.5,2.5,TEMP
+T2-SPI-06,상급정령,2,SPI,10,100,28,1.0,4.5,TEMP
+T2-WAR-07,성기사,2,WAR,10,100,28,1.0,2.5,TEMP
+T2-WAR-08,마법검사,2,WAR,10,100,28,1.0,2.5,TEMP
+T2-ARC-09,레인저,2,ARC,10,100,28,1.0,6.0,TEMP
+T2-PRI-10,바드,2,PRI,10,100,28,1.0,4.5,TEMP
+T2-MAG-11,주술사,2,MAG,10,100,28,1.0,5.5,TEMP
+T2-SPI-12,인챈터,2,SPI,10,100,28,1.0,4.5,TEMP
+T3-WAR-01,룬나이트,3,WAR,18,100,70,1.0,2.5,TEMP
+T3-WAR-02,워로드,3,WAR,18,100,70,1.0,2.5,TEMP
+T3-ARC-03,스카우트,3,ARC,18,100,70,1.0,6.0,TEMP
+T3-ARC-04,헌터,3,ARC,18,100,70,1.0,6.0,TEMP
+T3-MAG-05,흑마도사,3,MAG,18,100,70,1.0,5.5,TEMP
+T3-MAG-06,네크로맨서,3,MAG,18,100,70,1.0,5.5,TEMP
+T3-PRI-07,드루이드,3,PRI,18,100,70,1.0,4.5,TEMP
+T3-PRI-08,크루세이더,3,PRI,18,100,70,1.0,4.5,TEMP
+T3-THI-09,닌자,3,THI,18,100,70,1.5,2.5,TEMP
+T3-THI-10,슬레이어,3,THI,18,100,70,1.5,2.5,TEMP
+T3-SPI-11,블랙스미스,3,SPI,18,100,70,1.0,4.5,TEMP
+T3-SPI-12,정령술사,3,SPI,18,100,70,1.0,4.5,TEMP
+T4-WAR-01,발키리,4,WAR,30,100,160,1.0,2.5,TEMP
+T4-WAR-02,데스나이트,4,WAR,30,100,160,1.0,2.5,TEMP
+T4-ARC-03,크리스탈슈터,4,ARC,30,100,160,1.0,6.0,TEMP
+T4-MAG-04,아크메이지,4,MAG,30,100,160,1.0,5.5,TEMP
+T4-MAG-05,세이지,4,MAG,30,100,160,1.0,5.5,TEMP
+T4-PRI-06,아크엔젤,4,PRI,30,100,160,1.0,4.5,TEMP
+T4-THI-07,상급어쌔신,4,THI,30,100,160,1.5,2.5,TEMP
+T4-SPI-08,정령왕,4,SPI,30,100,160,1.0,4.5,TEMP
+T5-WAR-01,검성 라그나로크,5,WAR,48,100,360,1.0,2.5,TEMP
+T5-MAG-02,그랜드마스터,5,MAG,48,100,360,1.0,5.5,TEMP
+T5-ARC-03,유니온 센티넬,5,ARC,48,100,360,1.0,6.0,TEMP
+T5-PRI-04,데미갓,5,PRI,48,100,360,1.0,4.5,TEMP

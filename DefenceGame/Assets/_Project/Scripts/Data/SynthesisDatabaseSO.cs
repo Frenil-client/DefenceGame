@@ -21,7 +21,6 @@ namespace Synthesis.Data
         public long atkRaw;
         public long atkSpeedRaw;
         public long rangeRaw;
-        public bool isDoppel;
         public string note;
 
         public static UnitRow FromModel(UnitData model)
@@ -36,7 +35,6 @@ namespace Synthesis.Data
             row.atkRaw      = model.atk.raw;
             row.atkSpeedRaw = model.atkSpeed.raw;
             row.rangeRaw    = model.range.raw;
-            row.isDoppel    = model.isDoppel;
             row.note        = model.note;
             return row;
         }
@@ -53,7 +51,6 @@ namespace Synthesis.Data
             model.atk      = Fixed.FromRaw(atkRaw);
             model.atkSpeed = Fixed.FromRaw(atkSpeedRaw);
             model.range    = Fixed.FromRaw(rangeRaw);
-            model.isDoppel = isDoppel;
             model.note     = note;
             return model;
         }

@@ -5,11 +5,11 @@ namespace Synthesis.Core.Data
     // STEP 1. 기반 도구 - CSV 한 줄을 데이터 모델로 변환 (v0.4). 파서는 Core 에 한 벌만 둔다.
     public static class CsvParsers
     {
-        // units.csv: id,name,tier,klass,cost,hp,atk,atkSpeed,range,isDoppel,note
+        // units.csv: id,name,tier,klass,cost,hp,atk,atkSpeed,range,note
         public static UnitData CsvToUnitData(string line)
         {
             var split = line.Split(',');
-            if (split.Length < 11) return null;
+            if (split.Length < 10) return null;
 
             UnitData unitData = new UnitData();
             unitData.id       = split[0].Trim();
@@ -21,8 +21,7 @@ namespace Synthesis.Core.Data
             unitData.atk      = CsvUtil.StringToFixed(split[6]);
             unitData.atkSpeed = CsvUtil.StringToFixed(split[7]);
             unitData.range    = CsvUtil.StringToFixed(split[8]);
-            unitData.isDoppel = CsvUtil.StringToBool(split[9]);
-            unitData.note     = RejoinFrom(split, 10);
+            unitData.note     = RejoinFrom(split, 9);
             if (unitData.cost < 0) unitData.cost = 0;
             return unitData;
         }
@@ -63,7 +62,7 @@ namespace Synthesis.Core.Data
             return enemyData;
         }
 
-        // bosses.csv: id,name,hp,armor,moveSpeed,timeLimitSec,doppelReward,note
+        // bosses.csv: id,name,hp,armor,moveSpeed,timeLimitSec,selectionReward,note
         public static BossData CsvToBossData(string line)
         {
             var split = line.Split(',');
@@ -76,7 +75,7 @@ namespace Synthesis.Core.Data
             bossData.armor         = CsvUtil.StringToFixed(split[3]);
             bossData.moveSpeed     = CsvUtil.StringToFixed(split[4]);
             bossData.timeLimitTicks = CsvUtil.StringToInt(split[5]) * 20; // 초 -> 틱
-            bossData.doppelReward  = split.Length > 6 ? CsvUtil.StringToInt(split[6]) : 0;
+            bossData.selectionReward = split.Length > 6 ? CsvUtil.StringToInt(split[6]) : 0;
             bossData.note          = split.Length > 7 ? RejoinFrom(split, 7) : "";
             return bossData;
         }

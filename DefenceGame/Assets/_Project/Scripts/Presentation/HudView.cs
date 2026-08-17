@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
+using Synthesis.Core.Data;
+using Synthesis.Core.Simulation;
 
 namespace Synthesis.Presentation
 {
@@ -17,6 +19,34 @@ namespace Synthesis.Presentation
             if (game != null) game.Speed = value;
         }
 
+        // 상점 버튼(프리팹의 onClick 에서 호출). 선택권으로 원하는 1성을 구매한다.
+        public void OpenShop()
+        {
+            if (game == null || game.Context == null || !game.Context.IsValid()) return;
+            if (UIManager.Instance == null) return;
+            ShopPopup popup = UIManager.Instance.Open("ShopPopup") as ShopPopup;
+            if (popup != null) popup.Setup(game.Context);
+        }
+
+        // 보스 웨이브면 화면 상단에 목표(보스 이름/HP/방어/남은시간)를 표시한다(SPEC 3-6). 아니면 빈 문자열.
+        private string BossObjectiveLine(int activeWave, float remain)
+        {
+            WaveData wave;
+            if (!game.Context.waveByIndex.TryGetValue(activeWave, out wave) || !wave.isBoss || string.IsNullOrEmpty(wave.bossId)) return "";
+            BossData boss;
+            if (!game.Context.bossById.TryGetValue(wave.bossId, out boss)) return "";
+
+            long curHp = 0;
+            var list = game.Context.sim.state.monsterList;
+            for (int i = 0; i < list.Count; ++i)
+            {
+                LoopMonster m = list[i];
+                if (m.alive && m.enemyId == boss.id) { curHp = m.hp.ToIntTruncated(); break; }
+            }
+            return "[보스] " + boss.name + "  HP " + curHp + " / " + boss.hp.ToIntTruncated()
+                + "  방어 " + boss.armor.ToIntTruncated() + "  남은 " + remain.ToString("F1") + "s\n";
+        }
+
         private void Update()
         {
             if (statsText == null || game == null || game.Context == null || !game.Context.IsValid()) return;
@@ -32,11 +62,13 @@ namespace Synthesis.Presentation
             float remain = waves != null ? Mathf.Max(0f, waves.WaveTimer) : 0f;
 
             statsText.text =
-                "웨이브 " + shownWave + " / " + game.MaxWave + "  [" + phaseLabel + "]  x" + game.Speed + "\n"
+                BossObjectiveLine(next - 1, remain)
+                + "웨이브 " + shownWave + " / " + game.MaxWave + "  [" + phaseLabel + "]  x" + game.Speed + "\n"
                 + "제한시간 " + remain.ToString("F1") + "s\n"
                 + "코스트 " + s.cost + " / " + s.costCap + "\n"
                 + "필드 몬스터 " + s.aliveCount + "\n"
-                + "인벤토리 " + game.Context.inventory.Count + "   최근 뽑기 " + granted;
+                + "인벤토리 " + game.Context.inventory.Count + "   최근 뽑기 " + granted + "\n"
+                + "선택권 " + game.Context.selectionTokens;
         }
     }
 }

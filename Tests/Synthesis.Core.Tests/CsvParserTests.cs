@@ -10,16 +10,13 @@ namespace Synthesis.Core.Tests
         public void Units_LoadCountAndFields()
         {
             var units = CsvParsers.LoadUnits(TestPaths.ReadData("units.csv"));
-            Assert.Equal(43, units.Count);
+            Assert.Equal(42, units.Count); // 1성 6, 2성 12, 3성 12, 4성 8, 5성 4
 
             UnitData war = Find(units, "T1-WAR");
             Assert.NotNull(war);
             Assert.Equal(1, war.tier);
             Assert.Equal(Klass.War, war.klass);
             Assert.Equal(5, war.cost);
-
-            UnitData dopp = Find(units, "DOPP");
-            Assert.True(dopp.isDoppel);
         }
 
         [Fact]

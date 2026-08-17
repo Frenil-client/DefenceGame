@@ -30,7 +30,7 @@ namespace Synthesis.Core.Tests
             HashSet<string> tier1 = new HashSet<string>();
             foreach (var unit in units)
             {
-                if (unit.tier == 1 && !unit.isDoppel) tier1.Add(unit.id);
+                if (unit.tier == 1) tier1.Add(unit.id);
             }
 
             var h = RunGacha(7, 200);

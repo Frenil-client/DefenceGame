@@ -72,8 +72,7 @@ namespace Synthesis.Editor
                     && a.hp.raw == b.hp.raw
                     && a.atk.raw == b.atk.raw
                     && a.atkSpeed.raw == b.atkSpeed.raw
-                    && a.range.raw == b.range.raw
-                    && a.isDoppel == b.isDoppel;
+                    && a.range.raw == b.range.raw;
                 if (!same) ++mismatch;
             }
             return mismatch;

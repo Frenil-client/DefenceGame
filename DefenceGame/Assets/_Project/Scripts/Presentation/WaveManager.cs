@@ -84,6 +84,7 @@ namespace Synthesis.Presentation
                 bool bossDefeated = ctx.sim.IsSpawningDone() && !AnyBossAlive(ctx);
                 if (bossDefeated)
                 {
+                    GrantBossReward(ctx, active); // 보스 격파 보상: 선택권 지급(SPEC 3-6)
                     // 마지막 라운드는 보스 처치가 곧 클리어. 잔여 몬스터가 남아도 즉시 클리어.
                     if (activeWave >= game.MaxWave) { Cleared = true; return; }
                     StartNextWave(ctx);
@@ -104,9 +105,31 @@ namespace Synthesis.Presentation
 
         private void StartNextWave(RunContext ctx)
         {
-            BeginWave(ctx, NextWave);
+            int startingWave = NextWave;
+            BeginWave(ctx, startingWave);
             ++NextWave;
-            waveTimer = waveTimeLimit;
+            waveTimer = WaveTimeLimitFor(ctx, startingWave);
+        }
+
+        // 웨이브 제한시간. 보스 웨이브는 보스별 제한시간(bosses.csv timeLimitSec)을 쓰고, 일반 웨이브는 공통값.
+        private float WaveTimeLimitFor(RunContext ctx, int waveIndex)
+        {
+            WaveData wave;
+            if (ctx.waveByIndex.TryGetValue(waveIndex, out wave) && wave.isBoss && !string.IsNullOrEmpty(wave.bossId))
+            {
+                BossData boss;
+                if (ctx.bossById.TryGetValue(wave.bossId, out boss) && boss.timeLimitTicks > 0)
+                    return boss.timeLimitTicks / 20f; // 틱 -> 초
+            }
+            return waveTimeLimit;
+        }
+
+        // 보스 격파 보상으로 선택권을 지급한다(bosses.csv selectionReward, SPEC 3-6). 격파 전이당 1회만 호출된다.
+        private void GrantBossReward(RunContext ctx, WaveData wave)
+        {
+            if (wave == null || string.IsNullOrEmpty(wave.bossId)) return;
+            BossData boss;
+            if (ctx.bossById.TryGetValue(wave.bossId, out boss)) ctx.selectionTokens += boss.selectionReward;
         }
 
         // 살아있는 보스 몬스터가 하나라도 있으면 true. 보스 id 는 bossById 로 판별한다.
@@ -132,7 +155,13 @@ namespace Synthesis.Presentation
             {
                 EnemyData enemy = WaveResolver.ResolveEnemy(wave, ctx.enemyById, ctx.bossById);
                 int count = enemy != null ? wave.spawnCount : 0;
-                ctx.sim.StartWave(enemy, count, wave.spawnInterval);
+
+                // 보스 웨이브는 보스 방어력을 스폰 몬스터에 실어 보낸다(ResolveEnemy 는 armor 를 버린다).
+                Fixed armor = Fixed.Zero;
+                BossData boss;
+                if (wave.isBoss && !string.IsNullOrEmpty(wave.bossId) && ctx.bossById.TryGetValue(wave.bossId, out boss)) armor = boss.armor;
+
+                ctx.sim.StartWave(enemy, count, wave.spawnInterval, armor);
             }
         }
 

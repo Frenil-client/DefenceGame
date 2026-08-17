@@ -51,6 +51,7 @@ MonoBehaviour:
   game: {fileID: 0}
   cam: {fileID: 0}
   baseCanvas: {fileID: 0}
+  entityView: {fileID: 0}
   barPrefab: {fileID: 809306850961938908, guid: b82a524c9233a6a409cd8bf03f58af63, type: 3}
   barWidth: 44
   screenYOffset: 30

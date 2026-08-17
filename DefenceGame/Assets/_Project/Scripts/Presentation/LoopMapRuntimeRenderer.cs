@@ -15,8 +15,6 @@ namespace Synthesis.Presentation
         private Shader tileShader;
         private readonly Dictionary<Color, Material> matCache = new Dictionary<Color, Material>();
 
-        private static readonly Color StatueColor = new Color(0.55f, 0.35f, 0.75f);
-
         // game/mapView 는 인스펙터에 등록한다(씬에 미리 배치).
 
         private void Update()
@@ -38,15 +36,10 @@ namespace Synthesis.Presentation
                 GridPos s = map.loopWaypointList[idx];
                 spawnKeys.Add(s.y * map.gridWidth + s.x);
             }
-            HashSet<int> statueKeys = new HashSet<int>();
-            foreach (var s in map.statueList) statueKeys.Add(s.y * map.gridWidth + s.x);
-
-            // 배치(BUILD) 타일: 조금 올림. 석상 칸은 보라.
+            // 배치(BUILD) 타일: 조금 올림. 석상은 EntityView 가 별도 오브젝트로 그린다(파괴되면 사라지고 칸이 열림).
             foreach (var c in map.buildTileList)
             {
-                bool isStatue = statueKeys.Contains(c.y * map.gridWidth + c.x);
-                Color color = isStatue ? StatueColor : LoopMapView.TileColor(LoopTile.Build);
-                MakeTile(c.x, c.y, 0.0f, 0.2f, color);
+                MakeTile(c.x, c.y, 0.0f, 0.2f, LoopMapView.TileColor(LoopTile.Build));
             }
 
             // 경로(PATH) 타일: 평평. 스폰 칸은 빨강.
