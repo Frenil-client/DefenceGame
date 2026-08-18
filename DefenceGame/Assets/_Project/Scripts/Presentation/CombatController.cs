@@ -5,9 +5,9 @@ using Synthesis.Core.Simulation;
 
 namespace Synthesis.Presentation
 {
-    // 실시간 전투 - 배치된 유닛이 사거리 내 몬스터를 자동 공격한다.
-    // 전투 판단(타겟팅/쿨다운)은 결정적 시뮬이 아니라 여기서 프레임 단위로 처리한다(SPEC: 시뮬은 배치/스폰/순회만).
-    // 몬스터 hp/처치 상태 전이는 LoopSimulator.DamageMonster 로 위임해 aliveCount 소유를 Core 에 남긴다.
+    // 실시간 전투 - 배치된 유닛이 사거리 내 몬스터/석상을 자동 공격한다.
+    // 데미지 계산(방어력 공식)과 hp/처치 처리를 여기서 소유한다. 시뮬은 스폰/순회/배치/경제만 다루고,
+    // 로스터(aliveCount) 갱신만 LoopSimulator.OnMonsterKilled 로 알린다.
     public sealed class CombatController : MonoBehaviour
     {
         [SerializeField] private GameManager game;
@@ -16,6 +16,9 @@ namespace Synthesis.Presentation
         [SerializeField] private float beamVisibleSeconds = 0.08f;
 
         private static readonly Color BeamColor = new Color(1f, 0.92f, 0.35f);
+        // [TEMP] 워크래프트3 계열 방어력 공식 상수. 실피해 = 원피해 / (1 + K*방어력). 방어력 1당 유효체력 +6%,
+        // 감소율은 100%에 점근하므로 완전 차단이 없다(관통 하한 불필요). K와 방어력 값은 시뮬로 재확정한다.
+        private static readonly Fixed ArmorK = Fixed.FromRatio(6, 100); // 0.06
 
         private readonly Dictionary<LoopUnit, float> cooldownByUnit = new Dictionary<LoopUnit, float>();
         private readonly Dictionary<LoopUnit, LineRenderer> beamByUnit = new Dictionary<LoopUnit, LineRenderer>();
@@ -64,7 +67,7 @@ namespace Synthesis.Presentation
                         LoopMonster fm = u.focusMonster;
                         if (InRangeMonster(sim, u, uCell, fm))
                         {
-                            sim.DamageMonster(fm, u.data.atk);
+                            DamageMonster(sim, fm, u.data.atk);
                             ShowBeamTo(u, MonsterWorld(sim, fm));
                             cd = AttackInterval(u);
                         }
@@ -74,7 +77,7 @@ namespace Synthesis.Presentation
                         LoopStatue fs = u.focusStatue;
                         if (InRangeStatue(u, uCell, fs))
                         {
-                            bool destroyed = sim.DamageStatue(fs, u.data.atk);
+                            bool destroyed = DamageStatue(fs, u.data.atk);
                             ShowBeamTo(u, StatueWorld(fs));
                             if (destroyed) game.Context.selectionTokens += game.Context.statueTokenReward;
                             cd = AttackInterval(u);
@@ -86,7 +89,7 @@ namespace Synthesis.Presentation
                         LoopMonster mTarget = FindMonsterTarget(sim, u, uCell);
                         if (mTarget != null)
                         {
-                            sim.DamageMonster(mTarget, u.data.atk);
+                            DamageMonster(sim, mTarget, u.data.atk);
                             ShowBeamTo(u, MonsterWorld(sim, mTarget));
                             cd = AttackInterval(u);
                         }
@@ -95,7 +98,7 @@ namespace Synthesis.Presentation
                             LoopStatue sTarget = FindStatueTarget(sim, u, uCell);
                             if (sTarget != null)
                             {
-                                bool destroyed = sim.DamageStatue(sTarget, u.data.atk);
+                                bool destroyed = DamageStatue(sTarget, u.data.atk);
                                 ShowBeamTo(u, StatueWorld(sTarget));
                                 if (destroyed) game.Context.selectionTokens += game.Context.statueTokenReward;
                                 cd = AttackInterval(u);
@@ -114,6 +117,42 @@ namespace Synthesis.Presentation
             double aps = u.data.atkSpeed.ToDoubleForDisplay();
             if (aps <= 0.0) return 1f;
             return (float)(1.0 / aps);
+        }
+
+        // ---- 데미지 처리(전투 스크립트 소유). 방어력 곱연산 감소 후 hp/처치 처리, 로스터만 시뮬에 알린다. ----
+
+        // 방어력을 곱연산으로 감소시킨다(WC3 공식). 실피해 = 원피해 / (1 + K*방어력). 방어력 0이면 원 피해 그대로.
+        private static Fixed ArmorReduced(Fixed atk, Fixed armor)
+        {
+            Fixed divisor = Fixed.One + ArmorK * armor;
+            return divisor.raw > 0 ? atk / divisor : atk;
+        }
+
+        // 몬스터에 피해를 적용한다. 죽으면 alive=false 로 처리하고 시뮬 로스터를 갱신한다.
+        private void DamageMonster(LoopSimulator sim, LoopMonster m, Fixed atk)
+        {
+            if (m == null || !m.alive || atk.raw <= 0) return;
+            m.hp = m.hp - ArmorReduced(atk, m.armor);
+            if (m.hp.raw <= 0)
+            {
+                m.hp = Fixed.Zero;
+                m.alive = false;
+                sim.OnMonsterKilled();
+            }
+        }
+
+        // 석상에 피해를 적용한다(석상은 방어력 없음). 반환값은 이번 타격으로 파괴됐는지 여부.
+        private bool DamageStatue(LoopStatue s, Fixed atk)
+        {
+            if (s == null || !s.alive || atk.raw <= 0) return false;
+            s.hp = s.hp - atk;
+            if (s.hp.raw <= 0)
+            {
+                s.hp = Fixed.Zero;
+                s.alive = false;
+                return true;
+            }
+            return false;
         }
 
         // 사거리 내 가장 가까운 살아있는 몬스터(유닛 현재 셀 기준, 거리 제곱 비교). 없으면 null.

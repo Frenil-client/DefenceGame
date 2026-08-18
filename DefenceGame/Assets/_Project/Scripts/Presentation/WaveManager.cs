@@ -20,8 +20,12 @@ namespace Synthesis.Presentation
         [SerializeField] private float prepSeconds = 1.5f;
         // [TEMP] 웨이브 제한시간(초). 8x12 둘레(36셀)를 몬스터가 약 1.5바퀴 도는 시간(BALANCE 12). 시뮬로 재확정.
         [SerializeField] private float waveTimeLimit = 35f;
+        // [TEMP] 필드 누적 상한. 살아있는 몬스터 수가 이를 초과하면 패배(게임 규칙). 시뮬로 재확정.
+        [SerializeField] private int accumCap = 60;
         // [TEMP] 게임 시작 시 미리 지급하는 1성 유닛 수(최초 지급, BALANCE 6-1). 시뮬로 재확정.
         [SerializeField] private int startUnitCount = 5;
+
+        public int AccumCap => accumCap;
 
         public int NextWave { get; private set; } = 1;
         public string LastGranted { get; private set; } = "-";
@@ -70,6 +74,9 @@ namespace Synthesis.Presentation
 
             var ctx = game.Context;
             if (ctx.sim.state.defeated || Cleared) return;
+
+            // 필드 누적 상한 초과 시 패배(게임 규칙). 시뮬 상태(생존 수)를 읽어 게임 레이어가 판정한다.
+            if (ctx.sim.state.aliveCount > accumCap) { ctx.sim.state.defeated = true; return; }
 
             // 게임 시작 시 1성 유닛을 미리 지급한다(최초 지급). 컨텍스트가 준비된 첫 프레임에 1회.
             if (!startGranted)

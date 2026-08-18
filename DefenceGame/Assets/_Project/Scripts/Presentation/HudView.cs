@@ -76,7 +76,7 @@ namespace Synthesis.Presentation
                 + "웨이브 " + shownWave + " / " + game.MaxWave + "  [" + phaseLabel + "]  x" + game.Speed + "\n"
                 + "제한시간 " + remain.ToString("F1") + "s\n"
                 + "코스트 " + s.cost + " / " + s.costCap + "\n"
-                + "필드 몬스터 " + s.aliveCount + " / " + s.accumCap + "\n"
+                + "필드 몬스터 " + s.aliveCount + " / " + (waves != null ? waves.AccumCap : 0) + "\n"
                 + "인벤토리 " + game.Context.inventory.Count + "   최근 뽑기 " + granted + "\n"
                 + "선택권 " + game.Context.selectionTokens;
         }

@@ -50,7 +50,6 @@ namespace Synthesis.Core.Simulation
         public Fixed cost;
         public int costCap = 40;
         public int statueHp = 400; // [TEMP] 석상 체력. 유닛 자동 공격으로 파괴. 시뮬로 재확정
-        public int accumCap = 60;  // [TEMP] 필드 누적 상한. 살아있는 몬스터 수가 이를 초과하면 패배. 시뮬로 재확정
 
         public List<LoopMonster> monsterList = new List<LoopMonster>();
         public List<LoopUnit> unitList = new List<LoopUnit>();
@@ -105,20 +104,6 @@ namespace Synthesis.Core.Simulation
             return false;
         }
 
-        // 석상에 피해를 적용한다(전투는 Unity 실시간). 죽으면 alive=false. 반환값은 이번 타격으로 파괴됐는지 여부.
-        public bool DamageStatue(LoopStatue statue, Fixed damage)
-        {
-            if (statue == null || !statue.alive) return false;
-            statue.hp = statue.hp - damage;
-            if (statue.hp.raw <= 0)
-            {
-                statue.hp = Fixed.Zero;
-                statue.alive = false;
-                return true;
-            }
-            return false;
-        }
-
         public void StartWave(EnemyData enemy, int spawnCount, int spawnInterval, Fixed armor = default)
         {
             state.spawnEnemy = enemy;
@@ -141,9 +126,7 @@ namespace Synthesis.Core.Simulation
             RecoverCost();
             ProcessSpawns();
             MoveMonsters();
-
-            // 필드 누적 상한: 살아있는 몬스터가 상한을 초과하면 패배(밀집이 곧 죽음의 신호). aliveCount 는 스폰에서만 증가하므로 여기서 검사한다.
-            if (state.aliveCount > state.accumCap) state.defeated = true;
+            // 승패 판정(누적 상한/보스 제한시간)은 시뮬이 하지 않는다. 게임 레이어(WaveManager)가 상태를 읽어 판정한다.
         }
 
         // 스폰이 끝났고 살아있는 몬스터가 없으면 true. (몬스터 처치는 시뮬 밖에서 처리한다)
@@ -353,30 +336,11 @@ namespace Synthesis.Core.Simulation
             return null;
         }
 
-        // 몬스터에 피해를 적용한다. 전투 판단(타겟팅/쿨다운)은 Unity 실시간에서 하고, 여기선 hp/처치 상태 전이만 담당한다.
-        // 죽으면 alive=false, aliveCount 감소. 반환값은 이번 타격으로 죽었는지 여부.
-        // [TEMP] 워크래프트3 계열 방어력 공식. 실피해 = 원피해 / (1 + K*방어력). 방어력 1당 유효체력 +6%,
-        // 감소율은 100%에 점근하므로 완전 차단이 없다(관통 하한 불필요). K와 방어력 값은 시뮬로 재확정한다.
-        private static readonly Fixed ArmorK = Fixed.FromRatio(6, 100); // 0.06
-
-        public bool DamageMonster(LoopMonster m, Fixed damage)
+        // 몬스터가 죽었을 때 로스터에서 뺀다(스폰은 시뮬, 처치는 전투 스크립트가 이 메서드로 로스터만 갱신).
+        // 데미지 계산/hp 처리는 전투 스크립트(CombatController)가 소유한다. 시뮬은 스폰/순회/배치/경제만 다룬다.
+        public void OnMonsterKilled()
         {
-            if (m == null || !m.alive) return false;
-            if (damage.raw <= 0) return false;
-
-            // 방어력을 곱연산으로 감소시킨다(WC3 공식). 방어력 0이면 원 피해 그대로.
-            Fixed divisor = Fixed.One + ArmorK * m.armor;
-            Fixed dealt = divisor.raw > 0 ? damage / divisor : damage;
-
-            m.hp = m.hp - dealt;
-            if (m.hp.raw <= 0)
-            {
-                m.hp = Fixed.Zero;
-                m.alive = false;
-                if (state.aliveCount > 0) --state.aliveCount;
-                return true;
-            }
-            return false;
+            if (state.aliveCount > 0) --state.aliveCount;
         }
 
         // 렌더링용 몬스터 실수 좌표(구간 보간).

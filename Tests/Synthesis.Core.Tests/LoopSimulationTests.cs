@@ -46,16 +46,16 @@ namespace Synthesis.Core.Tests
         }
 
         [Fact]
-        public void Accumulation_DefeatsAtCap()
+        public void Accumulation_SimDoesNotJudgeDefeat()
         {
-            // 필드 누적 상한 재도입: 처치하지 않고 상한(기본 60)을 넘게 쌓이면 패배한다.
+            // 승패 판정(누적 상한 포함)은 게임 레이어(WaveManager)가 한다. 시뮬은 몬스터가 쌓여도 스스로 패배하지 않는다.
             LoopSimulator sim = new LoopSimulator(MakeMap(1), 1);
-            sim.StartWave(E01(), 80, 4); // 처치 없이 80기 스폰 -> 상한 초과
+            sim.StartWave(E01(), 80, 4);
 
             for (int i = 0; i < 2000; ++i) sim.Tick();
 
-            Assert.True(sim.state.defeated);
-            Assert.True(sim.state.aliveCount > sim.state.accumCap);
+            Assert.False(sim.state.defeated);
+            Assert.True(sim.state.aliveCount > 60);
         }
 
         [Fact]
