@@ -46,16 +46,16 @@ namespace Synthesis.Core.Tests
         }
 
         [Fact]
-        public void Accumulation_NoDefeatCap()
+        public void Accumulation_DefeatsAtCap()
         {
-            // v0.4: 필드 누적 상한 폐기. 방어 없이 쌓여도 패배하지 않는다(패배는 보스 제한시간).
+            // 필드 누적 상한 재도입: 처치하지 않고 상한(기본 60)을 넘게 쌓이면 패배한다.
             LoopSimulator sim = new LoopSimulator(MakeMap(1), 1);
-            sim.StartWave(E01(), 80, 4);
+            sim.StartWave(E01(), 80, 4); // 처치 없이 80기 스폰 -> 상한 초과
 
             for (int i = 0; i < 2000; ++i) sim.Tick();
 
-            Assert.False(sim.state.defeated);
-            Assert.True(sim.state.aliveCount > 60);
+            Assert.True(sim.state.defeated);
+            Assert.True(sim.state.aliveCount > sim.state.accumCap);
         }
 
         [Fact]

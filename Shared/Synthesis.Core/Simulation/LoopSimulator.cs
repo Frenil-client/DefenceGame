@@ -50,6 +50,7 @@ namespace Synthesis.Core.Simulation
         public Fixed cost;
         public int costCap = 40;
         public int statueHp = 400; // [TEMP] 석상 체력. 유닛 자동 공격으로 파괴. 시뮬로 재확정
+        public int accumCap = 60;  // [TEMP] 필드 누적 상한. 살아있는 몬스터 수가 이를 초과하면 패배. 시뮬로 재확정
 
         public List<LoopMonster> monsterList = new List<LoopMonster>();
         public List<LoopUnit> unitList = new List<LoopUnit>();
@@ -140,6 +141,9 @@ namespace Synthesis.Core.Simulation
             RecoverCost();
             ProcessSpawns();
             MoveMonsters();
+
+            // 필드 누적 상한: 살아있는 몬스터가 상한을 초과하면 패배(밀집이 곧 죽음의 신호). aliveCount 는 스폰에서만 증가하므로 여기서 검사한다.
+            if (state.aliveCount > state.accumCap) state.defeated = true;
         }
 
         // 스폰이 끝났고 살아있는 몬스터가 없으면 true. (몬스터 처치는 시뮬 밖에서 처리한다)
@@ -351,13 +355,18 @@ namespace Synthesis.Core.Simulation
 
         // 몬스터에 피해를 적용한다. 전투 판단(타겟팅/쿨다운)은 Unity 실시간에서 하고, 여기선 hp/처치 상태 전이만 담당한다.
         // 죽으면 alive=false, aliveCount 감소. 반환값은 이번 타격으로 죽었는지 여부.
+        // [TEMP] 워크래프트3 계열 방어력 공식. 실피해 = 원피해 / (1 + K*방어력). 방어력 1당 유효체력 +6%,
+        // 감소율은 100%에 점근하므로 완전 차단이 없다(관통 하한 불필요). K와 방어력 값은 시뮬로 재확정한다.
+        private static readonly Fixed ArmorK = Fixed.FromRatio(6, 100); // 0.06
+
         public bool DamageMonster(LoopMonster m, Fixed damage)
         {
             if (m == null || !m.alive) return false;
+            if (damage.raw <= 0) return false;
 
-            // 방어력만큼 피해를 깎는다. 방어력에 완전히 막히면 피해가 들어가지 않는다(관통/방깎 필요, SPEC 3-6).
-            Fixed dealt = damage - m.armor;
-            if (dealt.raw <= 0) return false;
+            // 방어력을 곱연산으로 감소시킨다(WC3 공식). 방어력 0이면 원 피해 그대로.
+            Fixed divisor = Fixed.One + ArmorK * m.armor;
+            Fixed dealt = divisor.raw > 0 ? damage / divisor : damage;
 
             m.hp = m.hp - dealt;
             if (m.hp.raw <= 0)

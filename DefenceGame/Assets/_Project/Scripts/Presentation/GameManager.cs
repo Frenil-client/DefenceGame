@@ -20,7 +20,13 @@ namespace Synthesis.Presentation
         public int MaxWave => maxWave;
         public float Speed = 1f;
 
+        // 런 세대 번호. 재시작할 때마다 증가한다. 상태를 캐시하는 뷰/매니저가 이 값 변화를 보고 스스로 리셋한다.
+        public int RunId { get; private set; }
+        public bool Won { get; private set; }
+        public bool IsOver => Won || (Context != null && Context.IsValid() && Context.sim.state.defeated);
+
         private float tickAccum;
+        private long runSeed;
 
         private void Awake()
         {
@@ -31,24 +37,45 @@ namespace Synthesis.Presentation
                 enabled = false;
                 return;
             }
-            Context = RunContext.Build(mapView.seed, mapView.useDefaultMap, mapAsset);
+            runSeed = mapView.seed;
+            BuildRun();
+        }
+
+        // 런을 (재)빌드한다. Context 를 새로 만들고 승리 플래그와 틱 누적을 초기화한다.
+        private void BuildRun()
+        {
+            Won = false;
+            tickAccum = 0f;
+            Context = RunContext.Build(runSeed, mapView.useDefaultMap, mapAsset);
             if (!Context.IsValid())
             {
                 Debug.LogError("[GameManager] Data 를 읽지 못했습니다.");
                 enabled = false;
                 return;
             }
-
             // 로드한 맵 크기를 뷰에 반영해 원점 중심 좌표가 맞도록 한다(카메라도 원점을 봄).
             mapView.gridWidth = Context.map.gridWidth;
             mapView.gridHeight = Context.map.gridHeight;
+        }
+
+        // 클리어(WaveManager)가 호출. 승리 시 틱을 멈춘다.
+        public void MarkWon()
+        {
+            Won = true;
+        }
+
+        // 결과 화면의 재시작 버튼이 호출. 같은 시드로 런을 다시 시작한다(뷰/매니저는 RunId 변화로 리셋).
+        public void Restart()
+        {
+            BuildRun();
+            ++RunId;
         }
 
         private void Update()
         {
             if (Context == null || !Context.IsValid()) return;
             var sim = Context.sim;
-            if (sim.state.defeated) return;
+            if (Won || sim.state.defeated) return; // 런 종료 시 틱 정지
 
             float dt = Time.deltaTime * Speed;
             tickAccum += dt;

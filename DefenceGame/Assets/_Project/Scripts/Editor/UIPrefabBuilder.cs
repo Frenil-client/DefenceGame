@@ -36,6 +36,7 @@ namespace Synthesis.Editor
             BuildMonsterHpHud(hpBar);
             BuildCombinePopup(recipeRow);
             BuildShopPopup(recipeRow);
+            BuildResultPopup();
             BuildSamplePopup();
 
             AssetDatabase.SaveAssets();
@@ -123,9 +124,28 @@ namespace Synthesis.Editor
             BuildSpeedButton(root.transform, view, "2x", 76f, 2f);
             BuildSpeedButton(root.transform, view, "4x", 136f, 4f);
             BuildShopButton(root.transform, view, 200f);
+            Button skip = BuildSkipButton(root.transform, view, 296f);
 
             SetRef(view, "statsText", stats);
+            SetRef(view, "skipButton", skip);
             SaveAs<HudView>(root, HudDir + "/HudView.prefab");
+        }
+
+        // 웨이브 스킵 버튼(하단). 스폰 완료 시 HudView 가 interactable 을 켠다.
+        private static Button BuildSkipButton(Transform parent, HudView view, float x)
+        {
+            GameObject go = MakeRect("Skip", parent, new Vector2(110f, 36f));
+            RectTransform rt = (RectTransform)go.transform;
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.zero; rt.pivot = Vector2.zero;
+            rt.anchoredPosition = new Vector2(x, 16f);
+            Image img = go.AddComponent<Image>();
+            img.color = new Color(0.28f, 0.34f, 0.46f, 0.95f);
+            Button btn = go.AddComponent<Button>();
+            UnityEventTools.AddPersistentListener(btn.onClick, view.OnSkipClicked);
+
+            Text t = MakeLabel(go.transform, "Label", "웨이브 스킵", 16, TextAnchor.MiddleCenter);
+            Stretch((RectTransform)t.transform);
+            return btn;
         }
 
         // 상점 열기 버튼(하단, 배속 버튼 옆).
@@ -287,6 +307,43 @@ namespace Synthesis.Editor
             SetRef(popup, "listRoot", lrt);
             SetRef(popup, "rowPrefab", rowPrefab);
             SaveAs<ShopPopup>(root, UiDir + "/ShopPopup.prefab");
+        }
+
+        private static void BuildResultPopup()
+        {
+            GameObject root = MakeRect("ResultPopup", null, Vector2.zero);
+            Stretch((RectTransform)root.transform);
+            Image backdrop = root.AddComponent<Image>();
+            backdrop.color = new Color(0f, 0f, 0f, 0.6f); // 모달
+            ResultPopup popup = root.AddComponent<ResultPopup>();
+            popup.panelId = "ResultPopup";
+            popup.modal = true;
+
+            GameObject box = MakeRect("Box", root.transform, new Vector2(560f, 320f));
+            RectTransform brt = (RectTransform)box.transform;
+            brt.anchorMin = brt.anchorMax = new Vector2(0.5f, 0.5f); brt.pivot = new Vector2(0.5f, 0.5f);
+            brt.anchoredPosition = Vector2.zero;
+            Image boxImg = box.AddComponent<Image>();
+            boxImg.color = new Color(0.16f, 0.18f, 0.24f, 0.98f);
+
+            Text msg = MakeLabel(box.transform, "Message", "", 40, TextAnchor.MiddleCenter);
+            RectTransform mrt = (RectTransform)msg.transform;
+            mrt.anchorMin = new Vector2(0f, 0.4f); mrt.anchorMax = new Vector2(1f, 1f); mrt.pivot = new Vector2(0.5f, 1f);
+            mrt.offsetMin = Vector2.zero; mrt.offsetMax = new Vector2(0f, -24f);
+
+            GameObject restart = MakeRect("Restart", box.transform, new Vector2(220f, 64f));
+            RectTransform rrt = (RectTransform)restart.transform;
+            rrt.anchorMin = rrt.anchorMax = new Vector2(0.5f, 0f); rrt.pivot = new Vector2(0.5f, 0f);
+            rrt.anchoredPosition = new Vector2(0f, 32f);
+            Image rimg = restart.AddComponent<Image>();
+            rimg.color = new Color(0.30f, 0.42f, 0.30f, 1f);
+            Button rbtn = restart.AddComponent<Button>();
+            UnityEventTools.AddPersistentListener(rbtn.onClick, popup.OnRestartClicked);
+            Text rlabel = MakeLabel(restart.transform, "Label", "재시작", 24, TextAnchor.MiddleCenter);
+            Stretch((RectTransform)rlabel.transform);
+
+            SetRef(popup, "messageText", msg);
+            SaveAs<ResultPopup>(root, UiDir + "/ResultPopup.prefab");
         }
 
         private static void BuildSamplePopup()

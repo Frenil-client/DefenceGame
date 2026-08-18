@@ -40,6 +40,7 @@ namespace Synthesis.Presentation
 
         private float unitMoveSpeed = 1.848f; // 유닛 걷기 속도(셀/초). 몬스터 기본속도 * 배수. Context 준비 시 갱신
         private bool unitSpeedResolved;
+        private int lastRunId = -1;
 
         // 시뮬 위치는 틱마다만 바뀌므로, 렌더는 프레임마다 부드럽게 추종해 버벅임을 없앤다(프레임률 무관).
         private static Vector3 SmoothPos(Vector3 current, Vector3 target)
@@ -113,9 +114,22 @@ namespace Synthesis.Presentation
         private void Update()
         {
             if (game == null || game.Context == null || !game.Context.IsValid()) return;
+            if (lastRunId != game.RunId) { lastRunId = game.RunId; ResetRun(); }
             SyncMonsters(game.Context.sim);
             SyncUnits(game.Context.sim, game.MapView);
             SyncStatues(game.Context.sim, game.MapView);
+        }
+
+        // 재시작(RunId 변화) 시 이전 런의 엔티티 뷰를 모두 정리한다.
+        private void ResetRun()
+        {
+            foreach (var pair in monsterViews) { if (pair.Value != null) monsterPool.Release(pair.Value); }
+            monsterViews.Clear();
+            foreach (var pair in unitViews) { if (pair.Value != null) Destroy(pair.Value); }
+            unitViews.Clear();
+            unitArrived.Clear();
+            foreach (var pair in statueViews) { if (pair.Value != null) Destroy(pair.Value); }
+            statueViews.Clear();
         }
 
         // 석상을 배치 칸 위 보라 오브젝트로 그린다. 파괴되면(alive=false) 뷰를 제거해 사라지게 한다.

@@ -12,11 +12,18 @@ namespace Synthesis.Presentation
         [SerializeField] private GameManager game;
         [SerializeField] private WaveManager waves;
         [SerializeField] private Text statsText;
+        [SerializeField] private Button skipButton; // 웨이브 스킵 버튼(스폰 완료 시 활성)
 
         // 배속 버튼(프리팹의 onClick 에서 호출).
         public void SetSpeed(float value)
         {
             if (game != null) game.Speed = value;
+        }
+
+        // 웨이브 스킵 버튼(프리팹의 onClick 에서 호출). 생성 완료된 일반 웨이브에서 다음 웨이브로 넘긴다.
+        public void OnSkipClicked()
+        {
+            if (waves != null) waves.RequestSkip();
         }
 
         // 상점 버튼(프리팹의 onClick 에서 호출). 선택권으로 원하는 1성을 구매한다.
@@ -49,6 +56,9 @@ namespace Synthesis.Presentation
 
         private void Update()
         {
+            // 스킵 버튼 활성화: 생성이 완료된 일반 웨이브에서만 누를 수 있다.
+            if (skipButton != null) skipButton.interactable = waves != null && waves.CanSkip;
+
             if (statsText == null || game == null || game.Context == null || !game.Context.IsValid()) return;
 
             var s = game.Context.sim.state;
@@ -66,7 +76,7 @@ namespace Synthesis.Presentation
                 + "웨이브 " + shownWave + " / " + game.MaxWave + "  [" + phaseLabel + "]  x" + game.Speed + "\n"
                 + "제한시간 " + remain.ToString("F1") + "s\n"
                 + "코스트 " + s.cost + " / " + s.costCap + "\n"
-                + "필드 몬스터 " + s.aliveCount + "\n"
+                + "필드 몬스터 " + s.aliveCount + " / " + s.accumCap + "\n"
                 + "인벤토리 " + game.Context.inventory.Count + "   최근 뽑기 " + granted + "\n"
                 + "선택권 " + game.Context.selectionTokens;
         }

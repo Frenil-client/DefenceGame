@@ -81,6 +81,11 @@ namespace Synthesis.Editor
             moveGo.transform.SetParent(managers.transform, false);
             UnitMoveController move = moveGo.AddComponent<UnitMoveController>();
 
+            // 런 결과(승리/패배) 감지 + 재시작.
+            GameObject resultGo = new GameObject("ResultController");
+            resultGo.transform.SetParent(managers.transform, false);
+            ResultController result = resultGo.AddComponent<ResultController>();
+
             // 드래그 중 선택 칸 2D 표시(지면에 눕힌 반투명 쿼드).
             GameObject tileIndicator = CreateTileIndicator(env.transform);
 
@@ -114,6 +119,7 @@ namespace Synthesis.Editor
             SetRef(move, "cam", cam);
             SetRef(move, "entityView", entityView);
             SetRef(move, "tileIndicator", tileIndicator);
+            SetRef(result, "game", gm);
             SetRef(uiManager, "baseCanvas", baseCanvas);
             SetPopupPrefabs(uiManager);
             if (hud != null) { SetRef(hud, "game", gm); SetRef(hud, "waves", wm); }
@@ -199,6 +205,7 @@ namespace Synthesis.Editor
         {
             UIPanel combine = AssetDatabase.LoadAssetAtPath<UIPanel>(UiDir + "/CombinePopup.prefab");
             UIPanel shop = AssetDatabase.LoadAssetAtPath<UIPanel>(UiDir + "/ShopPopup.prefab");
+            UIPanel result = AssetDatabase.LoadAssetAtPath<UIPanel>(UiDir + "/ResultPopup.prefab");
             UIPanel sample = AssetDatabase.LoadAssetAtPath<UIPanel>(UiDir + "/SamplePopup.prefab");
 
             var so = new SerializedObject(manager);
@@ -206,6 +213,7 @@ namespace Synthesis.Editor
             arr.ClearArray();
             AddIfNotNull(arr, combine);
             AddIfNotNull(arr, shop);
+            AddIfNotNull(arr, result);
             AddIfNotNull(arr, sample);
             so.ApplyModifiedProperties();
         }

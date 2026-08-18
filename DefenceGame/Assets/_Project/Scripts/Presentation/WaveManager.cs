@@ -27,11 +27,21 @@ namespace Synthesis.Presentation
         public string LastGranted { get; private set; } = "-";
         public bool Cleared { get; private set; }
         public float WaveTimer => waveTimer;
+        // 스킵 버튼 활성 여부. 일반 웨이브에서 스폰이 완료되면 켜진다(HUD 버튼이 읽어 interactable 설정).
+        public bool CanSkip { get; private set; }
 
         private float waveTimer;
         private float placeTimer;
         private List<GridPos> centerTiles;
         private bool startGranted;
+        private bool skipRequested;
+        private int lastRunId = -1;
+
+        // HUD 스킵 버튼이 호출한다. 생성이 완료된 일반 웨이브에서만 유효(제한시간은 그대로 흐른다).
+        public void RequestSkip()
+        {
+            if (CanSkip) skipRequested = true;
+        }
 
         private void Awake()
         {
@@ -39,9 +49,25 @@ namespace Synthesis.Presentation
             waveTimer = prepSeconds;
         }
 
+        // 재시작(RunId 변화) 시 웨이브 진행 상태를 초기화한다.
+        private void ResetRun()
+        {
+            NextWave = 1;
+            LastGranted = "-";
+            Cleared = false;
+            CanSkip = false;
+            skipRequested = false;
+            waveTimer = prepSeconds;
+            placeTimer = 0f;
+            centerTiles = null;
+            startGranted = false;
+        }
+
         private void Update()
         {
             if (game == null || game.Context == null || !game.Context.IsValid()) return;
+            if (lastRunId != game.RunId) { lastRunId = game.RunId; ResetRun(); }
+
             var ctx = game.Context;
             if (ctx.sim.state.defeated || Cleared) return;
 
@@ -66,6 +92,7 @@ namespace Synthesis.Presentation
 
             waveTimer -= Time.deltaTime * game.Speed;
 
+            CanSkip = false; // 기본 비활성. 일반 웨이브에서 스폰 완료 시에만 켠다.
             int activeWave = NextWave - 1; // 현재 진행 중 웨이브(0 = 첫 웨이브 전 준비 단계)
 
             // 준비 단계: 제한시간이 끝나면 첫 웨이브를 시작한다.
@@ -86,7 +113,7 @@ namespace Synthesis.Presentation
                 {
                     GrantBossReward(ctx, active); // 보스 격파 보상: 선택권 지급(SPEC 3-6)
                     // 마지막 라운드는 보스 처치가 곧 클리어. 잔여 몬스터가 남아도 즉시 클리어.
-                    if (activeWave >= game.MaxWave) { Cleared = true; return; }
+                    if (activeWave >= game.MaxWave) { Cleared = true; game.MarkWon(); return; }
                     StartNextWave(ctx);
                     return;
                 }
@@ -95,10 +122,13 @@ namespace Synthesis.Presentation
                 return;
             }
 
-            // 일반 웨이브: 제한시간 만료 또는 필드 클리어 시 다음 웨이브로.
-            if (waveTimer <= 0f || ctx.sim.IsFieldClear())
+            // 일반 웨이브: 스폰이 끝나면 스킵 버튼을 활성화한다(필드 클리어 자동 진행은 폐기).
+            // 제한시간이 끝나거나 플레이어가 스킵을 누르면 다음 웨이브로. 제한시간은 그대로 흐른다.
+            CanSkip = ctx.sim.IsSpawningDone();
+            if (waveTimer <= 0f || skipRequested)
             {
-                if (activeWave >= game.MaxWave) { Cleared = true; return; } // 방어적(마지막은 보스지만)
+                skipRequested = false;
+                if (activeWave >= game.MaxWave) { Cleared = true; game.MarkWon(); return; } // 방어적(마지막은 보스지만)
                 StartNextWave(ctx);
             }
         }

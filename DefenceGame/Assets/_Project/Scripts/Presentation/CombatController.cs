@@ -21,11 +21,22 @@ namespace Synthesis.Presentation
         private readonly Dictionary<LoopUnit, LineRenderer> beamByUnit = new Dictionary<LoopUnit, LineRenderer>();
         private readonly Dictionary<LoopUnit, float> beamTimerByUnit = new Dictionary<LoopUnit, float>();
         private Material beamMaterial;
+        private int lastRunId = -1;
+
+        // 재시작(RunId 변화) 시 이전 런의 쿨다운/빔을 정리한다.
+        private void ResetRun()
+        {
+            foreach (var pair in beamByUnit) { if (pair.Value != null) Destroy(pair.Value.gameObject); }
+            beamByUnit.Clear();
+            cooldownByUnit.Clear();
+            beamTimerByUnit.Clear();
+        }
 
         private void Update()
         {
             if (game == null || game.Context == null || !game.Context.IsValid()) return;
             if (mapView == null) return;
+            if (lastRunId != game.RunId) { lastRunId = game.RunId; ResetRun(); }
 
             LoopSimulator sim = game.Context.sim;
             if (sim.state.defeated) return;
