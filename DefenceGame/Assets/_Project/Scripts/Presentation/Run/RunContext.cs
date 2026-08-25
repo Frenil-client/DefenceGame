@@ -29,8 +29,8 @@ namespace Synthesis.Presentation
 
         // 선택권: 석상 파괴와 보스 격파로 얻는 재화. 상점에서 원하는 1성 1기로 교환한다(SPEC 2-2).
         public int selectionTokens;
-        public int statueTokenReward = 1; // [TEMP] 석상 1기 파괴 보상. 시뮬로 재확정
-        public int selectionCost = 3;     // [TEMP] 1성 1기 구매에 드는 선택권 수. 시뮬로 재확정
+        public int statueTokenReward = 3; // [TEMP] 석상 1기 파괴 보상. 시뮬로 재확정
+        public int selectionCost = 1;     // [TEMP] 1성 1기 구매에 드는 선택권 수. 시뮬로 재확정
 
         public static RunContext Build(long seed, bool useDefaultMap = false, MapSO mapAsset = null)
         {
