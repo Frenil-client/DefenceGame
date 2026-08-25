@@ -11,8 +11,9 @@ namespace Synthesis.Core.Simulation
     {
         public string enemyId;
         public Fixed hp;
-        public Fixed armor;         // 피해에서 차감(보스 고방어). 관통/방깎은 STEP 4에서 처리
-        public Fixed moveSpeed;     // 초당 셀 수
+        public Fixed armor;         // 피해에서 차감(보스 고방어). 방깎(ArmorReduction)은 전투에서 처리
+        public Fixed moveSpeed;     // 초당 셀 수(감속 적용된 현재 값). 전투가 실시간 수정
+        public Fixed baseMoveSpeed; // 감속 복원용 기준 속도(스폰 시 설정)
         public int waypointIndex;   // 현재 웨이포인트
         public Fixed progress;      // 구간 진행도 [0,1)
         public bool alive;
@@ -157,6 +158,7 @@ namespace Synthesis.Core.Simulation
                 m.hp = state.spawnEnemy.hp;
                 m.armor = state.spawnArmor;
                 m.moveSpeed = state.spawnEnemy.moveSpeed;
+                m.baseMoveSpeed = state.spawnEnemy.moveSpeed;
                 m.waypointIndex = spawnIdx;
                 m.progress = Fixed.Zero;
                 m.alive = true;

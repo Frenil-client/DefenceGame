@@ -16,6 +16,23 @@ namespace Synthesis.Core.Data
         public Fixed atk;
         public Fixed atkSpeed;     // 초당 공격 횟수
         public Fixed range;
+        public List<string> skillIds = new List<string>(); // 이 유닛이 가진 스킬 id(0개 이상). 매핑은 추후 데이터로 채운다
+        public string note;
+    }
+
+    // 패시브 스킬 정의(트리거 + 효과 + 수치). 유닛 스킬은 배치만으로 작동한다(액티브 없음).
+    // 효과별로 쓰는 파라미터가 다르다(주석 참고). 효과 로직은 전투 레이어가, 정의/파싱은 Core 가 소유한다.
+    public sealed class SkillData
+    {
+        public string id;
+        public SkillTrigger trigger;
+        public Fixed triggerN;   // EveryNthAttack: N(정수), ChanceOnAttack: 확률(0~1), Passive: 무시
+        public SkillEffect effect;
+        public Fixed radius;     // 광역/오라 반경(셀)
+        public Fixed magnitude;  // 효과 세기(배수/비율/dps/방어감소량 등, 효과별 의미)
+        public Fixed duration;   // 지속시간(초). 도트/감속에만. 오라/즉발은 무시
+        public int count;        // 대상 수(다중타격/관통)
+        public BuffStat buffStat;// 아군 버프 대상 스탯(AllyBuff 에서만)
         public string note;
     }
 
@@ -65,5 +82,6 @@ namespace Synthesis.Core.Data
         public List<WaveData> waveList = new List<WaveData>();
         public List<BossData> bossList = new List<BossData>();
         public List<EnemyData> enemyList = new List<EnemyData>();
+        public List<SkillData> skillList = new List<SkillData>();
     }
 }

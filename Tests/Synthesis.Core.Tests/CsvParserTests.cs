@@ -41,6 +41,33 @@ namespace Synthesis.Core.Tests
             foreach (var b in bosses) Assert.True(b.timeLimitTicks > 0);
         }
 
+        [Fact]
+        public void Skills_LoadComposable()
+        {
+            var skills = CsvParsers.LoadSkills(TestPaths.ReadData("skills.csv"));
+            Assert.Equal(9, skills.Count);
+
+            SkillData splash = null, crit = null, warcry = null;
+            foreach (var s in skills)
+            {
+                if (s.id == "SPLASH") splash = s;
+                if (s.id == "CRIT30") crit = s;
+                if (s.id == "WARCRY") warcry = s;
+            }
+
+            Assert.NotNull(splash);
+            Assert.Equal(SkillTrigger.Passive, splash.trigger);
+            Assert.Equal(SkillEffect.AreaDamage, splash.effect);
+
+            Assert.NotNull(crit);
+            Assert.Equal(SkillTrigger.ChanceOnAttack, crit.trigger);
+            Assert.Equal(SkillEffect.Crit, crit.effect);
+
+            Assert.NotNull(warcry);
+            Assert.Equal(SkillEffect.AllyBuff, warcry.effect);
+            Assert.Equal(BuffStat.Atk, warcry.buffStat);
+        }
+
         private static UnitData Find(List<UnitData> list, string id)
         {
             foreach (var u in list) if (u.id == id) return u;

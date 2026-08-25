@@ -25,6 +25,7 @@ namespace Synthesis.Presentation
         public Dictionary<string, EnemyData> enemyById;
         public Dictionary<string, BossData> bossById;
         public Dictionary<int, WaveData> waveByIndex;
+        public Dictionary<string, SkillData> skillById;
 
         // 선택권: 석상 파괴와 보스 격파로 얻는 재화. 상점에서 원하는 1성 1기로 교환한다(SPEC 2-2).
         public int selectionTokens;
@@ -57,6 +58,12 @@ namespace Synthesis.Presentation
             ctx.enemyById = WaveResolver.BuildEnemyLookup(ctx.db.enemyList);
             ctx.bossById = WaveResolver.BuildBossLookup(ctx.db.bossList);
             ctx.waveByIndex = WaveResolver.BuildWaveLookup(ctx.db.waveList);
+
+            ctx.skillById = new Dictionary<string, SkillData>();
+            foreach (var skill in ctx.db.skillList)
+            {
+                if (skill != null && !string.IsNullOrEmpty(skill.id)) ctx.skillById[skill.id] = skill;
+            }
             return ctx;
         }
 

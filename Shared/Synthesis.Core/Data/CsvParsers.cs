@@ -97,6 +97,26 @@ namespace Synthesis.Core.Data
             return waveData;
         }
 
+        // skills.csv: id,trigger,triggerN,effect,radius,magnitude,duration,count,buffStat,note
+        public static SkillData CsvToSkillData(string line)
+        {
+            var split = line.Split(',');
+            if (split.Length < 8) return null;
+
+            SkillData s = new SkillData();
+            s.id        = split[0].Trim();
+            s.trigger   = CsvEnum.StringToSkillTrigger(split[1]);
+            s.triggerN  = CsvUtil.StringToFixed(split[2]);
+            s.effect    = CsvEnum.StringToSkillEffect(split[3]);
+            s.radius    = CsvUtil.StringToFixed(split[4]);
+            s.magnitude = CsvUtil.StringToFixed(split[5]);
+            s.duration  = CsvUtil.StringToFixed(split[6]);
+            s.count     = CsvUtil.StringToInt(split[7]);
+            s.buffStat  = split.Length > 8 ? CsvEnum.StringToBuffStat(split[8]) : BuffStat.None;
+            s.note      = split.Length > 9 ? RejoinFrom(split, 9) : "";
+            return s;
+        }
+
         // ---- 로더 ----
 
         public static List<UnitData> LoadUnits(string fileText)
@@ -149,6 +169,17 @@ namespace Synthesis.Core.Data
             foreach (var line in CsvUtil.CsvToDataLines(fileText))
             {
                 var d = CsvToWaveData(line);
+                if (d != null) result.Add(d);
+            }
+            return result;
+        }
+
+        public static List<SkillData> LoadSkills(string fileText)
+        {
+            List<SkillData> result = new List<SkillData>();
+            foreach (var line in CsvUtil.CsvToDataLines(fileText))
+            {
+                var d = CsvToSkillData(line);
                 if (d != null) result.Add(d);
             }
             return result;

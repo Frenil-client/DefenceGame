@@ -35,6 +35,7 @@ namespace Synthesis.Presentation
             db.enemyList  = CsvParsers.LoadEnemies(ReadIfExists(dataDir, "enemies.csv"));
             db.bossList   = CsvParsers.LoadBosses(ReadIfExists(dataDir, "bosses.csv"));
             db.waveList   = CsvParsers.LoadWaves(ReadIfExists(dataDir, "waves.csv"));
+            db.skillList  = CsvParsers.LoadSkills(ReadIfExists(dataDir, "skills.csv"));
             return db;
         }
 
