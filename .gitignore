@@ -37,6 +37,9 @@ DefenceGame/Assets/_Recovery.meta
 # CSV 에서 임포터로 재생성되는 SO 캐시(원본은 Data/*.csv)
 DefenceGame/Assets/_Project/Data/Generated/
 DefenceGame/Assets/_Project/Data/Generated.meta
+# 맵 저작 툴의 임시 산출물(정식 맵으로 채택하기 전까지 추적하지 않음)
+DefenceGame/Assets/_Project/Data/Maps/Map_authored_MapAuthoring.asset
+DefenceGame/Assets/_Project/Data/Maps/Map_authored_MapAuthoring.asset.meta
 
 # ---- 리소스 자동 생성 툴(개인 소장, 저장소에 노출하지 않음) ----
 # 산출물(UI 프리팹/씬/엔티티 프리팹)만 커밋하고, 그걸 자동 생성하는 툴 자체는 추적하지 않는다.
