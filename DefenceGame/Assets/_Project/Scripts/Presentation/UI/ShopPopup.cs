@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using Synthesis.Core.Data;
 
 namespace Synthesis.Presentation
@@ -10,7 +11,7 @@ namespace Synthesis.Presentation
     // 구매 로직은 RunContext.BuySelectedUnit 에 있다(상점에 종속시키지 않아 나중에 히어로 기능으로 옮길 수 있다).
     public sealed class ShopPopup : UIPanel
     {
-        [SerializeField] private Text titleText;
+        [SerializeField] private TMP_Text titleText;
         [SerializeField] private RectTransform listRoot;   // 구매 행이 담길 컨테이너(레이아웃 그룹)
         [SerializeField] private RecipeRowView rowPrefab;   // 구매 행 아이템 프리팹(조합 행과 공용)
 

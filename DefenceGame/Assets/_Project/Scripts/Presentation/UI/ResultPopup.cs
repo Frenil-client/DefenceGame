@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Synthesis.Presentation
 {
@@ -7,7 +8,7 @@ namespace Synthesis.Presentation
     // UI 틀은 프리팹에 미리 만들어 두고, 여기서는 메시지 텍스트와 재시작 콜백만 받는다.
     public sealed class ResultPopup : UIPanel
     {
-        [SerializeField] private Text messageText;
+        [SerializeField] private TMP_Text messageText;
 
         private System.Action onRestart;
 

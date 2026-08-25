@@ -38,6 +38,16 @@ DefenceGame/Assets/_Recovery.meta
 DefenceGame/Assets/_Project/Data/Generated/
 DefenceGame/Assets/_Project/Data/Generated.meta
 
+# ---- 리소스 자동 생성 툴(개인 소장, 저장소에 노출하지 않음) ----
+# 산출물(UI 프리팹/씬/엔티티 프리팹)만 커밋하고, 그걸 자동 생성하는 툴 자체는 추적하지 않는다.
+# 유지보수용 에디터 툴(CsvImporter, LoopMapBaker, MapAuthoringEditor 등)은 그대로 커밋한다.
+DefenceGame/Assets/_Project/Scripts/Editor/UIPrefabBuilder.cs
+DefenceGame/Assets/_Project/Scripts/Editor/UIPrefabBuilder.cs.meta
+DefenceGame/Assets/_Project/Scripts/Editor/LoopGameSceneBuilder.cs
+DefenceGame/Assets/_Project/Scripts/Editor/LoopGameSceneBuilder.cs.meta
+DefenceGame/Assets/_Project/Scripts/Editor/EntityPrefabBuilder.cs
+DefenceGame/Assets/_Project/Scripts/Editor/EntityPrefabBuilder.cs.meta
+
 # ---- OS ----
 Thumbs.db
 .DS_Store

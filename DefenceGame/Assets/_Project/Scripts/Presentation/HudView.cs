@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using Synthesis.Core.Data;
 using Synthesis.Core.Simulation;
 
@@ -11,7 +12,7 @@ namespace Synthesis.Presentation
     {
         [SerializeField] private GameManager game;
         [SerializeField] private WaveManager waves;
-        [SerializeField] private Text statsText;
+        [SerializeField] private TMP_Text statsText;
         [SerializeField] private Button skipButton; // 웨이브 스킵 버튼(스폰 완료 시 활성)
 
         // 배속 버튼(프리팹의 onClick 에서 호출).

@@ -43,6 +43,20 @@ namespace Synthesis.Core.Combination
             return result;
         }
 
+        // 이 유닛이 조합식의 "첫 재료"인 조합식만(대표 재료 기준). 조합 UI 에서 한 유닛이 여러 조합식에 중복 표시되지 않게 한다.
+        //   예: 법사 선택 시 주술사(법사 + 정령)는 첫 재료가 법사라 표시하고, 마법전사(전사 + 법사)는 첫 재료가 전사라 숨긴다.
+        public List<RecipeData> RecipesLedBy(string unitId)
+        {
+            List<RecipeData> result = new List<RecipeData>();
+            for (int i = 0; i < recipeList.Count; ++i)
+            {
+                RecipeData recipe = recipeList[i];
+                if (recipe == null || recipe.materials == null || recipe.materials.Count == 0) continue;
+                if (recipe.materials[0] == unitId) result.Add(recipe);
+            }
+            return result;
+        }
+
         // 재료별 필요 개수를 센다(같은 재료 반복 처리).
         public static Dictionary<string, int> Needs(RecipeData recipe)
         {

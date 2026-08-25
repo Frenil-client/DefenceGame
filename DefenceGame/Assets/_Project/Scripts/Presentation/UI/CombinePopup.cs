@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using Synthesis.Core.Data;
 
 namespace Synthesis.Presentation
@@ -9,7 +10,7 @@ namespace Synthesis.Presentation
     // UI 틀(배경/박스/제목/목록/닫기)은 프리팹에 미리 만들어 두고, 조합식 행만 아이템 프리팹으로 채운다.
     public sealed class CombinePopup : UIPanel
     {
-        [SerializeField] private Text titleText;
+        [SerializeField] private TMP_Text titleText;
         [SerializeField] private RectTransform listRoot;      // 조합식 행이 담길 컨테이너(레이아웃 그룹)
         [SerializeField] private RecipeRowView rowPrefab;     // 조합식 행 아이템 프리팹
 
@@ -32,7 +33,7 @@ namespace Synthesis.Presentation
 
             for (int i = listRoot.childCount - 1; i >= 0; --i) Destroy(listRoot.GetChild(i).gameObject);
 
-            List<RecipeData> recipes = ctx.combination.RecipesUsing(unitId);
+            List<RecipeData> recipes = ctx.combination.RecipesLedBy(unitId);
             foreach (var recipe in recipes)
             {
                 bool canCraft = ctx.CanCraftMerged(recipe.resultId);

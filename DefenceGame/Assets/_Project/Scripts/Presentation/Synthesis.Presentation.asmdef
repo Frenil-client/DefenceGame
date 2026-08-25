@@ -4,7 +4,8 @@
     "references": [
         "Synthesis.Core",
         "Synthesis.Data",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
