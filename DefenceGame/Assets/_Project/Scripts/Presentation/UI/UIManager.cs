@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Synthesis.Presentation
 {
@@ -26,6 +27,16 @@ namespace Synthesis.Presentation
         private void OnDestroy()
         {
             if (Instance == this) Instance = null;
+        }
+
+        // 가장 위 팝업을 ESC(뒤로)로 닫는다. 결과 팝업처럼 escClosable=false 인 화면은 무시한다.
+        private void Update()
+        {
+            Keyboard kb = Keyboard.current;
+            if (kb == null || !kb.escapeKey.wasPressedThisFrame) return;
+
+            UIPanel top = Top();
+            if (top != null && top.escClosable) Close(top);
         }
 
         // 등록된 팝업 프리팹을 기본 Canvas 에 띄운다. 이미 같은 id 가 열려 있으면 앞으로 가져온다.
@@ -68,8 +79,31 @@ namespace Synthesis.Presentation
 
         public void CloseTop()
         {
-            if (stack.Count == 0) return;
-            Close(stack[stack.Count - 1]);
+            UIPanel top = Top();
+            if (top != null) Close(top);
+        }
+
+        // 열려 있는 모든 팝업을 일괄 종료한다(게임 결과 등에서 잔류 팝업 정리). 스택을 역순으로 비운다.
+        public void CloseAll()
+        {
+            for (int i = stack.Count - 1; i >= 0; --i)
+            {
+                UIPanel panel = stack[i];
+                if (panel == null) continue;
+                panel.OnClose();
+                Destroy(panel.gameObject);
+            }
+            stack.Clear();
+        }
+
+        // 스택의 가장 위(살아 있는) 팝업.
+        private UIPanel Top()
+        {
+            for (int i = stack.Count - 1; i >= 0; --i)
+            {
+                if (stack[i] != null) return stack[i];
+            }
+            return null;
         }
 
         public bool IsOpen(string id)

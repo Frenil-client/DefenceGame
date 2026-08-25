@@ -12,6 +12,12 @@ namespace Synthesis.Presentation
 
         private System.Action onRestart;
 
+        // 결과 화면은 재시작 전까지 붙잡아야 하므로 ESC 로 닫히지 않게 한다.
+        private void Awake()
+        {
+            escClosable = false;
+        }
+
         public void Setup(string message, System.Action restart)
         {
             onRestart = restart;

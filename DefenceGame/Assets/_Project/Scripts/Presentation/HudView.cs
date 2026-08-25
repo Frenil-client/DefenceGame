@@ -15,6 +15,15 @@ namespace Synthesis.Presentation
         [SerializeField] private TMP_Text statsText;
         [SerializeField] private Button skipButton; // 웨이브 스킵 버튼(스폰 완료 시 활성)
 
+        [Header("보스 배너")]
+        [SerializeField] private GameObject bossBanner;   // 보스 웨이브에서만 켜지는 상단 중앙 배너
+        [SerializeField] private TMP_Text bossTitle;      // "BOSS - 이름" 강조 텍스트
+        [SerializeField] private RectTransform bossHpFill; // 남은 체력 비율(localScale.x 로 표현)
+        [SerializeField] private TMP_Text bossHpText;     // "cur / max  남은 s"
+
+        private int bossBannerWave = -1; // 배너 갱신 중인 웨이브(바뀌면 등장 여부 리셋)
+        private bool bossSeen;           // 이번 보스 웨이브에서 보스가 필드에 등장한 적이 있는가
+
         // 배속 버튼(프리팹의 onClick 에서 호출).
         public void SetSpeed(float value)
         {
@@ -36,23 +45,51 @@ namespace Synthesis.Presentation
             if (popup != null) popup.Setup(game.Context);
         }
 
-        // 보스 웨이브면 화면 상단에 목표(보스 이름/HP/방어/남은시간)를 표시한다(SPEC 3-6). 아니면 빈 문자열.
-        private string BossObjectiveLine(int activeWave, float remain)
+        // 보스 웨이브면 화면 상단 중앙 배너를 켜서 보스전임을 강조하고 남은 체력을 별도로 보여준다(SPEC 3-6).
+        //   보스가 아니면 배너를 숨긴다. 등장 전엔 최대 체력, 등장 후 사라졌으면(격파) 0 으로 표시한다.
+        private void UpdateBossBanner(int activeWave, float remain)
         {
-            WaveData wave;
-            if (!game.Context.waveByIndex.TryGetValue(activeWave, out wave) || !wave.isBoss || string.IsNullOrEmpty(wave.bossId)) return "";
-            BossData boss;
-            if (!game.Context.bossById.TryGetValue(wave.bossId, out boss)) return "";
+            if (bossBanner == null) return;
 
+            if (activeWave != bossBannerWave)
+            {
+                bossBannerWave = activeWave;
+                bossSeen = false;
+            }
+
+            WaveData wave;
+            BossData boss = null;
+            if (game.Context.waveByIndex.TryGetValue(activeWave, out wave) && wave.isBoss && !string.IsNullOrEmpty(wave.bossId))
+            {
+                game.Context.bossById.TryGetValue(wave.bossId, out boss);
+            }
+
+            if (boss == null)
+            {
+                bossBanner.SetActive(false);
+                return;
+            }
+
+            long maxHp = boss.hp.ToIntTruncated();
             long curHp = 0;
+            bool found = false;
             var list = game.Context.sim.state.monsterList;
             for (int i = 0; i < list.Count; ++i)
             {
                 LoopMonster m = list[i];
-                if (m.alive && m.enemyId == boss.id) { curHp = m.hp.ToIntTruncated(); break; }
+                if (m.alive && m.enemyId == boss.id) { curHp = m.hp.ToIntTruncated(); found = true; break; }
             }
-            return "[보스] " + boss.name + "  HP " + curHp + " / " + boss.hp.ToIntTruncated()
-                + "  방어 " + boss.armor.ToIntTruncated() + "  남은 " + remain.ToString("F1") + "s\n";
+
+            if (found) bossSeen = true;
+            else curHp = bossSeen ? 0 : maxHp; // 등장 전 최대, 격파 후 0
+
+            bossBanner.SetActive(true);
+            if (bossTitle != null) bossTitle.text = "BOSS  -  " + boss.name;
+
+            float ratio = maxHp > 0 ? (float)curHp / maxHp : 0f;
+            if (bossHpFill != null) bossHpFill.localScale = new Vector3(Mathf.Clamp01(ratio), 1f, 1f);
+            if (bossHpText != null)
+                bossHpText.text = curHp + " / " + maxHp + "   방어 " + boss.armor.ToIntTruncated() + "   남은 " + remain.ToString("F1") + "s";
         }
 
         private void Update()
@@ -60,7 +97,11 @@ namespace Synthesis.Presentation
             // 스킵 버튼 활성화: 생성이 완료된 일반 웨이브에서만 누를 수 있다.
             if (skipButton != null) skipButton.interactable = waves != null && waves.CanSkip;
 
-            if (statsText == null || game == null || game.Context == null || !game.Context.IsValid()) return;
+            if (statsText == null || game == null || game.Context == null || !game.Context.IsValid())
+            {
+                if (bossBanner != null) bossBanner.SetActive(false);
+                return;
+            }
 
             var s = game.Context.sim.state;
             int next = waves != null ? waves.NextWave : 1;
@@ -72,9 +113,10 @@ namespace Synthesis.Presentation
                 : (s.pendingSpawns > 0 ? "전투" : "대기");
             float remain = waves != null ? Mathf.Max(0f, waves.WaveTimer) : 0f;
 
+            UpdateBossBanner(next - 1, remain);
+
             statsText.text =
-                BossObjectiveLine(next - 1, remain)
-                + "웨이브 " + shownWave + " / " + game.MaxWave + "  [" + phaseLabel + "]  x" + game.Speed + "\n"
+                "웨이브 " + shownWave + " / " + game.MaxWave + "  [" + phaseLabel + "]  x" + game.Speed + "\n"
                 + "제한시간 " + remain.ToString("F1") + "s\n"
                 + "코스트 " + s.cost + " / " + s.costCap + "\n"
                 + "필드 몬스터 " + s.aliveCount + " / " + (waves != null ? waves.AccumCap : 0) + "\n"

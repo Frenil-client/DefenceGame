@@ -12,6 +12,9 @@ namespace Synthesis.Presentation
         [Tooltip("팝업처럼 아래 UI 입력을 막는 모달인지")]
         public bool modal = true;
 
+        [Tooltip("ESC(뒤로)로 닫을 수 있는지. 결과 팝업처럼 강제로 붙잡아야 하는 화면은 false")]
+        public bool escClosable = true;
+
         protected UIManager manager;
 
         // UIManager 가 연다. 파생 클래스는 여기서 초기화한다.

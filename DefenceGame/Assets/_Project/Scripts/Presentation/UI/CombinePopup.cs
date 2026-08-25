@@ -43,7 +43,12 @@ namespace Synthesis.Presentation
                 RecipeRowView row = Instantiate(rowPrefab, listRoot);
                 row.Set(label, canCraft, () =>
                 {
-                    if (ctx.TryCraftFromField(resultId)) Refresh();
+                    // 조합하면 팝업을 결과 유닛 기준으로 전환한다(그 유닛으로 이어서 만들 수 있는 조합식을 보여준다).
+                    if (ctx.TryCraftFromField(resultId))
+                    {
+                        unitId = resultId;
+                        Refresh();
+                    }
                 });
             }
         }
@@ -51,7 +56,7 @@ namespace Synthesis.Presentation
         private string DisplayName(string id)
         {
             UnitData data;
-            if (ctx != null && ctx.unitById.TryGetValue(id, out data) && !string.IsNullOrEmpty(data.name)) return data.name + " (" + id + ")";
+            if (ctx != null && ctx.unitById.TryGetValue(id, out data) && !string.IsNullOrEmpty(data.name)) return data.name;
             return id;
         }
 
