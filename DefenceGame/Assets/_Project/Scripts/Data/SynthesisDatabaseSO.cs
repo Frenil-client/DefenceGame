@@ -17,10 +17,10 @@ namespace Synthesis.Data
         public int tier;
         public Klass klass;
         public int cost;
-        public long hpRaw;
         public long atkRaw;
         public long atkSpeedRaw;
         public long rangeRaw;
+        public List<string> skillIds = new List<string>();
         public string note;
 
         public static UnitRow FromModel(UnitData model)
@@ -31,10 +31,10 @@ namespace Synthesis.Data
             row.tier        = model.tier;
             row.klass       = model.klass;
             row.cost        = model.cost;
-            row.hpRaw       = model.hp.raw;
             row.atkRaw      = model.atk.raw;
             row.atkSpeedRaw = model.atkSpeed.raw;
             row.rangeRaw    = model.range.raw;
+            row.skillIds    = new List<string>(model.skillIds);
             row.note        = model.note;
             return row;
         }
@@ -47,10 +47,10 @@ namespace Synthesis.Data
             model.tier     = tier;
             model.klass    = klass;
             model.cost     = cost;
-            model.hp       = Fixed.FromRaw(hpRaw);
             model.atk      = Fixed.FromRaw(atkRaw);
             model.atkSpeed = Fixed.FromRaw(atkSpeedRaw);
             model.range    = Fixed.FromRaw(rangeRaw);
+            model.skillIds = new List<string>(skillIds);
             model.note     = note;
             return model;
         }

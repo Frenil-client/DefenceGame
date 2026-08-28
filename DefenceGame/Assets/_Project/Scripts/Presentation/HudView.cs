@@ -1,8 +1,10 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Synthesis.Core;
 using Synthesis.Core.Data;
 using Synthesis.Core.Simulation;
+using Synthesis.Core.Combat;
 
 namespace Synthesis.Presentation
 {
@@ -43,6 +45,15 @@ namespace Synthesis.Presentation
             if (UIManager.Instance == null) return;
             ShopPopup popup = UIManager.Instance.Open("ShopPopup") as ShopPopup;
             if (popup != null) popup.Setup(game.Context);
+        }
+
+        // 이번 웨이브 몬스터의 방어력과 그로 인한 피해 감소율. 방깎 유닛을 쓸지 판단하는 근거다(SPEC 3-5).
+        //   감소율은 Core 의 ArmorFormula 로 구한다. 여기서 따로 계산하면 표시와 실제 피해가 갈라진다.
+        private static string ArmorLabel(Fixed armor)
+        {
+            if (armor.raw <= 0) return "없음";
+            int percent = Mathf.RoundToInt((float)(ArmorFormula.ReductionRatio(armor) * 100.0));
+            return armor.ToIntTruncated() + "  (피해 " + percent + "% 감소)";
         }
 
         // 보스 웨이브면 화면 상단 중앙 배너를 켜서 보스전임을 강조하고 남은 체력을 별도로 보여준다(SPEC 3-6).
@@ -120,6 +131,7 @@ namespace Synthesis.Presentation
                 + "제한시간 " + remain.ToString("F1") + "s\n"
                 + "코스트 " + s.cost + " / " + s.costCap + "\n"
                 + "필드 몬스터 " + s.aliveCount + " / " + (waves != null ? waves.AccumCap : 0) + "\n"
+                + "몬스터 방어 " + ArmorLabel(s.spawnArmor) + "\n"
                 + "인벤토리 " + game.Context.inventory.Count + "   최근 뽑기 " + granted + "\n"
                 + "선택권 " + game.Context.selectionTokens;
         }

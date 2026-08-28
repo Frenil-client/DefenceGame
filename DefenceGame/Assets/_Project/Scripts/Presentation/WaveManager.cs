@@ -24,6 +24,9 @@ namespace Synthesis.Presentation
         [SerializeField] private int accumCap = 60;
         // [TEMP] 게임 시작 시 미리 지급하는 1성 유닛 수(최초 지급, BALANCE 6-1). 시뮬로 재확정.
         [SerializeField] private int startUnitCount = 5;
+        // 스폰 간격(틱). 전 웨이브 전 게임 동일하다. 1초마다 1기 = 20틱(BALANCE 12, SPEC 3-5).
+        // 웨이브별 값이 아니라 게임 상수라 waves.csv 가 아니라 여기 둔다(waveTimeLimit, accumCap 과 같은 취급).
+        [SerializeField] private int spawnIntervalTicks = 20;
 
         public int AccumCap => accumCap;
 
@@ -190,15 +193,12 @@ namespace Synthesis.Presentation
             WaveData wave;
             if (ctx.waveByIndex.TryGetValue(idx, out wave))
             {
+                // 웨이브 난이도(체력 배수, 방어력 증가)는 ResolveEnemy 가 이미 얹어 돌려준다.
                 EnemyData enemy = WaveResolver.ResolveEnemy(wave, ctx.enemyById, ctx.bossById);
                 int count = enemy != null ? wave.spawnCount : 0;
+                Fixed armor = enemy != null ? enemy.armor : Fixed.Zero;
 
-                // 보스 웨이브는 보스 방어력을 스폰 몬스터에 실어 보낸다(ResolveEnemy 는 armor 를 버린다).
-                Fixed armor = Fixed.Zero;
-                BossData boss;
-                if (wave.isBoss && !string.IsNullOrEmpty(wave.bossId) && ctx.bossById.TryGetValue(wave.bossId, out boss)) armor = boss.armor;
-
-                ctx.sim.StartWave(enemy, count, wave.spawnInterval, armor);
+                ctx.sim.StartWave(enemy, count, spawnIntervalTicks, armor);
             }
         }
 

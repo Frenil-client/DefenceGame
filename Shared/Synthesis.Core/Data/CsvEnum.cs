@@ -39,7 +39,7 @@ namespace Synthesis.Core.Data
                 case "PIERCE": return SkillEffect.Pierce;
                 case "BONUSDAMAGE": return SkillEffect.BonusDamage;
                 case "CRIT": return SkillEffect.Crit;
-                case "DOT": return SkillEffect.DamageOverTime;
+                case "DAMAGEZONE": return SkillEffect.DamageZone;
                 case "SLOW": return SkillEffect.Slow;
                 case "ALLYBUFF": return SkillEffect.AllyBuff;
                 case "ARMORREDUCTION": return SkillEffect.ArmorReduction;

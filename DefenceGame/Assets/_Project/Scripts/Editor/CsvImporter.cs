@@ -69,13 +69,24 @@ namespace Synthesis.Editor
                     && a.tier == b.tier
                     && a.klass == b.klass
                     && a.cost == b.cost
-                    && a.hp.raw == b.hp.raw
                     && a.atk.raw == b.atk.raw
                     && a.atkSpeed.raw == b.atkSpeed.raw
-                    && a.range.raw == b.range.raw;
+                    && a.range.raw == b.range.raw
+                    && SameSkillIds(a, b);
                 if (!same) ++mismatch;
             }
             return mismatch;
+        }
+
+        // 스킬 부여 목록이 순서까지 같은지 본다. 순서가 바뀌면 전투 조립 결과가 달라질 수 있다.
+        private static bool SameSkillIds(UnitData a, UnitData b)
+        {
+            if (a.skillIds.Count != b.skillIds.Count) return false;
+            for (int i = 0; i < a.skillIds.Count; ++i)
+            {
+                if (a.skillIds[i] != b.skillIds[i]) return false;
+            }
+            return true;
         }
 
         private static SynthesisDatabaseSO LoadOrCreateDatabase()

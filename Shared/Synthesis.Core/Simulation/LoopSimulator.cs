@@ -60,7 +60,7 @@ namespace Synthesis.Core.Simulation
 
         // 스폰 스케줄
         public EnemyData spawnEnemy;
-        public Fixed spawnArmor;    // 이번 웨이브 스폰 몬스터의 방어력(보스 웨이브에서 지정)
+        public Fixed spawnArmor;    // 이번 웨이브 스폰 몬스터의 방어력(원형별 기본값, 보스는 보스 방어력)
         public int pendingSpawns;
         public int spawnIntervalTicks;
         public int nextSpawnTick;

@@ -15,7 +15,6 @@ namespace Synthesis.Core.Tests
             e.id = "RUN";
             e.name = "runner";
             e.hp = Fixed.FromInt(1000000); // 안 죽게
-            e.atk = Fixed.Zero;
             e.moveSpeed = Fixed.FromInt(cellsPerSec);
             return e;
         }

@@ -228,13 +228,22 @@ SYNTHESIS (가칭) - 밸런스 사양
 ## 12. 웨이브
 
 - 총 40웨이브. 10의 배수 라운드(10, 20, 30, 40)가 보스, 마지막 40라운드는 보스
-- 1웨이브 몬스터 25기, 1초마다 1기씩 스폰. 웨이브 번호에 따라 수와 능력치가 증가한다
+- **몬스터 수는 전 웨이브 25기로 동일하다.** 수를 늘려 난이도를 올리지 않는다
+- **스폰 간격도 전 웨이브 전 게임 동일하다.** 1초마다 1기(20틱). 웨이브별 값이 아니라 게임 상수다
 - **각 웨이브에는 제한시간이 있다. 제한시간이 끝나면 다음 웨이브가 시작된다**
 - **필드 클리어 자동 진행은 없다.** 스폰이 완료되면 웨이브 스킵 버튼이 활성화되어, 플레이어가 남은 제한시간을 흘려보내지 않고 다음 웨이브로 넘길 수 있다
 - 웨이브 시작 전 몬스터 이름과 특성을 미리 표시한다 (방어력 증가 등)
 - 엘리트 몬스터가 일정 확률로 섞인다
 
-**스폰 간격이 몬스터 밀집도를 통제하는 유일한 수단이다.** 분리 처리를 하지 않으므로 처리량이 부족하면 실제로 겹쳐 쌓인다. 밀집 자체가 위기 신호로 작동한다.
+**난이도가 오르는 수단은 몬스터 능력치 하나다.** 수도 간격도 고정이므로 웨이브가 진행되면 체력과 방어력만 오른다.
+
+- 체력은 원형 기본값에 hpScale 을 곱한다 (1웨이브 1.0 에서 39웨이브 2.90)
+- 방어력은 원형 기본값에 armorAdd 를 더한다 (1웨이브 +0 에서 39웨이브 +19)
+- 원형별 기본 방어력은 잡졸과 무리개미 0, 돌격병 3, 광전사 5, 강철병 12 (전부 TEMP)
+
+**방어력 증가가 덧셈인 것이 중요하다.** 방깎(ARMORREDUCTION)이 절대값으로 깎으므로 증가도 절대값이어야 방깎 계단과 맞물린다. 곱셈이면 방어력 0 원형이 후반에도 0 이라 그 웨이브에서 방깎 유닛이 통째로 논다.
+
+**밀집도는 처리량이 통제한다.** 스폰 간격이 고정이므로 몬스터가 겹쳐 쌓이는 것은 오직 플레이어의 처리량이 부족해서다. 분리 처리를 하지 않으므로 밀집 자체가 위기 신호로 작동한다.
 
 ---
 
@@ -361,10 +370,22 @@ INV-01은 2성 조합식이 확정 데이터임을 보증한다. 어떤 1성이 
 
 ### units.csv
 ```
-id, name, grade, className, cost, hp, atk, atkSpeed, range,
-moveSpeed, splashRadius, pierceRatio, dotRate, note
+id, name, tier, klass, cost, atk, atkSpeed, range, skillIds, note
 ```
-grade: 1-5, className: WAR / ARC / MAG / PRI / THI / SPI
+tier: 1-5, klass: WAR / ARC / MAG / PRI / THI / SPI
+
+skillIds 는 skills.csv 의 id 를 슬래시로 나열한다. 없으면 "-". 스킬 수는 등급-1 이며 분배 근거는 UNIT_SKILLS.md 다. 광역 반경이나 관통 수 같은 개별 파라미터는 유닛이 아니라 스킬이 들고 있다.
+
+### skills.csv
+```
+id, trigger, triggerN, effect, radius, magnitude, duration, count,
+buffStat, note
+```
+trigger: PASSIVE / EVERYNTH / CHANCE
+
+effect: MULTITARGET / AREADAMAGE / PIERCE / BONUSDAMAGE / CRIT / DAMAGEZONE / SLOW / ALLYBUFF / ARMORREDUCTION
+
+buffStat: ATK / ATKSPEED / RANGE (ALLYBUFF 전용)
 
 ### recipes.csv
 ```
@@ -374,9 +395,19 @@ resultId, mat1, mat2, mat3, mat4
 
 ### waves.csv
 ```
-waveIndex, enemySetId, spawnCount, spawnInterval, hpScale, atkScale,
-isBoss, bossId, eliteChance, traitId
+waveIndex, enemySetId, spawnCount, isBoss, bossId, hpScale, armorAdd
 ```
+spawnCount 는 전 웨이브 25 로 같다. 스폰 간격은 웨이브별 값이 아니라 게임 상수라 이 파일에 없다.
+
+난이도는 능력치로만 오른다. hpScale 은 원형 체력에 곱하고, armorAdd 는 원형 방어력에 더한다. 방깎이 절대값으로 깎으므로 방어력 증가도 절대값이어야 계단이 맞물리고, 덧셈이라 방어력 0 원형도 후반에는 방어력을 갖는다. 보스 행은 hpScale 1.0 / armorAdd 0 이며 보스 수치는 bosses.csv 의 절대값이 전부다.
+
+eliteChance 와 traitId 는 아직 없다.
+
+### enemies.csv
+```
+id, name, hp, armor, moveSpeed
+```
+armor 는 보스 전용이 아니다. 일반 몬스터도 원형별로 방어력을 갖는다. 방깎 유닛이 보스 4회에서만 일하면 빌드로 성립하지 않기 때문이다. 감소 공식은 Core 의 ArmorFormula 한 벌이며 전투와 UI 가 같은 것을 쓴다.
 
 ### bosses.csv
 ```
@@ -413,7 +444,7 @@ STEP 3 완료 시점에 프리미티브 상태에서 뽑기와 조합만 돌려 
 
 ## 21. 확정되지 않은 것
 
-- 유닛 42종의 hp, atk, atkSpeed, range, moveSpeed 수치
+- 유닛 42종의 atk, atkSpeed, range 수치 (hp 는 없다. 유닛은 피해를 받지 않는다)
 - 계열별 사거리와 이동 속도 비율
 - 웨이브별 몬스터 수와 스케일링 곡선
 - 보스 4기의 HP, 제한시간, 기믹 상세

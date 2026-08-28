@@ -28,7 +28,7 @@ namespace Synthesis.Core.Data
         Pierce,         // 진행 방향 직선으로 count 체 관통
         BonusDamage,    // magnitude 배 추가 피해
         Crit,           // magnitude 배 피해 (보통 ChanceOnAttack 과 함께)
-        DamageOverTime, // 대상에 magnitude(dps)로 duration 초 지속 피해
+        DamageZone,     // 유닛 주위 반경(radius)에 상시 장판. 안에 있는 적에게 magnitude(dps) 지속 피해
         Slow,           // 대상 이동속도 magnitude(0~1) 만큼 감속, duration 초 (상시면 지속 무시)
         AllyBuff,       // 반경(radius) 내 아군 buffStat 를 magnitude(0~1) 비율 상향
         ArmorReduction  // 반경(radius) 내 적 방어력을 magnitude 만큼 절대 감소(% 아님)

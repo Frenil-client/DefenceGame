@@ -1,44 +1,52 @@
-# waves.csv - 웨이브 데이터 (원본, v0.5). 40웨이브, 보스 10/20/30/40 (10의 배수, BALANCE 12,13)
-# 컬럼: waveIndex,enemySetId,spawnCount,spawnInterval,isBoss,bossId,difficultyScale
-# [확정] 40웨이브, 10의 배수 라운드가 보스, 마지막 라운드(40)는 보스. [TEMP] 스폰 수/간격/스케일은 시뮬로 확정.
-waveIndex,enemySetId,spawnCount,spawnInterval,isBoss,bossId,difficultyScale
-1,E01,22,10,false,,1.0
-2,E02,23,10,false,,1.05
-3,E03,24,10,false,,1.1
-4,E04,25,10,false,,1.15
-5,E05,26,10,false,,1.2
-6,E01,27,10,false,,1.25
-7,E02,28,10,false,,1.3
-8,E03,29,10,false,,1.35
-9,E04,30,10,false,,1.4
-10,boss,1,0,true,B01,1.45
-11,E01,32,10,false,,1.5
-12,E02,33,10,false,,1.55
-13,E03,34,10,false,,1.6
-14,E04,35,10,false,,1.65
-15,E05,36,10,false,,1.7
-16,E01,37,10,false,,1.75
-17,E02,38,10,false,,1.8
-18,E03,39,10,false,,1.85
-19,E04,40,10,false,,1.9
-20,boss,1,0,true,B02,1.95
-21,E01,42,9,false,,2.0
-22,E02,43,9,false,,2.05
-23,E03,44,9,false,,2.1
-24,E04,45,9,false,,2.15
-25,E05,46,9,false,,2.2
-26,E01,47,9,false,,2.25
-27,E02,48,9,false,,2.3
-28,E03,49,9,false,,2.35
-29,E04,50,9,false,,2.4
-30,boss,1,0,true,B03,2.45
-31,E01,52,8,false,,2.5
-32,E02,53,8,false,,2.55
-33,E03,54,8,false,,2.6
-34,E04,55,8,false,,2.65
-35,E05,56,8,false,,2.7
-36,E01,57,8,false,,2.75
-37,E02,58,8,false,,2.8
-38,E03,59,8,false,,2.85
-39,E04,60,8,false,,2.9
-40,boss,1,0,true,B04,2.95
+# waves.csv - 웨이브 데이터 (원본, v0.6). 40웨이브, 보스 10/20/30/40 (10의 배수, BALANCE 12,13)
+# 컬럼: waveIndex,enemySetId,spawnCount,isBoss,bossId,hpScale,armorAdd
+# [확정] 40웨이브, 10의 배수 라운드가 보스, 마지막 라운드(40)는 보스.
+# [확정] 일반 웨이브의 스폰 수는 25기로 전 웨이브 동일하다(BALANCE 12, SPEC 3-5).
+# [확정] 스폰 간격도 전 웨이브 동일하다. 웨이브별 값이 아니라 게임 상수라 이 파일에 두지 않는다
+#        (WaveManager 의 spawnIntervalTicks, 1초마다 1기 = 20틱).
+# [확정] 난이도는 몬스터 능력치로만 오른다. hpScale 은 원형 체력에 곱하고, armorAdd 는 원형 방어력에 더한다.
+#        방깎(ARMORREDUCTION)이 절대값으로 깎으므로 방어력 증가도 절대값이어야 계단이 맞물린다.
+#        armorAdd 가 덧셈이라 방어력 0 원형(잡졸/무리개미)도 후반에는 방어력을 갖는다.
+# [확정] 보스 행은 hpScale 1.0 / armorAdd 0 이다. 보스 수치는 bosses.csv 의 절대값이 전부다.
+# [TEMP] hpScale 곡선과 armorAdd 곡선은 시뮬로 확정한다. armorAdd 는 현재 (웨이브-1)/2 를 내림한 값이다.
+waveIndex,enemySetId,spawnCount,isBoss,bossId,hpScale,armorAdd
+1,E01,25,false,,1.00,0
+2,E02,25,false,,1.05,0
+3,E03,25,false,,1.10,1
+4,E04,25,false,,1.15,1
+5,E05,25,false,,1.20,2
+6,E01,25,false,,1.25,2
+7,E02,25,false,,1.30,3
+8,E03,25,false,,1.35,3
+9,E04,25,false,,1.40,4
+10,boss,1,true,B01,1.0,0
+11,E01,25,false,,1.50,5
+12,E02,25,false,,1.55,5
+13,E03,25,false,,1.60,6
+14,E04,25,false,,1.65,6
+15,E05,25,false,,1.70,7
+16,E01,25,false,,1.75,7
+17,E02,25,false,,1.80,8
+18,E03,25,false,,1.85,8
+19,E04,25,false,,1.90,9
+20,boss,1,true,B02,1.0,0
+21,E01,25,false,,2.00,10
+22,E02,25,false,,2.05,10
+23,E03,25,false,,2.10,11
+24,E04,25,false,,2.15,11
+25,E05,25,false,,2.20,12
+26,E01,25,false,,2.25,12
+27,E02,25,false,,2.30,13
+28,E03,25,false,,2.35,13
+29,E04,25,false,,2.40,14
+30,boss,1,true,B03,1.0,0
+31,E01,25,false,,2.50,15
+32,E02,25,false,,2.55,15
+33,E03,25,false,,2.60,16
+34,E04,25,false,,2.65,16
+35,E05,25,false,,2.70,17
+36,E01,25,false,,2.75,17
+37,E02,25,false,,2.80,18
+38,E03,25,false,,2.85,18
+39,E04,25,false,,2.90,19
+40,boss,1,true,B04,1.0,0

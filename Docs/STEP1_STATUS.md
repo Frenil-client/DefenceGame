@@ -83,7 +83,7 @@ BALANCE_SPEC.md 12 가 미확정으로 둔 값은 units.csv 등에 TEMP 로 표�
 
 - 흔함 6종(계열당 1종)의 cost 는 3장 표 그대로 (확정). (덱 시스템은 폐기되어 6종 고정)
 - 레어/유니크/히든의 element/role/placement 는 4장 성격 서술에서 추론한 TEMP 값.
-- 모든 hp/atk/atkSpeed/range 와 isAdvance 는 TEMP 값.
+- 모든 atk/atkSpeed/range 와 isAdvance 는 TEMP 값. 유닛 hp 는 폐기했다(유닛은 피해를 받지 않는다).
 - 보스 preDamageCapRatio(0.40)와 웨이브 보스 위치(10/20/30/40, 10의 배수)는 문서 확정값. (redeployCd 는 재배치가 즉시로 바뀌며 폐기)
 - relics.csv 는 헤더만 (유물 규칙 미정의, STEP 6).
 - leaders.csv 는 스키마 자체가 BALANCE_SPEC.md 10 에 없어 파서도 두지 않았다. 스키마 확정 후 진행한다.

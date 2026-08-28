@@ -5,7 +5,7 @@ namespace Synthesis.Core.Data
     // STEP 1. 기반 도구 - CSV 한 줄을 데이터 모델로 변환 (v0.4). 파서는 Core 에 한 벌만 둔다.
     public static class CsvParsers
     {
-        // units.csv: id,name,tier,klass,cost,hp,atk,atkSpeed,range,note
+        // units.csv: id,name,tier,klass,cost,atk,atkSpeed,range,skillIds,note
         public static UnitData CsvToUnitData(string line)
         {
             var split = line.Split(',');
@@ -17,13 +17,33 @@ namespace Synthesis.Core.Data
             unitData.tier     = CsvUtil.StringToInt(split[2]);
             unitData.klass    = CsvEnum.StringToKlass(split[3]);
             unitData.cost     = CsvUtil.StringToInt(split[4]);
-            unitData.hp       = CsvUtil.StringToFixed(split[5]);
-            unitData.atk      = CsvUtil.StringToFixed(split[6]);
-            unitData.atkSpeed = CsvUtil.StringToFixed(split[7]);
-            unitData.range    = CsvUtil.StringToFixed(split[8]);
+            unitData.atk      = CsvUtil.StringToFixed(split[5]);
+            unitData.atkSpeed = CsvUtil.StringToFixed(split[6]);
+            unitData.range    = CsvUtil.StringToFixed(split[7]);
+            unitData.skillIds = SplitSkillIds(split[8]);
             unitData.note     = RejoinFrom(split, 9);
             if (unitData.cost < 0) unitData.cost = 0;
             return unitData;
+        }
+
+        // 스킬 id 목록을 슬래시로 나눈다. 빈 칸이나 "-" 는 스킬 없음이다 (1성 6종이 그렇다).
+        private static List<string> SplitSkillIds(string field)
+        {
+            List<string> skillIdList = new List<string>();
+            var raw = field.Trim();
+            if (raw.Length == 0 || raw == "-") return skillIdList;
+
+            var split = raw.Split('/');
+            for (int i = 0; i < split.Length; ++i)
+            {
+                var skillId = split[i].Trim();
+                if (skillId.Length == 0)
+                {
+                    continue;
+                }
+                skillIdList.Add(skillId);
+            }
+            return skillIdList;
         }
 
         // recipes.csv: resultId,mat1,mat2,mat3,mat4 (mat3/mat4 는 비어 있을 수 있음)
@@ -47,7 +67,7 @@ namespace Synthesis.Core.Data
             return recipeData;
         }
 
-        // enemies.csv: id,name,hp,atk,moveSpeed
+        // enemies.csv: id,name,hp,armor,moveSpeed
         public static EnemyData CsvToEnemyData(string line)
         {
             var split = line.Split(',');
@@ -57,7 +77,7 @@ namespace Synthesis.Core.Data
             enemyData.id        = split[0].Trim();
             enemyData.name      = split[1].Trim();
             enemyData.hp        = CsvUtil.StringToFixed(split[2]);
-            enemyData.atk       = CsvUtil.StringToFixed(split[3]);
+            enemyData.armor     = CsvUtil.StringToFixed(split[3]);
             enemyData.moveSpeed = CsvUtil.StringToFixed(split[4]);
             return enemyData;
         }
@@ -80,20 +100,20 @@ namespace Synthesis.Core.Data
             return bossData;
         }
 
-        // waves.csv: waveIndex,enemySetId,spawnCount,spawnInterval,isBoss,bossId,difficultyScale
+        // waves.csv: waveIndex,enemySetId,spawnCount,isBoss,bossId,hpScale,armorAdd
         public static WaveData CsvToWaveData(string line)
         {
             var split = line.Split(',');
             if (split.Length < 7) return null;
 
             WaveData waveData = new WaveData();
-            waveData.waveIndex       = CsvUtil.StringToInt(split[0]);
-            waveData.enemySetId      = split[1].Trim();
-            waveData.spawnCount      = CsvUtil.StringToInt(split[2]);
-            waveData.spawnInterval   = CsvUtil.StringToInt(split[3]);
-            waveData.isBoss          = CsvUtil.StringToBool(split[4]);
-            waveData.bossId          = split[5].Trim();
-            waveData.difficultyScale = CsvUtil.StringToFixed(split[6]);
+            waveData.waveIndex  = CsvUtil.StringToInt(split[0]);
+            waveData.enemySetId = split[1].Trim();
+            waveData.spawnCount = CsvUtil.StringToInt(split[2]);
+            waveData.isBoss     = CsvUtil.StringToBool(split[3]);
+            waveData.bossId     = split[4].Trim();
+            waveData.hpScale    = CsvUtil.StringToFixed(split[5]);
+            waveData.armorAdd   = CsvUtil.StringToInt(split[6]);
             return waveData;
         }
 

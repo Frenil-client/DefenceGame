@@ -12,7 +12,7 @@ namespace Synthesis.Core.Data
         public int tier;           // 1..5
         public Klass klass;
         public int cost;
-        public Fixed hp;
+        // 유닛에 hp 는 없다. 몬스터가 유닛을 공격하지 않으므로 유닛 체력이라는 개념 자체가 없다.
         public Fixed atk;
         public Fixed atkSpeed;     // 초당 공격 횟수
         public Fixed range;
@@ -48,7 +48,8 @@ namespace Synthesis.Core.Data
         public string id;
         public string name;
         public Fixed hp;
-        public Fixed atk;
+        // 몬스터에 atk 는 없다. 유닛을 공격하는 경우가 없어 줄 피해가 없다.
+        public Fixed armor;   // 곱연산 방어력. 보스 전용이 아니라 일반 몬스터도 원형별로 갖는다
         public Fixed moveSpeed;
     }
 
@@ -69,10 +70,10 @@ namespace Synthesis.Core.Data
         public int waveIndex;
         public string enemySetId;
         public int spawnCount;
-        public int spawnInterval;    // 틱
         public bool isBoss;
         public string bossId;
-        public Fixed difficultyScale;
+        public Fixed hpScale;   // 원형 체력에 곱한다. 보스는 1.0(bosses.csv 절대값을 쓴다)
+        public int armorAdd;    // 원형 방어력에 더한다. 방깎이 절대값이라 증가도 절대값이다
     }
 
     public sealed class GameDatabase
