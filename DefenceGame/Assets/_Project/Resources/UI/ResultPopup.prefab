@@ -91,6 +91,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Synthesis.Presentation::Synthesis.Presentation.ResultPopup
   panelId: ResultPopup
   modal: 1
+  escClosable: 1
   messageText: {fileID: 982749905902735091}
 --- !u!1 &1735583884080130847
 GameObject:

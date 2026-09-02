@@ -361,6 +361,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Synthesis.Presentation::Synthesis.Presentation.UIPanel
   panelId: SamplePopup
   modal: 1
+  escClosable: 1
 --- !u!1 &7165620333671518696
 GameObject:
   m_ObjectHideFlags: 0

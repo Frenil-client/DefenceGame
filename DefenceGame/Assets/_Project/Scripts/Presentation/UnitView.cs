@@ -38,11 +38,17 @@ namespace Synthesis.Presentation
             return model != null ? model.GetComponent<Renderer>() : null;
         }
 
-        public void SetSelected(bool selected)
+        // 선택 표시 - 일반 공격 사거리 링. 반경은 호출자가 준다(오라 반경은 그리지 않는다).
+        public void ShowRange(float radius)
         {
             if (rangeIndicator == null) return;
-            if (selected && unit != null) rangeIndicator.Show((float)unit.data.range.ToDoubleForDisplay());
-            else rangeIndicator.Hide();
+            if (radius <= 0f) { rangeIndicator.Hide(); return; }
+            rangeIndicator.Show(radius);
+        }
+
+        public void HideRange()
+        {
+            if (rangeIndicator != null) rangeIndicator.Hide();
         }
 
         // ---- IPoolable ----
@@ -53,7 +59,7 @@ namespace Synthesis.Presentation
 
         public void OnDespawn()
         {
-            SetSelected(false);
+            HideRange();
             Unbind();
         }
     }

@@ -620,6 +620,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Synthesis.Presentation::Synthesis.Presentation.CombinePopup
   panelId: CombinePopup
   modal: 1
+  escClosable: 1
   titleText: {fileID: 404291340311732149}
   listRoot: {fileID: 7210923374094927077}
   rowPrefab: {fileID: 1456818651894263400, guid: 99f7a4b8af0a88b4aa5785b797f28a6c, type: 3}

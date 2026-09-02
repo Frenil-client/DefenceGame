@@ -329,6 +329,16 @@ namespace Synthesis.Presentation
             return !unitArrived.TryGetValue(u, out arrived) || arrived;
         }
 
+        // 유닛의 뷰 컴포넌트(선택 표시용 사거리 링의 앵커). 풀에 돌아간 유닛은 찾히지 않는다.
+        public bool TryGetUnitView(LoopUnit u, out UnitView view)
+        {
+            view = null;
+            GameObject go;
+            if (u == null || !unitViews.TryGetValue(u, out go) || go == null) return false;
+            view = go.GetComponent<UnitView>();
+            return view != null;
+        }
+
         // 유닛의 현재 렌더 위치(전투가 실제 위치에서 공격/사거리 판정하도록 노출).
         public bool TryGetUnitWorld(LoopUnit u, out Vector3 pos)
         {

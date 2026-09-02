@@ -16,12 +16,18 @@ namespace Synthesis.Presentation
         [SerializeField] private LoopMapView mapView;
         [SerializeField] private Camera cam;
         [SerializeField] private EntityView entityView;     // 유닛 현재 위치 출처(집중 중 유닛도 집을 수 있게)
+        [SerializeField] private SelectionController selection; // 클릭 선택 결과를 여기에 넣는다. 인스펙터 등록
         [SerializeField] private GameObject tileIndicator;  // 드래그 중 대상/선택 칸 2D 표시(선택)
         [SerializeField] private float pickRadius = 0.75f;   // 유닛 집기 허용 반경(셀)
         [SerializeField] private float objectRadius = 0.6f;  // 몬스터/석상 추적 대상 판정 반경(셀)
         [SerializeField] private float tileIndicatorY = 0.11f;
+        // 클릭과 드래그를 가르는 화면 이동량(픽셀). 이 안에서 떼면 명령이 아니라 선택으로 본다.
+        [SerializeField] private float dragThresholdPixels = 8f;
 
         private LoopUnit held;
+        private Vector2 pressScreen;
+        private bool pressing;   // 지면에서 누르기 시작했는가(UI 위 클릭은 제외)
+        private bool dragging;   // 임계값을 넘겨 드래그로 확정됐는가
 
         private void Update()
         {
@@ -35,14 +41,36 @@ namespace Synthesis.Presentation
 
             if (mouse.leftButton.wasPressedThisFrame && !IsPointerOverUI())
             {
+                pressScreen = mouse.position.ReadValue();
+                pressing = true;
+                dragging = false;
+
                 Vector2 cell;
-                if (TryGetGroundCell(mouse.position.ReadValue(), out cell))
-                {
-                    held = PickUnit(sim, cell);
-                }
+                held = TryGetGroundCell(pressScreen, out cell) ? PickUnit(sim, cell) : null;
             }
 
-            if (held == null) return;
+            if (!pressing) return;
+
+            // 누른 자리에서 임계값 이상 움직였으면 드래그(명령)로 확정한다. 그 전까지는 클릭(선택) 후보다.
+            if (!dragging && (mouse.position.ReadValue() - pressScreen).magnitude > dragThresholdPixels) dragging = true;
+
+            if (mouse.leftButton.wasReleasedThisFrame && !dragging)
+            {
+                SelectAtCursor(sim, mouse.position.ReadValue());
+                pressing = false;
+                held = null;
+                HideIndicator();
+                return;
+            }
+
+            if (held == null)
+            {
+                if (mouse.leftButton.wasReleasedThisFrame) pressing = false;
+                return;
+            }
+
+            // 드래그로 확정되기 전에는 인디케이터를 띄우지 않는다(아직 클릭 후보 단계다).
+            if (!dragging) return;
 
             Vector2 hover;
             bool onGround = TryGetGroundCell(mouse.position.ReadValue(), out hover);
@@ -66,9 +94,43 @@ namespace Synthesis.Presentation
                 if (mUnder != null) { held.focusMonster = mUnder; held.focusStatue = null; }
                 else if (sUnder != null) { held.focusStatue = sUnder; held.focusMonster = null; }
                 else if (hasCell) { held.focusMonster = null; held.focusStatue = null; sim.RelocateUnit(held, focusx, focusy); }
+
+                // 명령을 내린 유닛은 그대로 선택 상태로 둔다. 옮기고 나서 사거리를 바로 확인할 수 있다.
+                if (selection != null) selection.SelectUnit(held);
+
                 held = null;
+                pressing = false;
                 HideIndicator();
             }
+        }
+
+        // 클릭(드래그 아님) 처리. 커서 아래 유닛을 우선하고, 없으면 몬스터를, 둘 다 없으면 선택을 푼다.
+        private void SelectAtCursor(LoopSimulator sim, Vector2 screen)
+        {
+            if (selection == null) return;
+
+            Vector2 cell;
+            if (!TryGetGroundCell(screen, out cell))
+            {
+                selection.Clear();
+                return;
+            }
+
+            LoopUnit unit = PickUnit(sim, cell);
+            if (unit != null)
+            {
+                selection.SelectUnit(unit);
+                return;
+            }
+
+            LoopMonster monster = FindMonsterUnder(sim, cell);
+            if (monster != null)
+            {
+                selection.SelectMonster(monster);
+                return;
+            }
+
+            selection.Clear();
         }
 
         // 커서 아래(objectRadius 안) 가장 가까운 살아있는 몬스터. 없으면 null.

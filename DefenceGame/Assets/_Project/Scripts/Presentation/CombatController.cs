@@ -586,9 +586,40 @@ namespace Synthesis.Presentation
 
         private double RangeSq(LoopUnit u)
         {
+            double range = GetEffectiveRange(u);
+            return range * range;
+        }
+
+        // ---- 표시용 조회 (HUD, 선택 사거리 링) ----
+        // 오라 표본은 Update 앞에서 갱신되므로 호출 순서에 따라 한 프레임 늦을 수 있다. 표시 용도라 문제 없다.
+
+        // 일반 공격 사거리(셀). 아군 사거리 버프를 반영한 실제 사거리다.
+        public float GetEffectiveRange(LoopUnit u)
+        {
+            if (u == null || u.data == null) return 0f;
             double range = u.data.range.ToDoubleForDisplay();
             range = range * (1.0 + AllyBuffRatio(u, BuffStat.Range).ToDoubleForDisplay());
-            return range * range;
+            return (float)range;
+        }
+
+        public float GetEffectiveAtk(LoopUnit u)
+        {
+            if (u == null || u.data == null) return 0f;
+            return (float)EffectiveAtk(game.Context.sim, u).ToDoubleForDisplay();
+        }
+
+        public float GetEffectiveAtkSpeed(LoopUnit u)
+        {
+            if (u == null || u.data == null) return 0f;
+            double aps = u.data.atkSpeed.ToDoubleForDisplay();
+            return (float)(aps * (1.0 + AllyBuffRatio(u, BuffStat.AtkSpeed).ToDoubleForDisplay()));
+        }
+
+        // 방깎 오라를 반영한 몬스터의 실제 방어력. 감소율 계산에 그대로 넘길 수 있게 Fixed 로 낸다.
+        public Fixed GetEffectiveArmor(LoopMonster m)
+        {
+            if (m == null) return Fixed.Zero;
+            return EffectiveArmor(game.Context.sim, m);
         }
 
         // 유닛의 현재 렌더 위치를 셀 소수 좌표로. 뷰가 없으면 홈 셀.
