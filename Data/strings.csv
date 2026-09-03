@@ -1,0 +1,115 @@
+# strings.csv - 문자열 테이블 (원본). 화면에 나가는 모든 문자열은 여기 키로만 참조한다.
+# 컬럼: key,ko,en
+#   값에 쉼표가 들어가면 큰따옴표로 감싼다. 따옴표 자체는 "" 로 적는다.
+#   en 이 비면 ko 로 폴백한다. 번역 전 항목이 화면에서 사라지지 않게 하기 위해서다.
+#
+# [확정] 키 규약: str.<영역>.<대상>.<항목>. 스킬은 str.skill.<스킬id>.name / .desc 로 고정한다.
+#        규약이라 skills.csv 에 키 컬럼을 두지 않고, 린터가 32종의 키 존재를 검사할 수 있다.
+# [확정] 치환자는 {name} 한 단계만 쓴다. 중첩과 파이프 구문은 두지 않는다.
+# [확정] 스탯 표기는 "총합 (증감)" 이다. 버프가 걸린 상태에서 기본값을 주 숫자로 두면
+#        플레이어가 실제 수치를 알려고 덧셈을 해야 한다. LoL 등 주요 게임이 총합을 앞에 둔다.
+key,ko,en
+str.stat.plain,{label} {value},{label} {value}
+str.stat.buffed,{label} {value} <color=#4ADE80>(+{delta})</color>,{label} {value} <color=#4ADE80>(+{delta})</color>
+str.stat.debuffed,{label} {value} <color=#F87171>(-{delta})</color>,{label} {value} <color=#F87171>(-{delta})</color>
+str.stat.atk,공격력,Attack
+str.stat.atkspeed,공속,Attack Speed
+str.stat.range,사거리,Range
+str.stat.dps,초당 피해,DPS
+str.stat.armor,방어력,Armor
+str.stat.movespeed,이동속도,Move Speed
+str.stat.hp,체력,Health
+str.skill.HEAVY1.name,강타,Heavy Strike
+str.skill.HEAVY1.desc,평타 {triggerN}회마다 피해 {magnitude}배 추가,Every {triggerN} attacks deal {magnitude}x bonus damage
+str.skill.HEAVY2.name,강타 2,Heavy Strike II
+str.skill.HEAVY2.desc,평타 {triggerN}회마다 피해 {magnitude}배 추가,Every {triggerN} attacks deal {magnitude}x bonus damage
+str.skill.HEAVY3.name,강타 3,Heavy Strike III
+str.skill.HEAVY3.desc,평타 {triggerN}회마다 피해 {magnitude}배 추가,Every {triggerN} attacks deal {magnitude}x bonus damage
+str.skill.HEAVY4.name,강타 4,Heavy Strike IV
+str.skill.HEAVY4.desc,평타 {triggerN}회마다 피해 {magnitude}배 추가,Every {triggerN} attacks deal {magnitude}x bonus damage
+str.skill.CRIT1.name,치명타,Critical
+str.skill.CRIT1.desc,{triggerN}% 확률로 피해 {magnitude}배,{triggerN}% chance to deal {magnitude}x damage
+str.skill.CRIT2.name,치명타 2,Critical II
+str.skill.CRIT2.desc,{triggerN}% 확률로 피해 {magnitude}배,{triggerN}% chance to deal {magnitude}x damage
+str.skill.CRIT3.name,치명타 3,Critical III
+str.skill.CRIT3.desc,{triggerN}% 확률로 피해 {magnitude}배,{triggerN}% chance to deal {magnitude}x damage
+str.skill.CRIT4.name,치명타 4,Critical IV
+str.skill.CRIT4.desc,{triggerN}% 확률로 피해 {magnitude}배,{triggerN}% chance to deal {magnitude}x damage
+str.skill.AREA1.name,광역,Splash
+str.skill.AREA1.desc,명중 지점 반경 {radius} 안의 적에게 {magnitude}% 피해,Deals {magnitude}% damage within {radius} of the hit
+str.skill.AREA2.name,광역 2,Splash II
+str.skill.AREA2.desc,명중 지점 반경 {radius} 안의 적에게 {magnitude}% 피해,Deals {magnitude}% damage within {radius} of the hit
+str.skill.AREA3.name,광역 3,Splash III
+str.skill.AREA3.desc,명중 지점 반경 {radius} 안의 적에게 {magnitude}% 피해,Deals {magnitude}% damage within {radius} of the hit
+str.skill.AREA4.name,광역 4,Splash IV
+str.skill.AREA4.desc,명중 지점 반경 {radius} 안의 적에게 {magnitude}% 피해,Deals {magnitude}% damage within {radius} of the hit
+str.skill.PIERCE2.name,관통,Pierce
+str.skill.PIERCE2.desc,{count}체를 관통해 같은 피해,Pierces {count} targets for full damage
+str.skill.PIERCE3.name,관통 2,Pierce II
+str.skill.PIERCE3.desc,{count}체를 관통해 같은 피해,Pierces {count} targets for full damage
+str.skill.MULTI2.name,다중 타격,Multi Strike
+str.skill.MULTI2.desc,가까운 {count}명을 동시에 타격,Strikes {count} nearby targets at once
+str.skill.MULTI3.name,다중 타격 2,Multi Strike II
+str.skill.MULTI3.desc,가까운 {count}명을 동시에 타격,Strikes {count} nearby targets at once
+str.skill.POISON1.name,독 장판,Poison Field
+str.skill.POISON1.desc,반경 {radius} 안의 적에게 초당 {magnitude} 피해,Deals {magnitude} damage per second within {radius}
+str.skill.POISON2.name,독 장판 2,Poison Field II
+str.skill.POISON2.desc,반경 {radius} 안의 적에게 초당 {magnitude} 피해,Deals {magnitude} damage per second within {radius}
+str.skill.POISON3.name,독 장판 3,Poison Field III
+str.skill.POISON3.desc,반경 {radius} 안의 적에게 초당 {magnitude} 피해,Deals {magnitude} damage per second within {radius}
+str.skill.POISON4.name,독 장판 4,Poison Field IV
+str.skill.POISON4.desc,반경 {radius} 안의 적에게 초당 {magnitude} 피해,Deals {magnitude} damage per second within {radius}
+str.skill.CHILL1.name,둔화,Chill
+str.skill.CHILL1.desc,명중한 적을 {magnitude}% 감속 {duration}초,Slows the target by {magnitude}% for {duration}s
+str.skill.CHILL2.name,둔화 2,Chill II
+str.skill.CHILL2.desc,명중한 적을 {magnitude}% 감속 {duration}초,Slows the target by {magnitude}% for {duration}s
+str.skill.FROST1.name,서리 오라,Frost Aura
+str.skill.FROST1.desc,반경 {radius} 안의 적을 {magnitude}% 감속,Slows enemies within {radius} by {magnitude}%
+str.skill.WARCRY1.name,전투 함성,War Cry
+str.skill.WARCRY1.desc,반경 {radius} 안 아군의 공격력 {magnitude}% 상승,Allies within {radius} gain {magnitude}% attack
+str.skill.WARCRY2.name,전투 함성 2,War Cry II
+str.skill.WARCRY2.desc,반경 {radius} 안 아군의 공격력 {magnitude}% 상승,Allies within {radius} gain {magnitude}% attack
+str.skill.WARCRY3.name,전투 함성 3,War Cry III
+str.skill.WARCRY3.desc,반경 {radius} 안 아군의 공격력 {magnitude}% 상승,Allies within {radius} gain {magnitude}% attack
+str.skill.HASTE1.name,신속,Haste
+str.skill.HASTE1.desc,반경 {radius} 안 아군의 공속 {magnitude}% 상승,Allies within {radius} gain {magnitude}% attack speed
+str.skill.HASTE2.name,신속 2,Haste II
+str.skill.HASTE2.desc,반경 {radius} 안 아군의 공속 {magnitude}% 상승,Allies within {radius} gain {magnitude}% attack speed
+str.skill.SIGHT1.name,예리한 시야,Keen Sight
+str.skill.SIGHT1.desc,반경 {radius} 안 아군의 사거리 {magnitude}% 상승,Allies within {radius} gain {magnitude}% range
+str.skill.SIGHT2.name,예리한 시야 2,Keen Sight II
+str.skill.SIGHT2.desc,반경 {radius} 안 아군의 사거리 {magnitude}% 상승,Allies within {radius} gain {magnitude}% range
+str.skill.SUNDER1.name,파쇄,Sunder
+str.skill.SUNDER1.desc,반경 {radius} 안 적의 방어력 {magnitude} 감소,Reduces armor of enemies within {radius} by {magnitude}
+str.skill.SUNDER2.name,파쇄 2,Sunder II
+str.skill.SUNDER2.desc,반경 {radius} 안 적의 방어력 {magnitude} 감소,Reduces armor of enemies within {radius} by {magnitude}
+str.hud.wave,웨이브 {current} / {max}  [{phase}]  x{speed},Wave {current} / {max}  [{phase}]  x{speed}
+str.hud.timelimit,제한시간 {sec}s,Time {sec}s
+str.hud.cost,코스트 {current} / {max},Cost {current} / {max}
+str.hud.fieldmonster,필드 몬스터 {current} / {max},Field Monsters {current} / {max}
+str.hud.monsterarmor,몬스터 방어 {armor},Monster Armor {armor}
+str.hud.inventory,인벤토리 {count}   최근 뽑기 {granted},Inventory {count}   Last Draw {granted}
+str.hud.selectiontoken,선택권 {count},Selection Tokens {count}
+str.hud.phase.defeat,패배,Defeat
+str.hud.phase.cleared,클리어,Cleared
+str.hud.phase.battle,전투,Battle
+str.hud.phase.idle,대기,Idle
+str.hud.armor.none,없음,None
+str.hud.armor.value,{armor}  (피해 {percent}% 감소),{armor}  ({percent}% reduced)
+str.hud.boss.title,BOSS  -  {name},BOSS  -  {name}
+str.hud.boss.hp,{current} / {max}   방어 {armor}   남은 {sec}s,{current} / {max}   Armor {armor}   {sec}s left
+str.hud.button.skip,웨이브 스킵,Skip Wave
+str.hud.button.shop,상점,Shop
+str.unit.header,{name}   {tier}성 {klass}   코스트 {cost},{name}   T{tier} {klass}   Cost {cost}
+str.unit.skill.header,스킬,Skills
+str.unit.skill.none,스킬 없음,No Skills
+str.monster.hp,체력 {value},Health {value}
+str.monster.armor.reduction,피해 {percent}% 감소,{percent}% reduced
+str.popup.combine.title,{name} 조합,Combine {name}
+str.popup.shop.title,상점  (선택권 {token} / 구매가 {cost}),Shop  (Tokens {token} / Price {cost})
+str.popup.shop.buy,{name}  구매({cost}),{name}  Buy({cost})
+str.popup.close,닫기,Close
+str.popup.restart,재시작,Restart
+str.popup.result.win,클리어!,Cleared!
+str.popup.result.lose,패배,Defeat
+str.popup.sample.title,샘플 팝업,Sample Popup

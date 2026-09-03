@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7041403013814160812}
   - component: {fileID: 5994576693505209721}
   - component: {fileID: 725807955694889105}
+  - component: {fileID: 6215218707659476332}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -137,6 +138,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &6215218707659476332
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1019639893123828513}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ccb61c8dcc139e40a6313c1d077f1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Synthesis.Presentation::Synthesis.Presentation.StringParser
+  key: str.popup.close
+  target: {fileID: 725807955694889105}
 --- !u!1 &1879590847337574673
 GameObject:
   m_ObjectHideFlags: 0
@@ -202,7 +217,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC870\uD569"
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 067b9e85ba999934081e07b74d0679dc, type: 2}
   m_sharedMaterial: {fileID: 2841125932899942892, guid: 067b9e85ba999934081e07b74d0679dc, type: 2}

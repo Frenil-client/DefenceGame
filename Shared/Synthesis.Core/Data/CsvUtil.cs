@@ -40,6 +40,56 @@ namespace Synthesis.Core.Data
             return lineList;
         }
 
+        // 큰따옴표를 인식하는 필드 분해. 문자열 테이블처럼 값 안에 쉼표가 들어가는 파일에 쓴다.
+        //   "a,b" 는 한 필드, "" 는 따옴표 한 개를 뜻한다. 다른 CSV 는 값에 쉼표가 없어 Split(',') 로 충분하다.
+        public static List<string> SplitCsvFields(string line)
+        {
+            List<string> fieldList = new List<string>();
+            if (string.IsNullOrEmpty(line)) return fieldList;
+
+            var buffer = new System.Text.StringBuilder();
+            bool inQuote = false;
+
+            for (int i = 0; i < line.Length; ++i)
+            {
+                char c = line[i];
+
+                if (inQuote)
+                {
+                    if (c != '"')
+                    {
+                        buffer.Append(c);
+                        continue;
+                    }
+                    // 따옴표 안에서 만난 따옴표: 두 개면 리터럴 한 개, 하나면 닫는 따옴표.
+                    if (i + 1 < line.Length && line[i + 1] == '"')
+                    {
+                        buffer.Append('"');
+                        ++i;
+                        continue;
+                    }
+                    inQuote = false;
+                    continue;
+                }
+
+                if (c == '"')
+                {
+                    inQuote = true;
+                    continue;
+                }
+                if (c == ',')
+                {
+                    fieldList.Add(buffer.ToString());
+                    buffer.Length = 0;
+                    continue;
+                }
+                buffer.Append(c);
+            }
+
+            fieldList.Add(buffer.ToString());
+            return fieldList;
+        }
+
         public static int StringToInt(string value)
         {
             if (string.IsNullOrEmpty(value)) return 0;

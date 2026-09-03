@@ -104,6 +104,7 @@ GameObject:
   - component: {fileID: 528842586378203020}
   - component: {fileID: 8022999982103822559}
   - component: {fileID: 4317777674505495825}
+  - component: {fileID: 281761911063223125}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -230,6 +231,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &281761911063223125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1735583884080130847}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ccb61c8dcc139e40a6313c1d077f1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Synthesis.Presentation::Synthesis.Presentation.StringParser
+  key: str.popup.restart
+  target: {fileID: 4317777674505495825}
 --- !u!1 &4264745918896567801
 GameObject:
   m_ObjectHideFlags: 0

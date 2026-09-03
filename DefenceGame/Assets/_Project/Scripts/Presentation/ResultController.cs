@@ -26,7 +26,7 @@ namespace Synthesis.Presentation
             UIManager.Instance.CloseAll();
 
             ResultPopup popup = UIManager.Instance.Open("ResultPopup") as ResultPopup;
-            if (popup != null) popup.Setup(win ? "클리어!" : "패배", game.Restart);
+            if (popup != null) popup.Setup(StringManager.Get(win ? "str.popup.result.win" : "str.popup.result.lose"), game.Restart);
         }
     }
 }

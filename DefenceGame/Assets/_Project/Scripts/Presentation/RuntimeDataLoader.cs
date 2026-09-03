@@ -39,6 +39,14 @@ namespace Synthesis.Presentation
             return db;
         }
 
+        // 문자열 테이블 원본. StringManager 가 읽어 Core 의 StringTable 로 만든다.
+        public static string LoadStringsText()
+        {
+            string dataDir = FindDataDir();
+            if (dataDir == null) return string.Empty;
+            return ReadIfExists(dataDir, "strings.csv");
+        }
+
         public static MapGenParams LoadMapGenParams()
         {
             string dataDir = FindDataDir();

@@ -5,6 +5,7 @@ using Synthesis.Core;
 using Synthesis.Core.Data;
 using Synthesis.Core.Simulation;
 using Synthesis.Core.Combat;
+using Synthesis.Core.Text;
 
 namespace Synthesis.Presentation
 {
@@ -57,9 +58,20 @@ namespace Synthesis.Presentation
         //   감소율은 Core 의 ArmorFormula 로 구한다. 여기서 따로 계산하면 표시와 실제 피해가 갈라진다.
         private static string ArmorLabel(Fixed armor)
         {
-            if (armor.raw <= 0) return "없음";
-            return armor.ToIntTruncated() + "  (피해 " + ArmorLabelPercent(armor) + "% 감소)";
+            if (armor.raw <= 0) return StringManager.Get("str.hud.armor.none");
+
+            armorScratch.Clear();
+            armorScratch.Set("armor", armor.ToIntTruncated().ToString());
+            armorScratch.Set("percent", ArmorLabelPercent(armor).ToString());
+            return StringManager.Format("str.hud.armor.value", armorScratch);
         }
+
+        // 문자열 조립용 재사용 버퍼. HUD 는 매 프레임 갱신이라 매번 새로 만들지 않는다.
+        //   서로를 호출하는 헬퍼끼리 버퍼를 공유하면 바깥이 채운 값을 안쪽이 덮어쓴다. 그래서 용도별로 나눈다.
+        private static readonly StringValues scratch = new StringValues();
+        private static readonly StringValues armorScratch = new StringValues();
+        private static readonly StringValues bossScratch = new StringValues();
+        private static readonly SkillStringValues skillScratch = new SkillStringValues();
 
         // 방어력으로 인한 피해 감소율(%). 공식은 Core 한 벌을 쓴다.
         private static int ArmorLabelPercent(Fixed armor)
@@ -90,64 +102,86 @@ namespace Synthesis.Presentation
         private string UnitInfo(LoopUnit unit)
         {
             UnitData data = unit.data;
-            float atk = combat != null ? combat.GetEffectiveAtk(unit) : (float)data.atk.ToDoubleForDisplay();
-            float aps = combat != null ? combat.GetEffectiveAtkSpeed(unit) : (float)data.atkSpeed.ToDoubleForDisplay();
-            float range = combat != null ? combat.GetEffectiveRange(unit) : (float)data.range.ToDoubleForDisplay();
+            float baseAtk = (float)data.atk.ToDoubleForDisplay();
+            float baseAps = (float)data.atkSpeed.ToDoubleForDisplay();
+            float baseRange = (float)data.range.ToDoubleForDisplay();
+            float atk = combat != null ? combat.GetEffectiveAtk(unit) : baseAtk;
+            float aps = combat != null ? combat.GetEffectiveAtkSpeed(unit) : baseAps;
+            float range = combat != null ? combat.GetEffectiveRange(unit) : baseRange;
 
-            string text = data.name + "   " + data.tier + "성 " + data.klass + "   코스트 " + data.cost + "\n"
-                + "공격력 " + StatLabel((float)data.atk.ToDoubleForDisplay(), atk) + "\n"
-                + "공속 " + StatLabel((float)data.atkSpeed.ToDoubleForDisplay(), aps) + " 회/초\n"
-                + "사거리 " + StatLabel((float)data.range.ToDoubleForDisplay(), range) + "\n"
-                + "초당 피해 " + (atk * aps).ToString("F0");
+            scratch.Clear();
+            scratch.Set("name", data.name);
+            scratch.Set("tier", data.tier.ToString());
+            scratch.Set("klass", data.klass.ToString());
+            scratch.Set("cost", data.cost.ToString());
 
-            if (data.skillIds.Count == 0) return text + "\n스킬 없음";
+            string text = StringManager.Format("str.unit.header", scratch) + "\n"
+                + StringManager.FormatStat("str.stat.atk", baseAtk, atk, "0") + "\n"
+                + StringManager.FormatStat("str.stat.atkspeed", baseAps, aps) + "\n"
+                + StringManager.FormatStat("str.stat.range", baseRange, range) + "\n"
+                + StringManager.FormatStat("str.stat.dps", atk * aps, atk * aps, "0");
 
-            text += "\n스킬";
+            if (data.skillIds.Count == 0) return text + "\n" + StringManager.Get("str.unit.skill.none");
+
+            text += "\n" + StringManager.Get("str.unit.skill.header");
             var registry = game.Context.skillById;
             for (int i = 0; i < data.skillIds.Count; ++i)
             {
                 string skillId = data.skillIds[i];
+                text += "\n  " + StringManager.Get("str.skill." + skillId + ".name");
+
                 SkillData skill;
-                if (registry != null && registry.TryGetValue(skillId, out skill)) text += "\n  " + skillId + "  " + skill.note;
-                else text += "\n  " + skillId;
+                if (registry != null && registry.TryGetValue(skillId, out skill))
+                    text += "  " + StringManager.Format("str.skill." + skillId + ".desc", skillScratch.Bind(skill));
             }
             return text;
         }
 
         private string MonsterInfo(LoopMonster monster)
         {
-            string name = MonsterName(monster);
             Fixed armorFixed = combat != null ? combat.GetEffectiveArmor(monster) : monster.armor;
             float armor = (float)armorFixed.ToDoubleForDisplay();
             float baseArmor = (float)monster.armor.ToDoubleForDisplay();
             float speed = (float)monster.moveSpeed.ToDoubleForDisplay();
             float baseSpeed = (float)monster.baseMoveSpeed.ToDoubleForDisplay();
 
-            string armorLine = "방어력 " + StatLabel(baseArmor, armor);
-            if (armorFixed.raw > 0) armorLine += "   피해 " + ArmorLabelPercent(armorFixed) + "% 감소";
+            string armorLine = StringManager.FormatStat("str.stat.armor", baseArmor, armor);
+            if (armorFixed.raw > 0)
+            {
+                scratch.Clear();
+                scratch.Set("percent", ArmorLabelPercent(armorFixed).ToString());
+                armorLine += "   " + StringManager.Format("str.monster.armor.reduction", scratch);
+            }
+
+            // 이름을 먼저 뽑아 둔다. MonsterName 이 같은 scratch 를 쓰므로 hp 를 채운 뒤에 부르면 덮어쓴다.
+            string name = MonsterName(monster);
+
+            scratch.Clear();
+            scratch.Set("value", monster.hp.ToIntTruncated().ToString());
+            string hpLine = StringManager.Format("str.monster.hp", scratch);
 
             return name + "\n"
-                + "체력 " + monster.hp.ToIntTruncated() + "\n"
+                + hpLine + "\n"
                 + armorLine + "\n"
-                + "이동속도 " + StatLabel(baseSpeed, speed);
+                + StringManager.FormatStat("str.stat.movespeed", baseSpeed, speed);
         }
 
         // 몬스터 표시 이름. 보스면 보스 이름, 아니면 원형 이름. 못 찾으면 id 그대로.
         private string MonsterName(LoopMonster monster)
         {
             BossData boss;
-            if (game.Context.bossById.TryGetValue(monster.enemyId, out boss)) return "BOSS  " + boss.name;
+            if (game.Context.bossById.TryGetValue(monster.enemyId, out boss)) return BossTitle(boss.name);
 
             EnemyData enemy;
             if (game.Context.enemyById.TryGetValue(monster.enemyId, out enemy)) return enemy.name;
             return monster.enemyId;
         }
 
-        // 기본값과 실효값이 다르면 둘 다 보여준다. 같으면 하나만.
-        private static string StatLabel(float baseValue, float effective)
+        private static string BossTitle(string name)
         {
-            if (Mathf.Abs(baseValue - effective) < 0.005f) return effective.ToString("0.##");
-            return baseValue.ToString("0.##") + " -> " + effective.ToString("0.##");
+            bossScratch.Clear();
+            bossScratch.Set("name", name);
+            return StringManager.Format("str.hud.boss.title", bossScratch);
         }
 
         // 보스 웨이브면 화면 상단 중앙 배너를 켜서 보스전임을 강조하고 남은 체력을 별도로 보여준다(SPEC 3-6).
@@ -189,12 +223,19 @@ namespace Synthesis.Presentation
             else curHp = bossSeen ? 0 : maxHp; // 등장 전 최대, 격파 후 0
 
             bossBanner.SetActive(true);
-            if (bossTitle != null) bossTitle.text = "BOSS  -  " + boss.name;
+            if (bossTitle != null) bossTitle.text = BossTitle(boss.name);
 
             float ratio = maxHp > 0 ? (float)curHp / maxHp : 0f;
             if (bossHpFill != null) bossHpFill.localScale = new Vector3(Mathf.Clamp01(ratio), 1f, 1f);
             if (bossHpText != null)
-                bossHpText.text = curHp + " / " + maxHp + "   방어 " + boss.armor.ToIntTruncated() + "   남은 " + remain.ToString("F1") + "s";
+            {
+                scratch.Clear();
+                scratch.Set("current", curHp.ToString());
+                scratch.Set("max", maxHp.ToString());
+                scratch.Set("armor", boss.armor.ToIntTruncated().ToString());
+                scratch.Set("sec", remain.ToString("F1"));
+                bossHpText.text = StringManager.Format("str.hud.boss.hp", scratch);
+            }
         }
 
         private void Update()
@@ -216,21 +257,46 @@ namespace Synthesis.Presentation
             string granted = waves != null ? waves.LastGranted : "-";
             bool cleared = waves != null && waves.Cleared;
             int shownWave = Mathf.Clamp(next - 1, 0, game.MaxWave);
-            string phaseLabel = s.defeated ? "패배"
-                : cleared ? "클리어"
-                : (s.pendingSpawns > 0 ? "전투" : "대기");
+            string phaseLabel = StringManager.Get(s.defeated ? "str.hud.phase.defeat"
+                : cleared ? "str.hud.phase.cleared"
+                : (s.pendingSpawns > 0 ? "str.hud.phase.battle" : "str.hud.phase.idle"));
             float remain = waves != null ? Mathf.Max(0f, waves.WaveTimer) : 0f;
 
             UpdateBossBanner(next - 1, remain);
 
-            statsText.text =
-                "웨이브 " + shownWave + " / " + game.MaxWave + "  [" + phaseLabel + "]  x" + game.Speed + "\n"
-                + "제한시간 " + remain.ToString("F1") + "s\n"
-                + "코스트 " + s.cost + " / " + s.costCap + "\n"
-                + "필드 몬스터 " + s.aliveCount + " / " + (waves != null ? waves.AccumCap : 0) + "\n"
-                + "몬스터 방어 " + ArmorLabel(s.spawnArmor) + "\n"
-                + "인벤토리 " + game.Context.inventory.Count + "   최근 뽑기 " + granted + "\n"
-                + "선택권 " + game.Context.selectionTokens;
+            scratch.Clear();
+            scratch.Set("current", shownWave.ToString());
+            scratch.Set("max", game.MaxWave.ToString());
+            scratch.Set("phase", phaseLabel);
+            scratch.Set("speed", game.Speed.ToString());
+            string line = StringManager.Format("str.hud.wave", scratch) + "\n";
+
+            scratch.Clear();
+            scratch.Set("sec", remain.ToString("F1"));
+            line += StringManager.Format("str.hud.timelimit", scratch) + "\n";
+
+            scratch.Clear();
+            scratch.Set("current", s.cost.ToString());
+            scratch.Set("max", s.costCap.ToString());
+            line += StringManager.Format("str.hud.cost", scratch) + "\n";
+
+            scratch.Clear();
+            scratch.Set("current", s.aliveCount.ToString());
+            scratch.Set("max", (waves != null ? waves.AccumCap : 0).ToString());
+            line += StringManager.Format("str.hud.fieldmonster", scratch) + "\n";
+
+            scratch.Clear();
+            scratch.Set("armor", ArmorLabel(s.spawnArmor));
+            line += StringManager.Format("str.hud.monsterarmor", scratch) + "\n";
+
+            scratch.Clear();
+            scratch.Set("count", game.Context.inventory.Count.ToString());
+            scratch.Set("granted", granted);
+            line += StringManager.Format("str.hud.inventory", scratch) + "\n";
+
+            scratch.Clear();
+            scratch.Set("count", game.Context.selectionTokens.ToString());
+            statsText.text = line + StringManager.Format("str.hud.selectiontoken", scratch);
         }
     }
 }

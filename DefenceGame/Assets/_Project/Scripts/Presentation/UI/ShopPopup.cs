@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Synthesis.Core.Text;
 using Synthesis.Core.Data;
 
 namespace Synthesis.Presentation
@@ -28,7 +29,8 @@ namespace Synthesis.Presentation
             if (ctx == null || listRoot == null || rowPrefab == null) return;
 
             if (titleText != null)
-                titleText.text = "상점  (선택권 " + ctx.selectionTokens + " / 구매가 " + ctx.selectionCost + ")";
+                titleText.text = StringManager.Format("str.popup.shop.title",
+                    new StringValues().Set("token", ctx.selectionTokens.ToString()).Set("cost", ctx.selectionCost.ToString()));
 
             for (int i = listRoot.childCount - 1; i >= 0; --i) Destroy(listRoot.GetChild(i).gameObject);
 
@@ -37,7 +39,8 @@ namespace Synthesis.Presentation
             foreach (var data in list)
             {
                 string id = data.id;
-                string label = DisplayName(data) + "  구매(" + ctx.selectionCost + ")";
+                string label = StringManager.Format("str.popup.shop.buy",
+                    new StringValues().Set("name", DisplayName(data)).Set("cost", ctx.selectionCost.ToString()));
 
                 RecipeRowView row = Instantiate(rowPrefab, listRoot);
                 row.Set(label, canBuy, () =>

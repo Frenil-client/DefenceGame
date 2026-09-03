@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Synthesis.Core.Text;
 using Synthesis.Core.Data;
 
 namespace Synthesis.Presentation
@@ -29,7 +30,8 @@ namespace Synthesis.Presentation
         {
             if (ctx == null || listRoot == null || rowPrefab == null) return;
 
-            if (titleText != null) titleText.text = DisplayName(unitId) + " 조합";
+            if (titleText != null) titleText.text = StringManager.Format("str.popup.combine.title",
+                new StringValues().Set("name", DisplayName(unitId)));
 
             for (int i = listRoot.childCount - 1; i >= 0; --i) Destroy(listRoot.GetChild(i).gameObject);
 
