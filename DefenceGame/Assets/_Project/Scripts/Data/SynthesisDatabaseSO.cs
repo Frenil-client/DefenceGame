@@ -16,7 +16,6 @@ namespace Synthesis.Data
         public string unitName;
         public int tier;
         public Klass klass;
-        public int cost;
         public long atkRaw;
         public long atkSpeedRaw;
         public long rangeRaw;
@@ -30,7 +29,6 @@ namespace Synthesis.Data
             row.unitName    = model.name;
             row.tier        = model.tier;
             row.klass       = model.klass;
-            row.cost        = model.cost;
             row.atkRaw      = model.atk.raw;
             row.atkSpeedRaw = model.atkSpeed.raw;
             row.rangeRaw    = model.range.raw;
@@ -46,7 +44,6 @@ namespace Synthesis.Data
             model.name     = unitName;
             model.tier     = tier;
             model.klass    = klass;
-            model.cost     = cost;
             model.atk      = Fixed.FromRaw(atkRaw);
             model.atkSpeed = Fixed.FromRaw(atkSpeedRaw);
             model.range    = Fixed.FromRaw(rangeRaw);

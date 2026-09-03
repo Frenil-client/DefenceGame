@@ -85,7 +85,6 @@ str.skill.SUNDER2.name,파쇄 2,Sunder II
 str.skill.SUNDER2.desc,반경 {radius} 안 적의 방어력 {magnitude} 감소,Reduces armor of enemies within {radius} by {magnitude}
 str.hud.wave,웨이브 {current} / {max}  [{phase}]  x{speed},Wave {current} / {max}  [{phase}]  x{speed}
 str.hud.timelimit,제한시간 {sec}s,Time {sec}s
-str.hud.cost,코스트 {current} / {max},Cost {current} / {max}
 str.hud.fieldmonster,필드 몬스터 {current} / {max},Field Monsters {current} / {max}
 str.hud.monsterarmor,몬스터 방어 {armor},Monster Armor {armor}
 str.hud.inventory,인벤토리 {count}   최근 뽑기 {granted},Inventory {count}   Last Draw {granted}
@@ -100,7 +99,7 @@ str.hud.boss.title,BOSS  -  {name},BOSS  -  {name}
 str.hud.boss.hp,{current} / {max}   방어 {armor}   남은 {sec}s,{current} / {max}   Armor {armor}   {sec}s left
 str.hud.button.skip,웨이브 스킵,Skip Wave
 str.hud.button.shop,상점,Shop
-str.unit.header,{name}   {tier}성 {klass}   코스트 {cost},{name}   T{tier} {klass}   Cost {cost}
+str.unit.header,{name}   {tier}성 {klass},{name}   T{tier} {klass}
 str.unit.skill.header,스킬,Skills
 str.unit.skill.none,스킬 없음,No Skills
 str.monster.hp,체력 {value},Health {value}

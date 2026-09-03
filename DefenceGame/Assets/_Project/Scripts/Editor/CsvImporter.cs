@@ -68,7 +68,6 @@ namespace Synthesis.Editor
                 bool same = a.id == b.id
                     && a.tier == b.tier
                     && a.klass == b.klass
-                    && a.cost == b.cost
                     && a.atk.raw == b.atk.raw
                     && a.atkSpeed.raw == b.atkSpeed.raw
                     && a.range.raw == b.range.raw

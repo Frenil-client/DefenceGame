@@ -11,7 +11,6 @@ namespace Synthesis.Core.Data
         public string name;
         public int tier;           // 1..5
         public Klass klass;
-        public int cost;
         // 유닛에 hp 는 없다. 몬스터가 유닛을 공격하지 않으므로 유닛 체력이라는 개념 자체가 없다.
         public Fixed atk;
         public Fixed atkSpeed;     // 초당 공격 횟수

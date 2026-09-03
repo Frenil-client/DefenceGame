@@ -18,7 +18,7 @@ namespace Synthesis.Core.Tests
             Assert.NotNull(war);
             Assert.Equal(1, war.tier);
             Assert.Equal(Klass.War, war.klass);
-            Assert.Equal(5, war.cost);
+            Assert.True(war.atk.raw > 0);
         }
 
         [Fact]

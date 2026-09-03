@@ -78,7 +78,6 @@ namespace Synthesis.Core.Tests
 
             LoopMap map = MakeMap(1);
             LoopSimulator sim = new LoopSimulator(map, 1);
-            sim.state.cost = Fixed.FromInt(40);
 
             GridPos pathCell = map.loopWaypointList[0];
             GridPos buildCell = FirstNonStatueBuildTile(map);

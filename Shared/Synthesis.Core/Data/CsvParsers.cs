@@ -5,24 +5,22 @@ namespace Synthesis.Core.Data
     // STEP 1. 기반 도구 - CSV 한 줄을 데이터 모델로 변환 (v0.4). 파서는 Core 에 한 벌만 둔다.
     public static class CsvParsers
     {
-        // units.csv: id,name,tier,klass,cost,atk,atkSpeed,range,skillIds,note
+        // units.csv: id,name,tier,klass,atk,atkSpeed,range,skillIds,note
         public static UnitData CsvToUnitData(string line)
         {
             var split = line.Split(',');
-            if (split.Length < 10) return null;
+            if (split.Length < 9) return null;
 
             UnitData unitData = new UnitData();
             unitData.id       = split[0].Trim();
             unitData.name     = split[1].Trim();
             unitData.tier     = CsvUtil.StringToInt(split[2]);
             unitData.klass    = CsvEnum.StringToKlass(split[3]);
-            unitData.cost     = CsvUtil.StringToInt(split[4]);
-            unitData.atk      = CsvUtil.StringToFixed(split[5]);
-            unitData.atkSpeed = CsvUtil.StringToFixed(split[6]);
-            unitData.range    = CsvUtil.StringToFixed(split[7]);
-            unitData.skillIds = SplitSkillIds(split[8]);
-            unitData.note     = RejoinFrom(split, 9);
-            if (unitData.cost < 0) unitData.cost = 0;
+            unitData.atk      = CsvUtil.StringToFixed(split[4]);
+            unitData.atkSpeed = CsvUtil.StringToFixed(split[5]);
+            unitData.range    = CsvUtil.StringToFixed(split[6]);
+            unitData.skillIds = SplitSkillIds(split[7]);
+            unitData.note     = RejoinFrom(split, 8);
             return unitData;
         }
 

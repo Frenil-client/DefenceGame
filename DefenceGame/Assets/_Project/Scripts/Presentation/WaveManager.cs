@@ -24,6 +24,8 @@ namespace Synthesis.Presentation
         [SerializeField] private int accumCap = 60;
         // [TEMP] 게임 시작 시 미리 지급하는 1성 유닛 수(최초 지급, BALANCE 6-1). 시뮬로 재확정.
         [SerializeField] private int startUnitCount = 5;
+        // [TEMP] 웨이브마다 지급하는 1성 유닛 수. 코스트가 없어져 이 값이 전력 증가 속도를 정한다. 시뮬로 재확정.
+        [SerializeField] private int grantPerWave = 2;
         // 스폰 간격(틱). 전 웨이브 전 게임 동일하다. 1초마다 1기 = 20틱(BALANCE 12, SPEC 3-5).
         // 웨이브별 값이 아니라 게임 상수라 waves.csv 가 아니라 여기 둔다(waveTimeLimit, accumCap 과 같은 취급).
         [SerializeField] private int spawnIntervalTicks = 20;
@@ -186,8 +188,17 @@ namespace Synthesis.Presentation
 
         private void BeginWave(RunContext ctx, int idx)
         {
-            LastGranted = ctx.gacha.GrantForWave(idx);
-            ctx.inventory.Add(LastGranted);
+            // 웨이브 보상 뽑기. 코스트 경제를 폐기했으므로 지급 수가 곧 전력 증가 속도다.
+            for (int i = 0; i < grantPerWave; ++i)
+            {
+                string granted = ctx.gacha.GrantForWave(idx);
+                if (granted == null)
+                {
+                    continue;
+                }
+                LastGranted = granted;
+                ctx.inventory.Add(granted);
+            }
             AutoPlaceCenterOut(ctx);
 
             WaveData wave;
@@ -212,7 +223,6 @@ namespace Synthesis.Presentation
             {
                 UnitData data;
                 if (!ctx.unitById.TryGetValue(owned.unitId, out data)) continue;
-                if (ctx.sim.state.cost < Fixed.FromInt(data.cost)) continue;
 
                 for (int i = 0; i < centerTiles.Count; ++i)
                 {

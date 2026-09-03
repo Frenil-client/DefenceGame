@@ -48,8 +48,6 @@ namespace Synthesis.Core.Simulation
         public DeterministicRandom rng;
 
         public int tick;
-        public Fixed cost;
-        public int costCap = 40;
         public int statueHp = 400; // [TEMP] 석상 체력. 유닛 자동 공격으로 파괴. 시뮬로 재확정
 
         public List<LoopMonster> monsterList = new List<LoopMonster>();
@@ -71,7 +69,6 @@ namespace Synthesis.Core.Simulation
     {
         public const int TicksPerSecond = 20;
 
-        private static readonly Fixed costPerTick = Fixed.One / Fixed.FromInt(TicksPerSecond);
 
         public LoopState state { get; private set; }
 
@@ -124,7 +121,6 @@ namespace Synthesis.Core.Simulation
             if (state.defeated) return;
 
             ++state.tick;
-            RecoverCost();
             ProcessSpawns();
             MoveMonsters();
             // 승패 판정(누적 상한/보스 제한시간)은 시뮬이 하지 않는다. 게임 레이어(WaveManager)가 상태를 읽어 판정한다.
@@ -136,12 +132,6 @@ namespace Synthesis.Core.Simulation
             return state.pendingSpawns <= 0 && state.aliveCount <= 0;
         }
 
-        private void RecoverCost()
-        {
-            state.cost = state.cost + costPerTick;
-            Fixed cap = Fixed.FromInt(state.costCap);
-            if (state.cost > cap) state.cost = cap;
-        }
 
         private void ProcessSpawns()
         {
@@ -237,11 +227,6 @@ namespace Synthesis.Core.Simulation
             if (GetUnitAt(x, y) != null) return false;
             if (IsStatueAt(x, y)) return false;
 
-            Fixed price = Fixed.FromInt(unitData.cost);
-            if (state.cost < price) return false;
-
-            state.cost = state.cost - price;
-
             LoopUnit unit = new LoopUnit();
             unit.data = unitData;
             unit.cellX = x;
@@ -321,7 +306,6 @@ namespace Synthesis.Core.Simulation
                 LoopUnit unit = state.unitList[i];
                 if (unit.cellX == x && unit.cellY == y)
                 {
-                    state.cost = state.cost + Fixed.FromRatio(unit.data.cost, 2);
                     state.unitList.RemoveAt(i);
                     return true;
                 }
@@ -361,7 +345,6 @@ namespace Synthesis.Core.Simulation
         {
             ulong hash = 1469598103934665603UL;
             hash = Mix(hash, (ulong)state.tick);
-            hash = Mix(hash, (ulong)state.cost.raw);
             hash = Mix(hash, (ulong)state.aliveCount);
             hash = Mix(hash, state.defeated ? 1UL : 0UL);
 

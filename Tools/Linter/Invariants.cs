@@ -30,7 +30,6 @@ namespace Synthesis.Linter
             list.Add(CheckOccurrence(db, unitById, "INV-02", 2, 3, 1, int.MaxValue)); // 2성: 3성에 1회+
             list.Add(CheckTierUpward(db, unitById, "INV-03", 3, new int[] { 4, 5 })); // 3성: 4성/5성에 1회+
             list.Add(CheckTierUpward(db, unitById, "INV-04", 4, new int[] { 5 }));     // 4성: 5성에 1회+
-            list.Add(CheckCostMonotonic(db, unitById));                                 // INV-06 코스트 단조
             return list;
         }
 
@@ -70,26 +69,6 @@ namespace Synthesis.Linter
             return r;
         }
 
-        private static InvResult CheckCostMonotonic(GameDatabase db, Dictionary<string, UnitData> unitById)
-        {
-            InvResult r = new InvResult { id = "INV-06", severity = Severity.Authoritative, passed = true };
-            int[] tierCost = new int[6];
-            bool[] seen = new bool[6];
-            foreach (var unit in db.unitList)
-            {
-                if (unit.tier < 1 || unit.tier > 5) continue;
-                if (!seen[unit.tier]) { tierCost[unit.tier] = unit.cost; seen[unit.tier] = true; }
-            }
-            for (int t = 2; t <= 5; ++t)
-            {
-                if (seen[t] && seen[t - 1] && tierCost[t] <= tierCost[t - 1])
-                {
-                    r.passed = false;
-                    r.messageList.Add(t + "성 코스트 " + tierCost[t] + " <= " + (t - 1) + "성 " + tierCost[t - 1]);
-                }
-            }
-            return r;
-        }
 
         private static int CountOccurrences(GameDatabase db, Dictionary<string, UnitData> unitById, string unitId, int resultTier)
         {

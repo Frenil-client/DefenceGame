@@ -50,6 +50,8 @@ DefenceGame/Assets/_Project/Scripts/Editor/LoopGameSceneBuilder.cs
 DefenceGame/Assets/_Project/Scripts/Editor/LoopGameSceneBuilder.cs.meta
 DefenceGame/Assets/_Project/Scripts/Editor/EntityPrefabBuilder.cs
 DefenceGame/Assets/_Project/Scripts/Editor/EntityPrefabBuilder.cs.meta
+DefenceGame/Assets/_Project/Scripts/Editor/RangeCircleTextureBuilder.cs
+DefenceGame/Assets/_Project/Scripts/Editor/RangeCircleTextureBuilder.cs.meta
 
 # ---- OS ----
 Thumbs.db

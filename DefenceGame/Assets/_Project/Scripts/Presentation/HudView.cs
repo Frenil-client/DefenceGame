@@ -113,7 +113,6 @@ namespace Synthesis.Presentation
             scratch.Set("name", data.name);
             scratch.Set("tier", data.tier.ToString());
             scratch.Set("klass", data.klass.ToString());
-            scratch.Set("cost", data.cost.ToString());
 
             string text = StringManager.Format("str.unit.header", scratch) + "\n"
                 + StringManager.FormatStat("str.stat.atk", baseAtk, atk, "0") + "\n"
@@ -274,11 +273,6 @@ namespace Synthesis.Presentation
             scratch.Clear();
             scratch.Set("sec", remain.ToString("F1"));
             line += StringManager.Format("str.hud.timelimit", scratch) + "\n";
-
-            scratch.Clear();
-            scratch.Set("current", s.cost.ToString());
-            scratch.Set("max", s.costCap.ToString());
-            line += StringManager.Format("str.hud.cost", scratch) + "\n";
 
             scratch.Clear();
             scratch.Set("current", s.aliveCount.ToString());

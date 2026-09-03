@@ -45,7 +45,6 @@ namespace Synthesis.Presentation
             ctx.db = RuntimeDataLoader.LoadDatabase();
             ctx.sim = new LoopSimulator(ctx.map, seed);
             // 시작 코스트를 상한만큼 쥐고 시작한다(초기 지급 유닛을 바로 배치 가능).
-            ctx.sim.state.cost = Fixed.FromInt(ctx.sim.state.costCap);
             ctx.gacha = new GachaEngine(ctx.db.unitList, seed);
             ctx.inventory = new Inventory();
             ctx.combination = new CombinationEngine(ctx.db.recipeList);
