@@ -50,9 +50,10 @@ namespace Synthesis.Presentation
             }
         }
 
+        // 화면에는 이름만 낸다. ID 는 내부 식별자라 노출하지 않는다(조합 팝업과 같은 규칙).
         private string DisplayName(UnitData data)
         {
-            if (!string.IsNullOrEmpty(data.name)) return data.name + " (" + data.id + ")";
+            if (!string.IsNullOrEmpty(data.name)) return data.name;
             return data.id;
         }
     }
