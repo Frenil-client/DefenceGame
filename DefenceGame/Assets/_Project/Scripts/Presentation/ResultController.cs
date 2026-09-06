@@ -1,4 +1,5 @@
 using UnityEngine;
+using UISystem;
 
 namespace Synthesis.Presentation
 {
@@ -22,10 +23,16 @@ namespace Synthesis.Presentation
             shownRunId = game.RunId;
             if (UIManager.Instance == null) return;
 
-            // 결과가 나오면 열려 있던 상점/조합 팝업을 전부 닫아 잔류/미갱신을 막는다.
-            UIManager.Instance.CloseAll();
+            _ = ShowResultAsync(win);
+        }
 
-            ResultPopup popup = UIManager.Instance.Open("ResultPopup") as ResultPopup;
+        // 결과 팝업을 띄우기 전에 열려 있던 상점/조합 팝업을 전부 닫아 잔류와 미갱신을 막는다.
+        //   전체가 아니라 UIPopup 만 닫는다. 스택 바닥의 GameScreen 까지 걷어내면 HUD 가 사라진다.
+        private async Awaitable ShowResultAsync(bool win)
+        {
+            await UIManager.Instance.CloseAllAsync<UIPopup>();
+
+            ResultPopup popup = await UIManager.Instance.OpenAsync<ResultPopup>();
             if (popup != null) popup.Setup(StringManager.Get(win ? "str.popup.result.win" : "str.popup.result.lose"), game.Restart);
         }
     }

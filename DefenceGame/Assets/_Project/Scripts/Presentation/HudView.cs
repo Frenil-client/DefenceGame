@@ -6,12 +6,13 @@ using Synthesis.Core.Data;
 using Synthesis.Core.Simulation;
 using Synthesis.Core.Combat;
 using Synthesis.Core.Text;
+using UISystem;
 
 namespace Synthesis.Presentation
 {
     // 뷰 - HUD. UI 계층은 프리팹에 미리 만들어 두고, 여기서는 참조(statsText)만 갱신한다.
     // 배속 버튼의 onClick 은 프리팹에서 SetSpeed(float) 로 연결한다.
-    public sealed class HudView : MonoBehaviour
+    public sealed class HudView : UIElement
     {
         [SerializeField] private GameManager game;
         [SerializeField] private WaveManager waves;
@@ -46,11 +47,18 @@ namespace Synthesis.Presentation
         }
 
         // 상점 버튼(프리팹의 onClick 에서 호출). 선택권으로 원하는 1성을 구매한다.
+        //   UnityEvent 는 void 만 물릴 수 있어, 여는 것은 비동기 메서드로 나눈다.
         public void OpenShop()
         {
             if (game == null || game.Context == null || !game.Context.IsValid()) return;
             if (UIManager.Instance == null) return;
-            ShopPopup popup = UIManager.Instance.Open("ShopPopup") as ShopPopup;
+
+            _ = OpenShopAsync();
+        }
+
+        private async Awaitable OpenShopAsync()
+        {
+            ShopPopup popup = await UIManager.Instance.OpenAsync<ShopPopup>();
             if (popup != null) popup.Setup(game.Context);
         }
 

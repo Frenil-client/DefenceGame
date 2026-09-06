@@ -46,6 +46,8 @@ DefenceGame/Assets/_Project/Data/Maps/Map_authored_MapAuthoring.asset.meta
 # 유지보수용 에디터 툴(CsvImporter, LoopMapBaker, MapAuthoringEditor 등)은 그대로 커밋한다.
 DefenceGame/Assets/_Project/Scripts/Editor/UIPrefabBuilder.cs
 DefenceGame/Assets/_Project/Scripts/Editor/UIPrefabBuilder.cs.meta
+DefenceGame/Assets/_Project/Scripts/Editor/UISystemAssetBuilder.cs
+DefenceGame/Assets/_Project/Scripts/Editor/UISystemAssetBuilder.cs.meta
 DefenceGame/Assets/_Project/Scripts/Editor/LoopGameSceneBuilder.cs
 DefenceGame/Assets/_Project/Scripts/Editor/LoopGameSceneBuilder.cs.meta
 DefenceGame/Assets/_Project/Scripts/Editor/EntityPrefabBuilder.cs

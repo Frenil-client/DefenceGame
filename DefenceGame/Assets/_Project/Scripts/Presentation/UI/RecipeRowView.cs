@@ -2,11 +2,12 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using TMPro;
+using UISystem;
 
 namespace Synthesis.Presentation
 {
     // 조합 팝업의 조합식 행 아이템. 프리팹에 미리 만들어 두고, CombinePopup 이 인스턴스화해 내용만 채운다.
-    public sealed class RecipeRowView : MonoBehaviour
+    public sealed class RecipeRowView : UIElement
     {
         [SerializeField] private TMP_Text label;
         [SerializeField] private Button button;

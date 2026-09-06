@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fe716d3860efab479490a7561988b3c, type: 3}
+  m_Name: UIPrefabTable
+  m_EditorClassIdentifier: UISystem.Runtime::UISystem.UIPrefabTable
+  _entries:
+  - TypeName: Synthesis.Presentation.CombinePopup
+    Prefab: {fileID: 7706762699042199997, guid: ff2a8735b88af32449b700e65cc22f51, type: 3}
+  - TypeName: Synthesis.Presentation.ShopPopup
+    Prefab: {fileID: 6548253004883143047, guid: 5e7b1b982bc88d64c9e85199cd32d221, type: 3}
+  - TypeName: Synthesis.Presentation.ResultPopup
+    Prefab: {fileID: 995249414405597531, guid: dba5be1dbf5880942bf379f0278be873, type: 3}

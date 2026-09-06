@@ -1,9 +1,10 @@
 using UnityEngine;
+using UISystem;
 
 namespace Synthesis.Presentation
 {
     // 몬스터 HP 바 아이템. 프리팹에 미리 만들어 두고, MonsterHealthBarHud 가 인스턴스화/풀링한다.
-    public sealed class MonsterHpBarView : MonoBehaviour
+    public sealed class MonsterHpBarView : UIElement
     {
         [SerializeField] private RectTransform rect;
         [SerializeField] private RectTransform fill;

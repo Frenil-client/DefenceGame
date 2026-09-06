@@ -185,6 +185,36 @@ CI가 커밋마다 `using UnityEngine`을 grep으로 차단하고, 그 다음 ne
 
 난수 소비 순서가 곧 결과입니다. 순서를 바꾸는 리팩터링은 결과를 바꾼다는 것을 전제로 작업합니다.
 
+### UI 스택은 자체 UPM 패키지
+
+UI를 열고 닫는 일, 레이어, 정렬 순서, 씬 전환에 걸친 수명은 이 저장소에 없습니다.
+[unity-ui-system](https://github.com/Frenil-client/unity-ui-system)을 UPM 패키지
+(`com.frenil.uisystem`)로 잘라 두고 `Packages/manifest.json`에서 git URL로 참조합니다.
+
+원래는 게임 안에 `UIManager`와 `UIPanel`을 직접 두고 문자열 id로 팝업을 열었습니다
+(`Open("ShopPopup") as ShopPopup`). 게임 고유의 결정이 하나도 들어 있지 않은 코드였습니다.
+레이어, 정렬 순서, 모달 뒤 입력 차단, 씬 전환 시 정리는 어느 프로젝트에서나 같은 문제라
+게임 저장소가 소유할 이유가 없었습니다. 그래서 범용 부분을 패키지에 넘기고,
+게임 쪽에는 뷰 타입을 상속하는 일만 남겼습니다.
+
+| 게임이 소유 | 패키지가 소유 |
+|---|---|
+| `GameScreen`(씬의 주 화면), 팝업 3종, HUD 부품 | 스택, 레이어, 정렬 순서 배정, 공유 Dim, 씬 소유권 |
+| 레이어 설정과 프리팹 표 에셋 | 그 에셋을 읽어 영속 영역을 세우는 부팅 훅 |
+
+이식하면서 실제로 바뀐 것은 셋입니다.
+
+- **문자열 id 조회가 사라졌습니다.** `OpenAsync<ShopPopup>()`가 타입으로 프리팹 표를 찾습니다.
+  오타가 런타임 로그가 아니라 컴파일 에러가 됩니다
+- **팝업마다 깔던 반투명 backdrop을 걷어냈습니다.** 앱에 하나뿐인 공유 Dim이 보이는 것 중
+  최상단 모달 뒤로만 옮겨 다녀서, 팝업이 겹쳐도 배경이 짙어지지 않습니다
+- **`sortingOrder`를 프리팹에 박지 않습니다.** 레이어별 커서가 뷰가 가진 캔버스 수만큼
+  구간을 예약했다가 닫힐 때 반납합니다
+
+대가도 있습니다. 패키지는 읽기 전용이라 UI 동작을 손보려면 패키지 저장소에서 고치고 버전을 올린 뒤
+이쪽 manifest를 갱신해야 합니다. 게임 안에서 즉석으로 고치던 것보다 한 박자 느립니다.
+범용 코드와 게임 코드가 다시 섞이지 않는 값으로 받아들인 트레이드오프입니다.
+
 ### 책임 경계 재설계
 
 처음에는 전투와 유닛 이동, 투사체까지 전부 Core의 결정적 틱 시뮬 안에 넣었습니다.
@@ -390,10 +420,13 @@ DefenceGame/                Unity 프로젝트
   Assets/_Project/Scripts/Presentation/   View, 매니저, 실시간 전투와 이동
   Assets/_Project/Scripts/Editor/         임포터, 맵 저작/프리뷰 툴
                                           (UI/씬/유닛 프리팹 자동 생성 툴은 산출물만 커밋하고 툴 자체는 제외)
+  Assets/_Project/UISystem/               UI 레이어 설정, 프리팹 표, UIRoot 프리팹
+  Packages/manifest.json                  com.frenil.uisystem (UI 스택) 을 git URL 로 참조
 Docs/                       SPEC, BALANCE_SPEC, ARCHITECTURE, MAP_SPEC, SIM_SPEC, ROADMAP
 ```
 
 어셈블리 의존은 `Bootstrap -> Presentation -> Data -> Core` 단방향입니다.
+여기에 Presentation 과 Editor 가 UI 스택 패키지(`UISystem.Runtime`)를 참조합니다. 패키지는 게임 코드를 모릅니다.
 역방향 참조는 금지하고, Core는 Data와 Presentation 중 어느 것도 참조하지 않습니다.
 
 ---

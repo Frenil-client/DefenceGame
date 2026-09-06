@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Synthesis.Core.Simulation;
+using UISystem;
 
 namespace Synthesis.Presentation
 {
     // HUD - 몬스터 HP 게이지를 화면공간에 그린다(3D 아님). 바는 프리팹(MonsterHpBarView)을 인스턴스화/풀링한다.
     // 매 프레임 각 몬스터의 월드 위치를 스크린으로 투영해 바를 배치한다.
-    public sealed class MonsterHealthBarHud : MonoBehaviour
+    public sealed class MonsterHealthBarHud : UIElement
     {
         [SerializeField] private GameManager game;
         [SerializeField] private Camera cam;               // 게임 카메라. 인스펙터 등록

@@ -60,6 +60,12 @@ Core 어셈블리는 UnityEngine을 참조하지 않는 순수 C#으로 작성�
         Editor/              임포터, 씬 빌더, 맵 저작 툴
         Art/
         Addressables/
+        UISystem/          UILayerSettings, UIPrefabTable, UIRoot 프리팹
+        Resources/
+          UIBootstrap.asset   UISystem 조립 설정. Resources 에서 읽는다
+          UI/                 HUD, 팝업, 목록 아이템 프리팹
+    Packages/
+      manifest.json          com.frenil.uisystem(UI Stack System)을 git URL 로 참조
   Sim/
     Synthesis.Sim/           콘솔 실행 프로젝트 (아직 없음, STEP 7에서 신설)
   Tools/
@@ -77,6 +83,7 @@ Unity 쪽 Core.Link는 Shared/Synthesis.Core의 소스를 junction 으로 끌어
 ```
 Bootstrap  ->  Presentation  ->  Data  ->  Core
 Editor     ->  Data, Core
+Presentation, Editor  ->  UISystem.Runtime (com.frenil.uisystem 패키지)
 Sim        ->  Core
 Linter     ->  Core
 ```
@@ -86,6 +93,7 @@ Linter     ->  Core
 - Core는 Data, Presentation, Bootstrap 중 어느 것도 참조하지 않는다
 - Core는 UnityEngine을 참조하지 않는다
 - Data는 Presentation을 참조하지 않는다
+- UISystem.Runtime 은 게임 코드를 참조하지 않는다. UPM 패키지로 들어오는 범용 UI 라이브러리이고, 게임 쪽에서 뷰 타입을 상속해 쓴다
 
 ---
 
@@ -177,6 +185,44 @@ Core는 ViewModel의 존재를 모른다. 상태 변경은 Core가 발행하는 
 - Presentation은 프레임마다 마지막 두 틱 사이를 보간해 그린다
 - 배속 기능은 틱 진행 속도만 바꾼다. 렌더 로직은 건드리지 않는다
 
+### 6-3. UI 스택 (UISystem)
+
+UI 를 열고 닫는 일, 레이어, 정렬 순서, 씬 전환에 걸친 수명은 `UISystem.Runtime` 어셈블리가 맡는다.
+게임과 무관한 범용 라이브러리라 소스를 이 저장소에 두지 않고 UPM 패키지로 받는다.
+
+- 패키지: `com.frenil.uisystem` (UI Stack System). `Packages/manifest.json` 에서 git URL 로 고정한다
+- 패키지는 읽기 전용이다. 여기서 손볼 일이 생기면 패키지 저장소에서 고치고 버전을 올린다
+- 게임 쪽은 뷰 타입을 상속하고, 설정 에셋만 이 프로젝트에 둔다
+
+동작의 뼈대는 이렇다.
+
+- 접근점은 `UIManager.Instance` 하나다. 부팅 훅이 `Resources/UIBootstrap.asset` 을 읽어 영속 UIRoot 와 함께 세운다. 부트스트랩 씬을 강제하지 않으므로 어느 씬에서 Play 해도 같다
+- 뷰 타입이 자기 레이어를 고정한다. Screen(0), Window(1), Popup(2), Overlay(3), Toast(4)
+- 정렬 순서는 손으로 매기지 않는다. 레이어마다 커서를 하나 두고, 뷰가 가진 캔버스 수만큼 구간을 예약하고 반납한다
+- 프리팹은 문자열 경로가 아니라 `UIPrefabTable` 의 타입 FullName 으로 찾는다
+- 모달 뒤를 어둡게 하고 입력을 막는 것은 앱에 하나뿐인 공유 `UIDim` 이다. 팝업이 자기 backdrop 을 깔지 않는다. 반투명이 겹쳐 짙어지는 사고가 구조적으로 생기지 않는다
+
+이 게임의 배치는 이렇다.
+
+| 대상 | 타입 | 비고 |
+|---|---|---|
+| 씬의 UI Canvas | `GameScreen : UIScreen` | 씬에 남는 루트 캔버스. 씬이 올라올 때 스택에 자동 편입된다 |
+| HudView, InventoryView, MonsterHealthBarHud | `UIElement` | 스택에 참여하지 않는 부품. GameScreen 아래에 미리 배치한다 |
+| UnitButtonView, RecipeRowView, MonsterHpBarView | `UIElement` | 목록 아이템 |
+| CombinePopup, ShopPopup, ResultPopup | `UIPopup` | 프리팹 표에 등록하고 `OpenAsync<T>()` 로 연다 |
+
+- ResultPopup 은 재시작 전까지 붙잡아야 해서 프리팹에서 `Options.BlockClose` 를 켠다. Dim 클릭과 ESC 로 닫히지 않는다
+- ESC 입력은 `UIBackInput` 이 씬에서 읽어 `OnBackPressed()` 로 넘긴다. UISystem 은 입력을 직접 읽지 않는다
+- 잔류 팝업을 정리할 때는 `CloseAllAsync<UIPopup>()` 를 쓴다. 인자 없는 `CloseAllAsync()` 는 스택 바닥의 GameScreen 까지 닫아 HUD 가 사라진다
+- `OpenAsync` 는 Awaitable 이라 UnityEvent 에 직접 물릴 수 없다. 버튼 핸들러는 void 로 두고 안에서 비동기 메서드를 호출한다
+
+필요한 에셋 네 가지(UILayerSettings, UIPrefabTable, UIRoot 프리팹, UIBootstrap)는 `Synthesis > Build UI System Assets` 가 만든다.
+패키지가 읽기 전용이라 이 에셋들은 게임 프로젝트가 소유한다.
+프리팹 표가 팝업 프리팹을 가리켜야 하므로 `Build UI Prefabs` 가 끝에서 이어 호출한다.
+
+씬의 GameScreen 캔버스는 UIRoot 로 옮겨지지 않아 자기 CanvasScaler 를 갖는다.
+그 값이 UILayerSettings 와 어긋나면 HUD 와 팝업의 배율이 갈라지므로, 씬 빌더가 `UISystemAssetBuilder.ReferenceResolution` 을 공유해 잡는다.
+
 ---
 
 ## 7. 입력 추상화
@@ -217,6 +263,8 @@ STEP 1에서 골격을 만들고 이후 확장한다.
 | 맵 생성 프리뷰 | 시드를 넣어 루프 맵을 미리 보고 커버 효율을 확인 |
 | 시뮬 리포트 뷰어 | Reports/의 CSV를 읽어 도달률과 승률을 표시 |
 | 맵 파라미터 편집기 | mapgen.csv를 편집하고 즉시 생성 결과를 확인 |
+| UI 프리팹 빌더 | HUD, 팝업, 목록 아이템 프리팹을 코드로 구성하고 참조를 꽂는다 |
+| UISystem 에셋 빌더 | 레이어 설정, 프리팹 표, UIRoot 프리팹, 부팅 설정 네 가지를 만든다 |
 
 린터는 CLI로도 돌 수 있어야 한다. Unity를 켜지 않고 CI에서 검증하기 위함이다.
 

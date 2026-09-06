@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Synthesis.Core.Data;
+using UISystem;
 
 namespace Synthesis.Presentation
 {
     // 뷰(HUD) - 하단 보유 유닛 바. UI 틀은 프리팹에 미리 만들어 두고, 유닛 버튼만 아이템 프리팹으로 채운다.
     // 유닛(인벤토리+필드 합산)을 종류별로 보여주고, 클릭하면 그 유닛을 재료로 하는 조합 팝업(CombinePopup)을 연다.
-    public sealed class InventoryView : MonoBehaviour
+    public sealed class InventoryView : UIElement
     {
         [SerializeField] private GameManager game;
         [SerializeField] private RectTransform content;          // 유닛 버튼이 담길 컨테이너(레이아웃 그룹)
@@ -66,10 +67,16 @@ namespace Synthesis.Presentation
         {
             if (UIManager.Instance == null)
             {
-                Debug.LogWarning("[InventoryView] 씬에 UIManager 가 없어 조합 팝업을 열 수 없습니다.");
+                Debug.LogWarning("[InventoryView] UIManager 가 없어 조합 팝업을 열 수 없습니다.");
                 return;
             }
-            CombinePopup popup = UIManager.Instance.Open("CombinePopup") as CombinePopup;
+
+            _ = OpenCombinePopupAsync(unitId);
+        }
+
+        private async Awaitable OpenCombinePopupAsync(string unitId)
+        {
+            CombinePopup popup = await UIManager.Instance.OpenAsync<CombinePopup>();
             if (popup != null) popup.Setup(game.Context, unitId);
         }
 

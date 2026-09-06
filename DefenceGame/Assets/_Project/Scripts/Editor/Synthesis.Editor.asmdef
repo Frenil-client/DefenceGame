@@ -5,7 +5,8 @@
         "Synthesis.Core",
         "Synthesis.Data",
         "Synthesis.Presentation",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "UISystem.Runtime"
     ],
     "includePlatforms": [
         "Editor"

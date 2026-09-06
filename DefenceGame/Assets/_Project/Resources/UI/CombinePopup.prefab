@@ -533,8 +533,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 4723655400655703026}
-        m_TargetAssemblyTypeName: Synthesis.Presentation.UIPanel, Synthesis.Presentation
-        m_MethodName: Close
+        m_TargetAssemblyTypeName: Synthesis.Presentation.CombinePopup, Synthesis.Presentation
+        m_MethodName: OnCloseClicked
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -553,8 +553,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3533034119981511569}
-  - component: {fileID: 8075159358466115614}
-  - component: {fileID: 4236337857498469325}
+  - component: {fileID: 8042291267326481284}
+  - component: {fileID: 5868903573661882080}
   - component: {fileID: 4723655400655703026}
   m_Layer: 0
   m_Name: CombinePopup
@@ -583,15 +583,30 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!222 &8075159358466115614
-CanvasRenderer:
+--- !u!223 &8042291267326481284
+Canvas:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7706762699042199997}
-  m_CullTransparentMesh: 1
---- !u!114 &4236337857498469325
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 2
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 0
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
+  m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 0
+  m_TargetDisplay: 0
+--- !u!114 &5868903573661882080
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -600,27 +615,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 7706762699042199997}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.5}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
+  m_IgnoreReversedGraphics: 1
+  m_BlockingObjects: 0
+  m_BlockingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!114 &4723655400655703026
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -633,9 +635,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fdaf35a6932de44d88e84866136b7e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Synthesis.Presentation::Synthesis.Presentation.CombinePopup
-  panelId: CombinePopup
-  modal: 1
-  escClosable: 1
+  _options:
+    BlockClose: 0
+    Pooled: 0
   titleText: {fileID: 404291340311732149}
   listRoot: {fileID: 7210923374094927077}
   rowPrefab: {fileID: 1456818651894263400, guid: 99f7a4b8af0a88b4aa5785b797f28a6c, type: 3}
