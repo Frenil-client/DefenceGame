@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.frenil.uisystem": "https://github.com/Frenil-client/unity-ui-system.git?path=/Assets/UISystem#v0.1.0",
+    "com.frenil.uisystem": "https://github.com/Frenil-client/unity-ui-system.git?path=/Assets/UISystem#v0.2.0",
     "com.unity.ai.navigation": "2.0.10",
     "com.unity.collab-proxy": "2.11.3",
     "com.unity.ide.rider": "3.0.39",
