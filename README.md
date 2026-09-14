@@ -207,9 +207,13 @@ UI를 열고 닫는 일, 레이어, 정렬 순서, 씬 전환에 걸친 수명�
 - **문자열 id 조회가 사라졌습니다.** `OpenAsync<ShopPopup>()`가 타입으로 프리팹 표를 찾습니다.
   오타가 런타임 로그가 아니라 컴파일 에러가 됩니다
 - **팝업마다 깔던 반투명 backdrop을 걷어냈습니다.** 앱에 하나뿐인 공유 Dim이 보이는 것 중
-  최상단 모달 뒤로만 옮겨 다녀서, 팝업이 겹쳐도 배경이 짙어지지 않습니다
-- **`sortingOrder`를 프리팹에 박지 않습니다.** 레이어별 커서가 뷰가 가진 캔버스 수만큼
-  구간을 예약했다가 닫힐 때 반납합니다
+  최상단 모달 바로 아래로 정렬 번호만 옮겨서, 팝업이 겹쳐도 배경이 짙어지지 않습니다
+- **`sortingOrder`를 프리팹에 박지 않습니다.** UI마다 독립 루트 Canvas를 두고,
+  열린 UI를 스택 순서대로 촘촘히 다시 매깁니다
+
+이식이 패키지를 고치기도 했습니다. 처음 이식할 때 게임 쪽에서 우회했던 두 가지,
+닫기 버튼을 UnityEvent에 물리려고 뷰마다 둔 래퍼와 팝업만 정리하려다 화면까지 닫던 `CloseAllAsync()`는
+패키지 v0.2.0에서 해소돼 게임의 우회 코드를 걷어냈습니다. 지금은 UI마다 루트 Canvas를 쓰는 v0.3.0을 씁니다.
 
 대가도 있습니다. 패키지는 읽기 전용이라 UI 동작을 손보려면 패키지 저장소에서 고치고 버전을 올린 뒤
 이쪽 manifest를 갱신해야 합니다. 게임 안에서 즉석으로 고치던 것보다 한 박자 느립니다.
@@ -419,7 +423,6 @@ Tools/Demo/                 헤드리스 데모
 DefenceGame/                Unity 프로젝트
   Assets/_Project/Scripts/Presentation/   View, 매니저, 실시간 전투와 이동
   Assets/_Project/Scripts/Editor/         임포터, 맵 저작/프리뷰 툴
-                                          (UI/씬/유닛 프리팹 자동 생성 툴은 산출물만 커밋하고 툴 자체는 제외)
   Assets/_Project/UISystem/               UI 레이어 설정, 프리팹 표, UIRoot 프리팹
   Packages/manifest.json                  com.frenil.uisystem (UI 스택) 을 git URL 로 참조
 Docs/                       SPEC, BALANCE_SPEC, ARCHITECTURE, MAP_SPEC, SIM_SPEC, ROADMAP

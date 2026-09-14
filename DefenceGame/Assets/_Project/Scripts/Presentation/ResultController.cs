@@ -27,10 +27,10 @@ namespace Synthesis.Presentation
         }
 
         // 결과 팝업을 띄우기 전에 열려 있던 상점/조합 팝업을 전부 닫아 잔류와 미갱신을 막는다.
-        //   전체가 아니라 UIPopup 만 닫는다. 스택 바닥의 GameScreen 까지 걷어내면 HUD 가 사라진다.
+        //   인자 없는 CloseAllAsync 는 스택 바닥의 화면(GameScreen)은 남기고 나머지를 닫는다.
         private async Awaitable ShowResultAsync(bool win)
         {
-            await UIManager.Instance.CloseAllAsync<UIPopup>();
+            await UIManager.Instance.CloseAllAsync();
 
             ResultPopup popup = await UIManager.Instance.OpenAsync<ResultPopup>();
             if (popup != null) popup.Setup(StringManager.Get(win ? "str.popup.result.win" : "str.popup.result.lose"), game.Restart);

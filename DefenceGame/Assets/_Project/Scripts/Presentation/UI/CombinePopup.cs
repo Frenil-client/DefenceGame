@@ -10,6 +10,7 @@ namespace Synthesis.Presentation
 {
     // 독립 UI(팝업) - 고른 유닛을 재료로 하는 조합식을 보여주고 하나를 선택해 조합한다(UNIT_RECIPES.md 1장 UI).
     // UI 틀(배경/박스/제목/목록/닫기)은 프리팹에 미리 만들어 두고, 조합식 행만 아이템 프리팹으로 채운다.
+    // 닫기 버튼은 프리팹 onClick 에서 UIBase.CloseCancelled 에 직접 물린다(래퍼를 두지 않는다).
     public sealed class CombinePopup : UIPopup
     {
         [SerializeField] private TMP_Text titleText;
@@ -18,12 +19,6 @@ namespace Synthesis.Presentation
 
         private RunContext ctx;
         private string unitId;
-
-        // 닫기 버튼(프리팹의 onClick 에서 호출). UIBase.Close 는 선택 인자가 있어 UnityEvent 에 직접 물릴 수 없다.
-        public void OnCloseClicked()
-        {
-            Close(UICloseReason.Cancelled);
-        }
 
         // 인벤토리 하단 바에서 유닛을 클릭하면 호출한다.
         public void Setup(RunContext context, string selectedUnitId)

@@ -10,6 +10,7 @@ namespace Synthesis.Presentation
 {
     // 독립 UI(팝업) - 선택권으로 원하는 1성 1기를 구매한다(SPEC 2-2).
     // UI 틀(배경/박스/제목/목록/닫기)은 프리팹에 미리 만들어 두고, 구매 행만 아이템 프리팹(RecipeRowView)으로 채운다.
+    // 닫기 버튼은 프리팹 onClick 에서 UIBase.CloseCancelled 에 직접 물린다(래퍼를 두지 않는다).
     // 구매 로직은 RunContext.BuySelectedUnit 에 있다(상점에 종속시키지 않아 나중에 히어로 기능으로 옮길 수 있다).
     public sealed class ShopPopup : UIPopup
     {
@@ -18,12 +19,6 @@ namespace Synthesis.Presentation
         [SerializeField] private RecipeRowView rowPrefab;   // 구매 행 아이템 프리팹(조합 행과 공용)
 
         private RunContext ctx;
-
-        // 닫기 버튼(프리팹의 onClick 에서 호출). UIBase.Close 는 선택 인자가 있어 UnityEvent 에 직접 물릴 수 없다.
-        public void OnCloseClicked()
-        {
-            Close(UICloseReason.Cancelled);
-        }
 
         public void Setup(RunContext context)
         {

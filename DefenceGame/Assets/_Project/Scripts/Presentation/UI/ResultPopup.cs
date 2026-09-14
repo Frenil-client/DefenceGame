@@ -24,7 +24,7 @@ namespace Synthesis.Presentation
         public void OnRestartClicked()
         {
             System.Action cb = onRestart;
-            Close(UICloseReason.Confirmed);
+            CloseConfirmed();
             if (cb != null) cb();
         }
     }
