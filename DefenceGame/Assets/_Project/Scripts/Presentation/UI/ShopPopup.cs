@@ -30,19 +30,25 @@ namespace Synthesis.Presentation
         {
             if (ctx == null || listRoot == null || rowPrefab == null) return;
 
+            // 치트가 켜져 있으면 제목과 행 문구를 바꿔 지금이 정상 상점이 아님을 드러낸다.
+            string titleKey = ctx.cheatFreeShop ? "str.popup.shop.title.cheat" : "str.popup.shop.title";
+            string buyKey = ctx.cheatFreeShop ? "str.popup.shop.buy.free" : "str.popup.shop.buy";
+
             if (titleText != null)
-                titleText.text = StringManager.Format("str.popup.shop.title",
-                    new StringValues().Set("token", ctx.selectionTokens.ToString()).Set("cost", ctx.selectionCost.ToString()));
+                titleText.text = StringManager.Format(titleKey,
+                    new StringValues().Set("token", ctx.selectionTokens.ToString()).Set("cost", ctx.GetBuyCost().ToString()));
 
             for (int i = listRoot.childCount - 1; i >= 0; --i) Destroy(listRoot.GetChild(i).gameObject);
 
             bool canBuy = ctx.CanBuySelected();
-            List<UnitData> list = ctx.SelectableTier1List();
+            List<UnitData> list = ctx.PurchasableUnitList();
             foreach (var data in list)
             {
                 string id = data.id;
-                string label = StringManager.Format("str.popup.shop.buy",
-                    new StringValues().Set("name", DisplayName(data)).Set("cost", ctx.selectionCost.ToString()));
+                string label = StringManager.Format(buyKey,
+                    new StringValues().Set("name", DisplayName(data))
+                        .Set("cost", ctx.GetBuyCost().ToString())
+                        .Set("tier", data.tier.ToString()));
 
                 RecipeRowView row = Instantiate(rowPrefab, listRoot);
                 row.Set(label, canBuy, () =>

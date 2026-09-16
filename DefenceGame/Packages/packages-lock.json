@@ -1,13 +1,13 @@
 {
   "dependencies": {
     "com.frenil.uisystem": {
-      "version": "https://github.com/Frenil-client/unity-ui-system.git?path=/Assets/UISystem#v0.3.0",
+      "version": "https://github.com/Frenil-client/unity-ui-system.git?path=/Assets/UISystem#v0.3.1",
       "depth": 0,
       "source": "git",
       "dependencies": {
         "com.unity.ugui": "2.0.0"
       },
-      "hash": "9b9cee394962e29c6e4c26c4cc5292cb16ec71fb"
+      "hash": "6c80884cb4b9580e09c089a2a045720ba63b4636"
     },
     "com.unity.ai.navigation": {
       "version": "2.0.10",

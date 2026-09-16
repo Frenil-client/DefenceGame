@@ -30,24 +30,19 @@ namespace Synthesis.Presentation
         private readonly Dictionary<LoopUnit, int> attackCountByUnit = new Dictionary<LoopUnit, int>();
         private readonly Dictionary<LoopMonster, MonsterStatus> statusByMonster = new Dictionary<LoopMonster, MonsterStatus>();
         private readonly List<LoopMonster> statusScratch = new List<LoopMonster>();
-        private readonly List<LoopMonster> extraScratch = new List<LoopMonster>();  // 다중타격/관통 대상 중복 방지용
         private readonly List<SkillData> onHitSlowScratch = new List<SkillData>();  // 이번 평타의 온힛 감속 스킬
         private readonly List<SkillData> areaScratch = new List<SkillData>();       // 이번 평타의 광역 스킬
+        private readonly List<Fixed> rollScratch = new List<Fixed>();               // 이번 평타의 확률 굴림(스킬과 같은 순서)
+        private readonly List<TargetPoint> targetScratch = new List<TargetPoint>(); // 살아있는 몬스터 후보
+        private readonly List<int> pickedScratch = new List<int>();                 // 선택된 몬스터 인덱스
 
         // 필드 오라 표본. 매 프레임 한 번만 모아 두고 아군 버프/방깎/감속/장판 질의가 공유한다.
         // 유닛마다 전체 유닛을 다시 훑으면 유닛 수의 제곱으로 늘어난다.
-        private struct AuraSample
-        {
-            public string skillId;
-            public float x;
-            public float y;
-            public float radius;
-            public Fixed magnitude;
-            public SkillEffect effect;
-            public BuffStat stat;
-        }
-        private readonly List<AuraSample> auraScratch = new List<AuraSample>();
-        private readonly HashSet<string> stackScratch = new HashSet<string>(); // 중첩 판정용 스킬 id 집합
+        // 표본 수집과 중첩 판정은 Core 의 AuraField 가 갖고 있다(테스트가 같은 경로를 탄다).
+        private readonly AuraField auraField = new AuraField();
+
+        // 장판 시간 누산. 프레임 dt 를 밀리초로 반올림하고 버리면 FPS 마다 초당 총 피해가 달라진다.
+        private TickAccumulator statusTick;
 
         // 몬스터에 걸린 온힛 감속. 스킬 id 별로 따로 들고 있어야 약한 스킬이 강한 스킬을 덮어쓰지 않는다.
         private sealed class SlowSource
@@ -71,6 +66,7 @@ namespace Synthesis.Presentation
             skillsByUnit.Clear();
             attackCountByUnit.Clear();
             statusByMonster.Clear();
+            statusTick.Reset();
         }
 
         private void Update()
@@ -187,28 +183,12 @@ namespace Synthesis.Presentation
 
             // 스킬 id 가 다르면 효과가 같아도 따로 적용된다(중첩 규칙, UNIT_SKILLS.md 3장).
             // 한 유닛이 같은 효과를 두 개 들고 있어도 덮어쓰지 않고 둘 다 쌓인다.
-            Fixed mult = Fixed.One;
-            int extra = 0;
-            onHitSlowScratch.Clear();
-            areaScratch.Clear();
+            // 확률 굴림을 먼저 뽑아 두고 해석은 Core 의 SkillPlanner 에 넘긴다. 그래야 테스트가 같은 경로를 탄다.
+            RollFor(skills);
+            SkillPlan plan = SkillPlanner.BuildAttackPlan(skills, rollScratch, count, onHitSlowScratch, areaScratch);
 
-            for (int i = 0; i < skills.Count; ++i)
-            {
-                SkillData s = skills[i];
-                if (!TriggerFires(s, count)) continue;
-                switch (s.effect)
-                {
-                    case SkillEffect.BonusDamage: mult = mult + s.magnitude; break;
-                    case SkillEffect.Crit: mult = mult * s.magnitude; break;
-                    case SkillEffect.MultiTarget: extra += Mathf.Max(s.count - 1, 0); break;
-                    case SkillEffect.Pierce: extra += Mathf.Max(s.count - 1, 0); break;
-                    case SkillEffect.AreaDamage: areaScratch.Add(s); break;
-                    case SkillEffect.Slow: if (s.radius.raw <= 0) onHitSlowScratch.Add(s); break;
-                    // AllyBuff / ArmorReduction / DamageZone / 오라 Slow(radius>0) 는 오라라 여기서 처리하지 않는다.
-                }
-            }
-
-            Fixed hit = atk * mult;
+            // 효과를 모은 뒤 정해진 단계로 계산한다. skillIds 나열 순서가 피해에 영향을 주면 안 된다(D01).
+            Fixed hit = atk * plan.Multiplier();
             HitMonster(sim, primary, hit);
 
             for (int i = 0; i < onHitSlowScratch.Count; ++i)
@@ -219,56 +199,79 @@ namespace Synthesis.Presentation
                 if (pct > 0f && dur > 0f) ApplySlow(primary, s.id, pct, dur);
             }
 
-            if (extra > 0) HitExtraTargets(sim, primary, extra, hit);
+            if (plan.extraTargets > 0) HitExtraTargets(sim, primary, plan.extraTargets, hit);
 
             for (int i = 0; i < areaScratch.Count; ++i)
             {
                 SkillData s = areaScratch[i];
-                float radius = (float)s.radius.ToDoubleForDisplay();
-                if (radius > 0f && s.magnitude.raw > 0) HitAreaTargets(sim, primary, radius, hit, s.magnitude);
+                if (s.radius.raw > 0 && s.magnitude.raw > 0) HitAreaTargets(sim, primary, s.radius, hit, s.magnitude);
             }
+        }
+
+        // 이번 평타에 쓸 확률 굴림. 스킬과 같은 순서로 채운다. 확률 트리거가 아니면 값이 쓰이지 않는다.
+        private void RollFor(List<SkillData> skills)
+        {
+            rollScratch.Clear();
+            for (int i = 0; i < skills.Count; ++i)
+            {
+                rollScratch.Add(FixedFromFloat(Random.value));
+            }
+        }
+
+        // 살아있는 몬스터를 대상 후보로 모은다. 인덱스는 sim.state.monsterList 기준이다.
+        private void CollectTargets(LoopSimulator sim)
+        {
+            targetScratch.Clear();
+            var list = sim.state.monsterList;
+            for (int i = 0; i < list.Count; ++i)
+            {
+                LoopMonster m = list[i];
+                if (!m.alive) continue;
+
+                TargetPoint t;
+                t.index = i;
+                sim.GetMonsterPosition(m, out t.x, out t.y);
+                targetScratch.Add(t);
+            }
+        }
+
+        // 몬스터의 목록 인덱스. 대상 선택 결과를 다시 몬스터로 되돌릴 때 쓴다.
+        private static int IndexOfMonster(LoopSimulator sim, LoopMonster m)
+        {
+            var list = sim.state.monsterList;
+            for (int i = 0; i < list.Count; ++i)
+            {
+                if (list[i] == m) return i;
+            }
+            return -1;
         }
 
         // 주 대상 주변 가까운 몬스터 count 명에 풀 피해(다중타격/관통 근사).
         private void HitExtraTargets(LoopSimulator sim, LoopMonster primary, int count, Fixed hit)
         {
             Fixed px, py; sim.GetMonsterPosition(primary, out px, out py);
-            double cx = px.ToDoubleForDisplay(), cy = py.ToDoubleForDisplay();
+            CollectTargets(sim);
+            TargetSelector.SelectNearest(targetScratch, px, py, count, IndexOfMonster(sim, primary), pickedScratch);
+
             var list = sim.state.monsterList;
-            for (int picked = 0; picked < count; ++picked)
+            for (int i = 0; i < pickedScratch.Count; ++i)
             {
-                LoopMonster best = null; double bestSq = double.MaxValue;
-                for (int i = 0; i < list.Count; ++i)
-                {
-                    LoopMonster m = list[i];
-                    if (!m.alive || m == primary || extraScratch.Contains(m)) continue;
-                    Fixed fx, fy; sim.GetMonsterPosition(m, out fx, out fy);
-                    double dx = fx.ToDoubleForDisplay() - cx, dy = fy.ToDoubleForDisplay() - cy;
-                    double d2 = dx * dx + dy * dy;
-                    if (d2 < bestSq) { bestSq = d2; best = m; }
-                }
-                if (best == null) break;
-                extraScratch.Add(best);
-                HitMonster(sim, best, hit);
+                HitMonster(sim, list[pickedScratch[i]], hit);
             }
-            extraScratch.Clear();
         }
 
         // 주 대상 반경 내 몬스터에 hit*ratio 광역 피해.
-        private void HitAreaTargets(LoopSimulator sim, LoopMonster primary, float radius, Fixed hit, Fixed ratio)
+        private void HitAreaTargets(LoopSimulator sim, LoopMonster primary, Fixed radius, Fixed hit, Fixed ratio)
         {
             Fixed px, py; sim.GetMonsterPosition(primary, out px, out py);
-            double cx = px.ToDoubleForDisplay(), cy = py.ToDoubleForDisplay();
-            double r2 = radius * radius;
+            CollectTargets(sim);
+            TargetSelector.SelectWithinRadius(targetScratch, px, py, radius, IndexOfMonster(sim, primary), pickedScratch);
+
             Fixed dmg = hit * ratio;
             var list = sim.state.monsterList;
-            for (int i = 0; i < list.Count; ++i)
+            for (int i = 0; i < pickedScratch.Count; ++i)
             {
-                LoopMonster m = list[i];
-                if (!m.alive || m == primary) continue;
-                Fixed fx, fy; sim.GetMonsterPosition(m, out fx, out fy);
-                double dx = fx.ToDoubleForDisplay() - cx, dy = fy.ToDoubleForDisplay() - cy;
-                if (dx * dx + dy * dy <= r2) HitMonster(sim, m, dmg);
+                HitMonster(sim, list[pickedScratch[i]], dmg);
             }
         }
 
@@ -288,7 +291,7 @@ namespace Synthesis.Presentation
         // 이번 프레임의 오라 표본을 모은다. 반경 0(온힛)과 비패시브는 오라가 아니다.
         private void CollectAuras(LoopSimulator sim)
         {
-            auraScratch.Clear();
+            auraField.Clear();
             var units = sim.state.unitList;
             for (int i = 0; i < units.Count; ++i)
             {
@@ -298,62 +301,35 @@ namespace Synthesis.Presentation
                 for (int j = 0; j < os.Count; ++j)
                 {
                     SkillData s = os[j];
-                    if (s.trigger != SkillTrigger.Passive) continue;
-                    if (s.radius.raw <= 0) continue;
-                    if (!IsAuraEffect(s.effect))
+                    if (!AuraField.IsAuraSource(s))
                     {
                         continue;
                     }
 
                     AuraSample sample;
                     sample.skillId   = s.id;
-                    sample.x         = oc.x;
-                    sample.y         = oc.y;
-                    sample.radius    = (float)s.radius.ToDoubleForDisplay();
+                    sample.x         = FixedFromFloat(oc.x);
+                    sample.y         = FixedFromFloat(oc.y);
+                    sample.radius    = s.radius;
                     sample.magnitude = s.magnitude;
                     sample.effect    = s.effect;
                     sample.stat      = s.buffStat;
-                    auraScratch.Add(sample);
+                    auraField.Add(sample);
                 }
             }
         }
 
-        private static bool IsAuraEffect(SkillEffect effect)
+        // 대상 위치에 걸리는 오라 세기의 합. 중첩 판정은 Core 의 AuraField 가 갖고 있다.
+        private Fixed AuraSumAt(SkillEffect effect, BuffStat stat, Fixed targetx, Fixed targety)
         {
-            return effect == SkillEffect.AllyBuff
-                || effect == SkillEffect.ArmorReduction
-                || effect == SkillEffect.Slow
-                || effect == SkillEffect.DamageZone;
-        }
-
-        // 대상 위치에 걸리는 오라 세기의 합. 같은 스킬 id 는 1회만 센다.
-        private Fixed AuraSumAt(SkillEffect effect, BuffStat stat, float targetx, float targety)
-        {
-            if (auraScratch.Count == 0) return Fixed.Zero;
-
-            stackScratch.Clear();
-            Fixed total = Fixed.Zero;
-            for (int i = 0; i < auraScratch.Count; ++i)
-            {
-                AuraSample a = auraScratch[i];
-                if (a.effect != effect) continue;
-                if (effect == SkillEffect.AllyBuff && a.stat != stat) continue;
-                if (stackScratch.Contains(a.skillId)) continue;
-
-                float dx = a.x - targetx, dy = a.y - targety;
-                if (dx * dx + dy * dy > a.radius * a.radius) continue;
-
-                stackScratch.Add(a.skillId);
-                total = total + a.magnitude;
-            }
-            return total;
+            return auraField.SumAt(effect, stat, targetx, targety);
         }
 
         // 유닛이 받는 아군 버프 합산 비율. 버프를 거는 유닛 자신도 반경 안이라 자기 자신에게도 걸린다(거리 0).
         private Fixed AllyBuffRatio(LoopUnit u, BuffStat stat)
         {
             Vector2 uc = UnitCell(u);
-            return AuraSumAt(SkillEffect.AllyBuff, stat, uc.x, uc.y);
+            return AuraSumAt(SkillEffect.AllyBuff, stat, FixedFromFloat(uc.x), FixedFromFloat(uc.y));
         }
 
         // 몬스터의 유효 방어력 = 기본 - 방깎 오라 합산(절대값). 방어력은 0 밑으로 내려가지 않는다.
@@ -363,8 +339,7 @@ namespace Synthesis.Presentation
             if (armor.raw <= 0) return armor;
 
             Fixed fx, fy; sim.GetMonsterPosition(m, out fx, out fy);
-            Fixed cut = AuraSumAt(SkillEffect.ArmorReduction, BuffStat.None,
-                (float)fx.ToDoubleForDisplay(), (float)fy.ToDoubleForDisplay());
+            Fixed cut = AuraSumAt(SkillEffect.ArmorReduction, BuffStat.None, fx, fy);
 
             armor = armor - cut;
             if (armor.raw < 0) armor = Fixed.Zero;
@@ -400,21 +375,6 @@ namespace Synthesis.Presentation
             return c;
         }
 
-        // 트리거가 이번 평타에 발동하는가. Passive 항상, EveryNth 는 N배수, Chance 는 확률.
-        private bool TriggerFires(SkillData s, int attackCount)
-        {
-            switch (s.trigger)
-            {
-                case SkillTrigger.Passive: return true;
-                case SkillTrigger.EveryNthAttack:
-                    int n = (int)s.triggerN.ToIntRounded();
-                    return n > 0 && attackCount % n == 0;
-                case SkillTrigger.ChanceOnAttack:
-                    return Random.value < (float)s.triggerN.ToDoubleForDisplay();
-                default: return false;
-            }
-        }
-
         private MonsterStatus GetStatus(LoopMonster m)
         {
             MonsterStatus st;
@@ -443,7 +403,8 @@ namespace Synthesis.Presentation
         {
             if (dt <= 0f) return;
 
-            Fixed dtFixed = FixedFromFloat(dt);
+            // 밀리초 미만 잔여분을 다음 프레임으로 넘긴다. 30/60/120 FPS 에서 1초당 장판 총량이 같아야 한다.
+            Fixed dtFixed = statusTick.Consume((long)Mathf.Round(dt * 1000000f));
             var monsters = sim.state.monsterList;
             for (int i = 0; i < monsters.Count; ++i)
             {
@@ -451,10 +412,9 @@ namespace Synthesis.Presentation
                 if (!m.alive) continue;
 
                 Fixed fx, fy; sim.GetMonsterPosition(m, out fx, out fy);
-                float mx = (float)fx.ToDoubleForDisplay(), my = (float)fy.ToDoubleForDisplay();
 
                 // 장판 피해. 방어력을 그대로 통과시키지 않고 평타와 같은 감소 공식을 태운다.
-                Fixed zoneDps = AuraSumAt(SkillEffect.DamageZone, BuffStat.None, mx, my);
+                Fixed zoneDps = dtFixed.raw > 0 ? AuraSumAt(SkillEffect.DamageZone, BuffStat.None, fx, fy) : Fixed.Zero;
                 if (zoneDps.raw > 0)
                 {
                     HitMonster(sim, m, zoneDps * dtFixed);
@@ -464,7 +424,7 @@ namespace Synthesis.Presentation
                     }
                 }
 
-                Fixed slow = AuraSumAt(SkillEffect.Slow, BuffStat.None, mx, my) + TickOnHitSlow(m, dt);
+                Fixed slow = AuraSumAt(SkillEffect.Slow, BuffStat.None, fx, fy) + TickOnHitSlow(m, dt);
                 if (slow.raw <= 0)
                 {
                     if (m.moveSpeed.raw != m.baseMoveSpeed.raw) m.moveSpeed = m.baseMoveSpeed;

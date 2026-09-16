@@ -32,6 +32,11 @@ namespace Synthesis.Presentation
         public int statueTokenReward = 3; // [TEMP] 석상 1기 파괴 보상. 시뮬로 재확정
         public int selectionCost = 1;     // [TEMP] 1성 1기 구매에 드는 선택권 수. 시뮬로 재확정
 
+        // [치트] 테스트 전용. 켜면 선택권 없이 전 등급 유닛을 상점에서 바로 산다.
+        //   스킬은 등급이 올라가야 붙으므로(1성은 스킬 없음) 상위 유닛을 조합 없이 꺼내 확인하려고 둔다.
+        //   밸런스와 무관한 확인용 통로이며 기본값은 꺼짐이다. 켜고 끄는 것은 GameManager 의 단축키다.
+        public bool cheatFreeShop;
+
         public static RunContext Build(long seed, bool useDefaultMap = false, MapSO mapAsset = null)
         {
             MapGenParams p = RuntimeDataLoader.LoadMapGenParams();
@@ -71,32 +76,52 @@ namespace Synthesis.Presentation
             return map != null && db != null && db.unitList.Count > 0;
         }
 
-        // 구매 가능한 1성 목록(계열당 1종). 상점 UI 가 버튼으로 나열한다.
-        public List<UnitData> SelectableTier1List()
+        // 구매 가능한 목록. 평소에는 1성만(계열당 1종), 치트면 전 등급이다. 상점 UI 가 버튼으로 나열한다.
+        //   등급 오름차순으로 낸다. 42종을 나열해도 상점 목록이 스크롤이라 그대로 들어간다.
+        public List<UnitData> PurchasableUnitList()
         {
             List<UnitData> list = new List<UnitData>();
-            for (int i = 0; i < db.unitList.Count; ++i)
+            for (int tier = 1; tier <= 5; ++tier)
             {
-                UnitData u = db.unitList[i];
-                if (u != null && u.tier == 1) list.Add(u);
+                for (int i = 0; i < db.unitList.Count; ++i)
+                {
+                    UnitData u = db.unitList[i];
+                    if (u == null || u.tier != tier) continue;
+                    if (!cheatFreeShop && u.tier != 1)
+                    {
+                        continue;
+                    }
+                    list.Add(u);
+                }
+
+                if (!cheatFreeShop) break;
             }
             return list;
         }
 
-        public bool CanBuySelected()
+        // 이번 구매에 드는 선택권 수. 치트면 공짜다.
+        public int GetBuyCost()
         {
-            return selectionTokens >= selectionCost;
+            if (cheatFreeShop) return 0;
+            return selectionCost;
         }
 
-        // 선택권으로 원하는 1성을 구매해 인벤토리에 넣는다. 상점/히어로가 공유하는 로직(상점에 종속시키지 않음).
-        public bool BuySelectedUnit(string tier1Id)
+        public bool CanBuySelected()
         {
-            if (selectionTokens < selectionCost) return false;
+            return selectionTokens >= GetBuyCost();
+        }
+
+        // 원하는 유닛을 구매해 인벤토리에 넣는다. 상점/히어로가 공유하는 로직(상점에 종속시키지 않음).
+        //   평소에는 선택권을 내고 1성만 살 수 있다. 치트면 비용도 등급 제한도 없다.
+        public bool BuySelectedUnit(string unitId)
+        {
+            int cost = GetBuyCost();
+            if (selectionTokens < cost) return false;
             UnitData data;
-            if (!unitById.TryGetValue(tier1Id, out data)) return false;
-            if (data.tier != 1) return false;
-            selectionTokens -= selectionCost;
-            inventory.Add(tier1Id);
+            if (!unitById.TryGetValue(unitId, out data)) return false;
+            if (!cheatFreeShop && data.tier != 1) return false;
+            selectionTokens -= cost;
+            inventory.Add(unitId);
             return true;
         }
 

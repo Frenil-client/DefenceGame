@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Synthesis.Core.Simulation;
 using Synthesis.Data;
 
@@ -28,6 +29,9 @@ namespace Synthesis.Presentation
         private float tickAccum;
         private long runSeed;
 
+        // [치트] 무료 상점 사용 여부. RunContext 는 런마다 새로 만들어지므로 켠 상태를 여기서 들고 있는다.
+        private bool cheatFreeShop;
+
         private void Awake()
         {
             // mapView 는 인스펙터에 등록한다(씬에 미리 배치). LoopMapRuntimeRenderer/UIManager 도 씬에 미리 둔다.
@@ -56,6 +60,20 @@ namespace Synthesis.Presentation
             // 로드한 맵 크기를 뷰에 반영해 원점 중심 좌표가 맞도록 한다(카메라도 원점을 봄).
             mapView.gridWidth = Context.map.gridWidth;
             mapView.gridHeight = Context.map.gridHeight;
+            Context.cheatFreeShop = cheatFreeShop;
+        }
+
+        // [치트] F9 로 무료 상점을 켜고 끈다. 테스트 전용이라 UI 버튼을 두지 않는다.
+        //   상위 유닛은 조합으로만 나오는데 스킬 확인은 등급이 올라가야 가능하다.
+        //   켜면 상점에서 42종 전부를 선택권 없이 꺼낼 수 있어 특정 스킬을 바로 세워 볼 수 있다.
+        private void TickCheatInput()
+        {
+            Keyboard kb = Keyboard.current;
+            if (kb == null || !kb.f9Key.wasPressedThisFrame) return;
+
+            cheatFreeShop = !cheatFreeShop;
+            Context.cheatFreeShop = cheatFreeShop;
+            Debug.Log("[치트] 무료 상점 " + (cheatFreeShop ? "켜짐 - 상점에서 전 등급을 공짜로 산다" : "꺼짐"));
         }
 
         // 클리어(WaveManager)가 호출. 승리 시 틱을 멈춘다.
@@ -74,6 +92,9 @@ namespace Synthesis.Presentation
         private void Update()
         {
             if (Context == null || !Context.IsValid()) return;
+
+            TickCheatInput();
+
             var sim = Context.sim;
             if (Won || sim.state.defeated) return; // 런 종료 시 틱 정지
 

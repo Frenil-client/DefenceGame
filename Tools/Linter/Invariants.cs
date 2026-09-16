@@ -30,7 +30,16 @@ namespace Synthesis.Linter
             list.Add(CheckOccurrence(db, unitById, "INV-02", 2, 3, 1, int.MaxValue)); // 2성: 3성에 1회+
             list.Add(CheckTierUpward(db, unitById, "INV-03", 3, new int[] { 4, 5 })); // 3성: 4성/5성에 1회+
             list.Add(CheckTierUpward(db, unitById, "INV-04", 4, new int[] { 5 }));     // 4성: 5성에 1회+
+            list.Add(CheckSkills(db));                                                // 스킬 정의 적합성
             return list;
+        }
+
+        // 스킬 정의의 트리거/효과 지원 조합과 수치 범위. 판정은 Core 의 SkillValidator 한 벌을 쓴다.
+        private static InvResult CheckSkills(GameDatabase db)
+        {
+            InvResult r = new InvResult { id = "SKILL", severity = Severity.Authoritative, passed = true };
+            r.passed = SkillValidator.Validate(db.skillList, r.messageList);
+            return r;
         }
 
         // fromTier 유닛이 toTier 레시피에 등장하는 총 횟수가 [minCount, maxCount] 인가.

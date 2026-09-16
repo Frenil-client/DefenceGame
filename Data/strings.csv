@@ -20,21 +20,21 @@ str.stat.armor,방어력,Armor
 str.stat.movespeed,이동속도,Move Speed
 str.stat.hp,체력,Health
 str.skill.HEAVY1.name,강타,Heavy Strike
-str.skill.HEAVY1.desc,평타 {triggerN}회마다 피해 {magnitude}배 추가,Every {triggerN} attacks deal {magnitude}x bonus damage
+str.skill.HEAVY1.desc,평타 {triggerN}회마다 피해 {magnitude}% 추가,Every {triggerN} attacks deal {magnitude}% bonus damage
 str.skill.HEAVY2.name,강타 2,Heavy Strike II
-str.skill.HEAVY2.desc,평타 {triggerN}회마다 피해 {magnitude}배 추가,Every {triggerN} attacks deal {magnitude}x bonus damage
+str.skill.HEAVY2.desc,평타 {triggerN}회마다 피해 {magnitude}% 추가,Every {triggerN} attacks deal {magnitude}% bonus damage
 str.skill.HEAVY3.name,강타 3,Heavy Strike III
-str.skill.HEAVY3.desc,평타 {triggerN}회마다 피해 {magnitude}배 추가,Every {triggerN} attacks deal {magnitude}x bonus damage
+str.skill.HEAVY3.desc,평타 {triggerN}회마다 피해 {magnitude}% 추가,Every {triggerN} attacks deal {magnitude}% bonus damage
 str.skill.HEAVY4.name,강타 4,Heavy Strike IV
-str.skill.HEAVY4.desc,평타 {triggerN}회마다 피해 {magnitude}배 추가,Every {triggerN} attacks deal {magnitude}x bonus damage
+str.skill.HEAVY4.desc,평타 {triggerN}회마다 피해 {magnitude}% 추가,Every {triggerN} attacks deal {magnitude}% bonus damage
 str.skill.CRIT1.name,치명타,Critical
-str.skill.CRIT1.desc,{triggerN}% 확률로 피해 {magnitude}배,{triggerN}% chance to deal {magnitude}x damage
+str.skill.CRIT1.desc,{triggerN}% 확률로 피해 {magnitude}%,{triggerN}% chance to deal {magnitude}% damage
 str.skill.CRIT2.name,치명타 2,Critical II
-str.skill.CRIT2.desc,{triggerN}% 확률로 피해 {magnitude}배,{triggerN}% chance to deal {magnitude}x damage
+str.skill.CRIT2.desc,{triggerN}% 확률로 피해 {magnitude}%,{triggerN}% chance to deal {magnitude}% damage
 str.skill.CRIT3.name,치명타 3,Critical III
-str.skill.CRIT3.desc,{triggerN}% 확률로 피해 {magnitude}배,{triggerN}% chance to deal {magnitude}x damage
+str.skill.CRIT3.desc,{triggerN}% 확률로 피해 {magnitude}%,{triggerN}% chance to deal {magnitude}% damage
 str.skill.CRIT4.name,치명타 4,Critical IV
-str.skill.CRIT4.desc,{triggerN}% 확률로 피해 {magnitude}배,{triggerN}% chance to deal {magnitude}x damage
+str.skill.CRIT4.desc,{triggerN}% 확률로 피해 {magnitude}%,{triggerN}% chance to deal {magnitude}% damage
 str.skill.AREA1.name,광역,Splash
 str.skill.AREA1.desc,명중 지점 반경 {radius} 안의 적에게 {magnitude}% 피해,Deals {magnitude}% damage within {radius} of the hit
 str.skill.AREA2.name,광역 2,Splash II
@@ -102,11 +102,16 @@ str.hud.button.shop,상점,Shop
 str.unit.header,{name}   {tier}성 {klass},{name}   T{tier} {klass}
 str.unit.skill.header,스킬,Skills
 str.unit.skill.none,스킬 없음,No Skills
+# 유닛 정보의 스킬 한 줄 서식. 이름과 설명의 구분을 코드가 아니라 여기서 정한다.
+str.unit.skill.line,[{name}] {desc},[{name}] {desc}
 str.monster.hp,체력 {value},Health {value}
 str.monster.armor.reduction,피해 {percent}% 감소,{percent}% reduced
 str.popup.combine.title,{name} 조합,Combine {name}
 str.popup.shop.title,상점  (선택권 {token} / 구매가 {cost}),Shop  (Tokens {token} / Price {cost})
 str.popup.shop.buy,{name}  구매({cost}),{name}  Buy({cost})
+# 아래 둘은 테스트용 무료 상점(F9 치트) 전용이다. 정상 플레이에서는 나오지 않는다.
+str.popup.shop.title.cheat,"[치트] 무료 상점  (전 등급, 선택권 소모 없음)","[CHEAT] Free Shop  (all tiers, no token cost)"
+str.popup.shop.buy.free,{tier}성 {name}  꺼내기,T{tier} {name}  Take
 str.popup.close,닫기,Close
 str.popup.restart,재시작,Restart
 str.popup.result.win,클리어!,Cleared!

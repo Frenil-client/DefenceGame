@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -80,6 +81,7 @@ namespace Synthesis.Presentation
         private static readonly StringValues armorScratch = new StringValues();
         private static readonly StringValues bossScratch = new StringValues();
         private static readonly SkillStringValues skillScratch = new SkillStringValues();
+        private static readonly StringValues skillLineScratch = new StringValues(); // 스킬 줄 조립용. skillScratch 와 겹치면 안 된다
 
         // 방어력으로 인한 피해 감소율(%). 공식은 Core 한 벌을 쓴다.
         private static int ArmorLabelPercent(Fixed armor)
@@ -134,14 +136,30 @@ namespace Synthesis.Presentation
             var registry = game.Context.skillById;
             for (int i = 0; i < data.skillIds.Count; ++i)
             {
-                string skillId = data.skillIds[i];
-                text += "\n  " + StringManager.Get("str.skill." + skillId + ".name");
-
-                SkillData skill;
-                if (registry != null && registry.TryGetValue(skillId, out skill))
-                    text += "  " + StringManager.Format("str.skill." + skillId + ".desc", skillScratch.Bind(skill));
+                text += "\n  " + SkillLine(registry, data.skillIds[i]);
             }
             return text;
+        }
+
+        // 스킬 한 줄. 이름과 설명을 그냥 붙이면 어디까지가 이름인지 안 보여서 서식을 씌운다.
+        //   설명의 수치 치환자를 먼저 채운 뒤 줄 서식에 끼운다. 치환은 한 단계씩 두 번이라 중첩이 아니다.
+        //   괄호 규칙은 언어마다 다를 수 있으므로 서식을 코드가 아니라 문자열 테이블에 둔다.
+        private static string SkillLine(Dictionary<string, SkillData> registry, string skillId)
+        {
+            string name = StringManager.Get("str.skill." + skillId + ".name");
+
+            // 정의를 못 찾으면 설명을 비운다(units.csv 와 skills.csv 가 어긋난 경우. 이름 키는 그대로 드러난다).
+            string desc = "";
+            SkillData skill;
+            if (registry != null && registry.TryGetValue(skillId, out skill))
+            {
+                desc = StringManager.Format("str.skill." + skillId + ".desc", skillScratch.Bind(skill));
+            }
+
+            skillLineScratch.Clear();
+            skillLineScratch.Set("name", name);
+            skillLineScratch.Set("desc", desc);
+            return StringManager.Format("str.unit.skill.line", skillLineScratch).TrimEnd();
         }
 
         private string MonsterInfo(LoopMonster monster)

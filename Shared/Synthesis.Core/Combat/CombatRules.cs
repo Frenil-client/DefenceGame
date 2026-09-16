@@ -16,5 +16,17 @@ namespace Synthesis.Core.Combat
             if (remain.raw > Fixed.One.raw) return Fixed.One;
             return remain;
         }
+
+        // 평타 피해 배수(결정 D01). 가산 배율(BonusDamage)을 전부 더한 뒤 치명 배율(Crit)을 곱한다.
+        //   계산 단계를 고정했으므로 유닛의 skillIds 나열 순서를 바꿔도 같은 값이 나온다.
+        //   예: 가산 2배(HEAVY3) + 치명 2배(CRIT2) -> (1 + 2) * 2 = 6배.
+        //   bonusSum 은 가산분의 합이며 기본 1배를 포함하지 않는다. critMult 는 미발동 시 1이다.
+        public static Fixed AttackMultiplier(Fixed bonusSum, Fixed critMult)
+        {
+            Fixed additive = Fixed.One + bonusSum;
+            if (additive.raw < 0) additive = Fixed.Zero;
+            if (critMult.raw < 0) critMult = Fixed.Zero;
+            return additive * critMult;
+        }
     }
 }
