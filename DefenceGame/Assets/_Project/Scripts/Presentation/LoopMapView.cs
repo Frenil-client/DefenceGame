@@ -11,6 +11,9 @@ namespace Synthesis.Presentation
         public long seed = 1;
         [Tooltip("켜면 요철 없는 기본 직사각형 맵을 쓴다(미리보기와 런타임 동일). 끄면 시드 변주 맵")]
         public bool useDefaultMap = false;
+        // [확정] 셀 크기는 1 로 고정한다. 셀 단위 반경을 그대로 월드 반경으로 쓰는 표시가 둘 있다
+        //        (RangeIndicator 의 사거리 링, AttackVisualController 의 광역 링).
+        //        여기를 1 말고 다른 값으로 바꾸면 두 원만 실제 판정과 어긋난다. 바꾸려면 그 둘을 함께 고친다.
         public float cellSize = 1f;
 
         [Tooltip("맵 그리드 크기. 원점 중심 배치에 쓴다. 런타임엔 로드한 맵 크기로 GameManager 가 설정한다")]

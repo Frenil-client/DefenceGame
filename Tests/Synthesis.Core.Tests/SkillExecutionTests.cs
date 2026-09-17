@@ -329,6 +329,85 @@ namespace Synthesis.Core.Tests
                 field.SumAt(SkillEffect.ArmorReduction, BuffStat.None, s.radius + Fixed.One, Fixed.Zero).raw);
         }
 
+        // ---- 오라 목록 조회(선택 패널 표시용) ----
+        //   합이 아니라 어느 스킬이 걸렸는지를 낸다. 중복 제외와 반경 판정이 SumAt 과 갈라지면 안 된다.
+
+        // 같은 스킬을 여러 기가 깔아도 목록에는 한 번만 들어간다. 다른 스킬이면 둘 다 들어간다.
+        [Fact]
+        public void AuraList_ListsEachSkillIdOnce()
+        {
+            AuraField same = new AuraField();
+            same.Add(SampleOf(Skill("WARCRY1"), Fixed.Zero, Fixed.Zero));
+            same.Add(SampleOf(Skill("WARCRY1"), Fixed.Zero, Fixed.Zero));
+            same.Add(SampleOf(Skill("WARCRY1"), Fixed.Zero, Fixed.Zero));
+
+            List<string> idList = new List<string>();
+            same.GetSkillIdsAt(SkillEffect.AllyBuff, Fixed.Zero, Fixed.Zero, idList);
+            Assert.Single(idList);
+            Assert.Equal("WARCRY1", idList[0]);
+
+            AuraField mixed = new AuraField();
+            mixed.Add(SampleOf(Skill("WARCRY1"), Fixed.Zero, Fixed.Zero));
+            mixed.Add(SampleOf(Skill("WARCRY2"), Fixed.Zero, Fixed.Zero));
+            mixed.GetSkillIdsAt(SkillEffect.AllyBuff, Fixed.Zero, Fixed.Zero, idList);
+            Assert.Equal(2, idList.Count);
+            Assert.Equal("WARCRY1", idList[0]);
+            Assert.Equal("WARCRY2", idList[1]);
+        }
+
+        // 목록은 스탯을 가리지 않는다. 화면에는 걸린 오라가 스탯과 무관하게 다 나와야 한다.
+        //   합(SumAt)은 스탯별로 갈라지므로 둘의 기준이 다르다는 것도 함께 확인한다.
+        [Fact]
+        public void AuraList_IncludesEveryBuffStat()
+        {
+            AuraField field = new AuraField();
+            field.Add(SampleOf(Skill("WARCRY1"), Fixed.Zero, Fixed.Zero)); // Atk
+            field.Add(SampleOf(Skill("HASTE1"), Fixed.Zero, Fixed.Zero));  // AtkSpeed
+            field.Add(SampleOf(Skill("SIGHT1"), Fixed.Zero, Fixed.Zero));  // Range
+
+            List<string> idList = new List<string>();
+            field.GetSkillIdsAt(SkillEffect.AllyBuff, Fixed.Zero, Fixed.Zero, idList);
+            Assert.Equal(3, idList.Count);
+
+            Assert.Equal(Skill("WARCRY1").magnitude.raw,
+                field.SumAt(SkillEffect.AllyBuff, BuffStat.Atk, Fixed.Zero, Fixed.Zero).raw);
+        }
+
+        // 반경 밖은 목록에도 안 들어간다. 경계 위는 합과 마찬가지로 포함이다.
+        [Fact]
+        public void AuraList_FollowsTheSameRadiusRuleAsSum()
+        {
+            SkillData s = Skill("FROST1");
+            AuraField field = new AuraField();
+            field.Add(SampleOf(s, Fixed.Zero, Fixed.Zero));
+
+            List<string> idList = new List<string>();
+
+            field.GetSkillIdsAt(SkillEffect.Slow, s.radius, Fixed.Zero, idList);
+            Assert.Single(idList);
+
+            field.GetSkillIdsAt(SkillEffect.Slow, s.radius + Fixed.One, Fixed.Zero, idList);
+            Assert.Empty(idList);
+        }
+
+        // 물어본 효과만 나온다. 방깎을 물었는데 감속이 섞여 나오면 화면이 거짓말을 한다.
+        [Fact]
+        public void AuraList_FiltersByEffect()
+        {
+            AuraField field = new AuraField();
+            field.Add(SampleOf(Skill("FROST1"), Fixed.Zero, Fixed.Zero));  // Slow
+            field.Add(SampleOf(Skill("SUNDER1"), Fixed.Zero, Fixed.Zero)); // ArmorReduction
+
+            List<string> idList = new List<string>();
+            field.GetSkillIdsAt(SkillEffect.Slow, Fixed.Zero, Fixed.Zero, idList);
+            Assert.Single(idList);
+            Assert.Equal("FROST1", idList[0]);
+
+            field.GetSkillIdsAt(SkillEffect.ArmorReduction, Fixed.Zero, Fixed.Zero, idList);
+            Assert.Single(idList);
+            Assert.Equal("SUNDER1", idList[0]);
+        }
+
         // 오라 감속과 온힛 감속은 실행 경로가 다르다. FROST1 은 반경이 있어 오라, CHILL 은 반경 0 이라 온힛이다.
         [Fact]
         public void Slow_SplitsByRadius()

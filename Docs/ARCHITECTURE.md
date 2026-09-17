@@ -16,6 +16,14 @@ Core 어셈블리는 UnityEngine을 참조하지 않는 순수 C#으로 작성�
 
 전투 밸런스는 직접 플레이로 판정하고, 시뮬/검증은 기능 구현 이후 필요할 때 사후 추가한다. 시뮬 제약이 기능을 막지 않는다. Core가 UnityEngine을 참조하는 순간 이 분리가 무너지므로, Core 순수성 규칙은 여전히 최우선이다.
 
+STEP 3의 전투 표시와 상태 조회는 다음 경계로 나눈다.
+
+- CombatController는 전투 진행과 피해 적용을 소유하고, AttackVisualData에 실제 명중 위치와 셀 단위 반경을 기록한다.
+- AttackVisualController는 빔/광역 링, 표시 시간, 재질 수명을 소유한다. 기존 인스펙터 설정은 CombatController에서 전달한다.
+- 맵 셀 크기는 1로 고정한다. 셀 단위 반경을 그대로 월드 반경으로 쓰는 표시가 사거리 링(RangeIndicator)과 광역 링 둘이며, 둘이 같은 전제를 쓴다. 셀 크기를 바꾸려면 두 곳을 함께 고친다.
+- Core의 MonsterSlowState는 주입받은 고정소수점 경과 시간으로 감속 수명, 적용 목록, 속도 비율, 하한 도달 여부를 함께 확정한다. CombatController가 그 비율을 실제 이동속도에 적용하고 HUD는 읽기 전용 조회로 같은 결과를 사용한다.
+- Core의 SelectionInfoFormatter는 선택 패널 문자열만 조립한다. HudView는 상태 조회와 텍스트 할당을 맡고, StringManager가 현재 테이블과 언어를 주입한다. 전투 수치는 Fixed로 보관하며 문자열 표시 단계에서만 실수로 변환한다.
+
 ---
 
 ## 2. 저장소 구조

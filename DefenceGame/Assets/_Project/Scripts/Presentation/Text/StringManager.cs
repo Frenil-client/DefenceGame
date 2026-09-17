@@ -1,5 +1,8 @@
 using System.Collections.Generic;
-using UnityEngine;
+using Synthesis.Core;
+using Synthesis.Core.Data;
+using Synthesis.Core.Combat;
+using Synthesis.Core.Simulation;
 using Synthesis.Core.Text;
 
 namespace Synthesis.Presentation
@@ -59,19 +62,37 @@ namespace Synthesis.Presentation
         //   그래서 총합을 앞에 두고 괄호에 차이만 적는다.
         public static string FormatStat(string labelKey, float baseValue, float effectiveValue, string numberFormat = "0.##")
         {
-            float delta = effectiveValue - baseValue;
-
-            statValues.Clear();
-            statValues.Set("label", Get(labelKey));
-            statValues.Set("value", effectiveValue.ToString(numberFormat));
-
-            if (Mathf.Abs(delta) < 0.005f) return Format("str.stat.plain", statValues);
-
-            statValues.Set("delta", Mathf.Abs(delta).ToString(numberFormat));
-            return Format(delta > 0f ? "str.stat.buffed" : "str.stat.debuffed", statValues);
+            return TextDecor.FormatStat(Table, language, labelKey, baseValue, effectiveValue, numberFormat);
         }
 
-        private static readonly StringValues statValues = new StringValues();
+        // STEP 3. 뼈대 - 선택 정보도 현재 문자열 테이블과 언어를 같은 창구에서 주입한다.
+        private static readonly SelectionInfoFormatter selectionFormatter = new SelectionInfoFormatter();
+
+        public static string FormatSelectionUnit(UnitData data, float atk, float aps, float range,
+            Dictionary<string, SkillData> registry, IReadOnlyList<string> buffIdList)
+        {
+            return selectionFormatter.Bind(Table, language).FormatUnit(data, atk, aps, range, registry, buffIdList);
+        }
+
+        public static string FormatSelectionMonster(string name, LoopMonster monster, Fixed armor, IMonsterSlowSnapshot slowSnapshot)
+        {
+            return selectionFormatter.Bind(Table, language).FormatMonster(name, monster, armor, slowSnapshot);
+        }
+
+        // ---- 서식 감싸개: 수치의 방향과 문단 제목 ----
+        //   감싸개 자체는 Core(TextDecor)가 갖고 있다. 여기서는 테이블과 언어만 채워 넘긴다.
+
+        // 효과 세기 한 값. reduction 이면 깎는 수치라 색이 갈린다.
+        public static string FormatValue(string text, bool reduction)
+        {
+            return TextDecor.FormatValue(Table, language, text, reduction);
+        }
+
+        // 선택 패널의 문단 제목. empty 면 그 절에 내용이 없다는 뜻이다.
+        public static string FormatSection(string labelKey, bool empty = false)
+        {
+            return TextDecor.FormatSection(Table, language, Get(labelKey), empty);
+        }
 
         // ---- 표시자 등록 ----
 

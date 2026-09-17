@@ -16,19 +16,19 @@ namespace Synthesis.Presentation
         [SerializeField] private LoopMapView mapView;     // 유닛/몬스터 셀->월드 변환. 인스펙터 등록
         [SerializeField] private EntityView entityView;   // 보간된 몬스터 월드 위치(빔 끝점). 인스펙터 등록
         [SerializeField] private float beamVisibleSeconds = 0.08f;
-
-        private static readonly Color BeamColor = new Color(1f, 0.92f, 0.35f);
+        [SerializeField] private float areaRingVisibleSeconds = 0.18f; // 광역 링은 빔보다 조금 길게 둔다. 원이 퍼진 걸 봐야 한다
+        // [TEMP] 광역 링을 그리는 지면 높이. 사거리 링(0.11) 바로 위라 겹쳐도 가려지지 않는다. 바닥 구성이 바뀌면 함께 조정한다.
+        [SerializeField] private float areaRingGroundY = 0.12f;
 
         private readonly Dictionary<LoopUnit, float> cooldownByUnit = new Dictionary<LoopUnit, float>();
-        private readonly Dictionary<LoopUnit, LineRenderer> beamByUnit = new Dictionary<LoopUnit, LineRenderer>();
-        private readonly Dictionary<LoopUnit, float> beamTimerByUnit = new Dictionary<LoopUnit, float>();
-        private Material beamMaterial;
+        private readonly AttackVisualData attackVisualData = new AttackVisualData();
+        private AttackVisualController attackVisual;
         private int lastRunId = -1;
 
         // 스킬 런타임 상태. 부여 목록은 units.csv 의 skillIds 이며 분배 근거는 Docs/UNIT_SKILLS.md 다.
         private readonly Dictionary<LoopUnit, List<SkillData>> skillsByUnit = new Dictionary<LoopUnit, List<SkillData>>();
         private readonly Dictionary<LoopUnit, int> attackCountByUnit = new Dictionary<LoopUnit, int>();
-        private readonly Dictionary<LoopMonster, MonsterStatus> statusByMonster = new Dictionary<LoopMonster, MonsterStatus>();
+        private readonly Dictionary<LoopMonster, MonsterSlowState> statusByMonster = new Dictionary<LoopMonster, MonsterSlowState>();
         private readonly List<LoopMonster> statusScratch = new List<LoopMonster>();
         private readonly List<SkillData> onHitSlowScratch = new List<SkillData>();  // 이번 평타의 온힛 감속 스킬
         private readonly List<SkillData> areaScratch = new List<SkillData>();       // 이번 평타의 광역 스킬
@@ -41,28 +41,30 @@ namespace Synthesis.Presentation
         // 표본 수집과 중첩 판정은 Core 의 AuraField 가 갖고 있다(테스트가 같은 경로를 탄다).
         private readonly AuraField auraField = new AuraField();
 
-        // 장판 시간 누산. 프레임 dt 를 밀리초로 반올림하고 버리면 FPS 마다 초당 총 피해가 달라진다.
+        // 장판과 감속의 시간 누산. 밀리초 미만 경과분을 보존한다.
         private TickAccumulator statusTick;
 
-        // 몬스터에 걸린 온힛 감속. 스킬 id 별로 따로 들고 있어야 약한 스킬이 강한 스킬을 덮어쓰지 않는다.
-        private sealed class SlowSource
+        // STEP 3. 뼈대 - 기존 인스펙터 설정을 표시 소유자에 전달한다.
+        private void Awake()
         {
-            public float pct;       // 0~1
-            public float remaining; // 초
+            attackVisual = new AttackVisualController(transform, beamVisibleSeconds, areaRingVisibleSeconds, areaRingGroundY);
         }
 
-        private sealed class MonsterStatus
+        private void OnDisable()
         {
-            public readonly Dictionary<string, SlowSource> slowBySkill = new Dictionary<string, SlowSource>();
+            if (attackVisual != null) attackVisual.Reset();
+        }
+
+        private void OnDestroy()
+        {
+            if (attackVisual != null) attackVisual.Dispose();
         }
 
         // 재시작(RunId 변화) 시 이전 런의 쿨다운/빔/스킬 상태를 정리한다.
         private void ResetRun()
         {
-            foreach (var pair in beamByUnit) { if (pair.Value != null) Destroy(pair.Value.gameObject); }
-            beamByUnit.Clear();
+            attackVisual.Reset();
             cooldownByUnit.Clear();
-            beamTimerByUnit.Clear();
             skillsByUnit.Clear();
             attackCountByUnit.Clear();
             statusByMonster.Clear();
@@ -76,7 +78,11 @@ namespace Synthesis.Presentation
             if (lastRunId != game.RunId) { lastRunId = game.RunId; ResetRun(); }
 
             LoopSimulator sim = game.Context.sim;
-            if (sim.state.defeated) return;
+            if (sim.state.defeated)
+            {
+                attackVisual.Reset();
+                return;
+            }
 
             float dt = Time.deltaTime * game.Speed;
             var units = sim.state.unitList;
@@ -102,8 +108,8 @@ namespace Synthesis.Presentation
                         LoopMonster fm = u.focusMonster;
                         if (InRangeMonster(sim, u, uCell, fm))
                         {
-                            AttackMonster(sim, u, fm);
-                            ShowBeamTo(u, MonsterWorld(sim, fm));
+                            AttackMonster(sim, u, fm, attackVisualData);
+                            attackVisual.Show(u, UnitWorld(u), attackVisualData);
                             cd = AttackInterval(u);
                         }
                     }
@@ -113,7 +119,7 @@ namespace Synthesis.Presentation
                         if (InRangeStatue(u, uCell, fs))
                         {
                             bool destroyed = DamageStatue(fs, u.data.atk);
-                            ShowBeamTo(u, StatueWorld(fs));
+                            ShowStatueBeam(u, StatueWorld(fs));
                             if (destroyed) game.Context.selectionTokens += game.Context.statueTokenReward;
                             cd = AttackInterval(u);
                         }
@@ -124,8 +130,8 @@ namespace Synthesis.Presentation
                         LoopMonster mTarget = FindMonsterTarget(sim, u, uCell);
                         if (mTarget != null)
                         {
-                            AttackMonster(sim, u, mTarget);
-                            ShowBeamTo(u, MonsterWorld(sim, mTarget));
+                            AttackMonster(sim, u, mTarget, attackVisualData);
+                            attackVisual.Show(u, UnitWorld(u), attackVisualData);
                             cd = AttackInterval(u);
                         }
                         else
@@ -134,7 +140,7 @@ namespace Synthesis.Presentation
                             if (sTarget != null)
                             {
                                 bool destroyed = DamageStatue(sTarget, u.data.atk);
-                                ShowBeamTo(u, StatueWorld(sTarget));
+                                ShowStatueBeam(u, StatueWorld(sTarget));
                                 if (destroyed) game.Context.selectionTokens += game.Context.statueTokenReward;
                                 cd = AttackInterval(u);
                             }
@@ -142,11 +148,10 @@ namespace Synthesis.Presentation
                     }
                 }
                 cooldownByUnit[u] = cd;
-
-                TickBeam(u, dt);
             }
 
-            TickStatus(sim, dt); // 도트/감속 등 몬스터 상태이상 진행
+            TickStatus(sim, dt);  // 도트/감속 등 몬스터 상태이상 진행
+            attackVisual.Tick(dt);
         }
 
         private float AttackInterval(LoopUnit u)
@@ -175,7 +180,7 @@ namespace Synthesis.Presentation
         // ---- 스킬(패시브) 적용: 트리거 x 효과. 유닛에 스킬 미부여면 평타 단일공격과 동일하게 동작한다. ----
 
         // 한 번의 평타 처리. 스킬을 해석해 배수/다중/광역/도트/감속을 조립 적용한다.
-        private void AttackMonster(LoopSimulator sim, LoopUnit u, LoopMonster primary)
+        private void AttackMonster(LoopSimulator sim, LoopUnit u, LoopMonster primary, AttackVisualData visualData)
         {
             List<SkillData> skills = GetSkills(u);
             int count = AdvanceAttackCount(u);
@@ -188,23 +193,29 @@ namespace Synthesis.Presentation
             SkillPlan plan = SkillPlanner.BuildAttackPlan(skills, rollScratch, count, onHitSlowScratch, areaScratch);
 
             // 효과를 모은 뒤 정해진 단계로 계산한다. skillIds 나열 순서가 피해에 영향을 주면 안 된다(D01).
-            Fixed hit = atk * plan.Multiplier();
+            Fixed mult = plan.Multiplier();
+            Fixed hit = atk * mult;
+
+            // 표시 정보를 피해보다 먼저 잡는다. 맞고 죽은 몬스터는 뷰가 회수되어 위치를 못 돌려준다.
+            visualData.Clear();
+            visualData.strong = mult.raw > Fixed.One.raw;
+            visualData.areaCenter = MonsterWorld(sim, primary);
+            visualData.pointList.Add(visualData.areaCenter);
+
             HitMonster(sim, primary, hit);
 
             for (int i = 0; i < onHitSlowScratch.Count; ++i)
             {
                 SkillData s = onHitSlowScratch[i];
-                float pct = (float)s.magnitude.ToDoubleForDisplay();
-                float dur = (float)s.duration.ToDoubleForDisplay();
-                if (pct > 0f && dur > 0f) ApplySlow(primary, s.id, pct, dur);
+                if (primary.alive) GetStatus(primary).ApplyOnHit(s.id, s.magnitude, s.duration);
             }
 
-            if (plan.extraTargets > 0) HitExtraTargets(sim, primary, plan.extraTargets, hit);
+            if (plan.extraTargets > 0) HitExtraTargets(sim, primary, plan.extraTargets, hit, visualData);
 
             for (int i = 0; i < areaScratch.Count; ++i)
             {
                 SkillData s = areaScratch[i];
-                if (s.radius.raw > 0 && s.magnitude.raw > 0) HitAreaTargets(sim, primary, s.radius, hit, s.magnitude);
+                if (s.radius.raw > 0 && s.magnitude.raw > 0) HitAreaTargets(sim, primary, s.radius, hit, s.magnitude, visualData);
             }
         }
 
@@ -247,7 +258,7 @@ namespace Synthesis.Presentation
         }
 
         // 주 대상 주변 가까운 몬스터 count 명에 풀 피해(다중타격/관통 근사).
-        private void HitExtraTargets(LoopSimulator sim, LoopMonster primary, int count, Fixed hit)
+        private void HitExtraTargets(LoopSimulator sim, LoopMonster primary, int count, Fixed hit, AttackVisualData visualData)
         {
             Fixed px, py; sim.GetMonsterPosition(primary, out px, out py);
             CollectTargets(sim);
@@ -256,16 +267,21 @@ namespace Synthesis.Presentation
             var list = sim.state.monsterList;
             for (int i = 0; i < pickedScratch.Count; ++i)
             {
-                HitMonster(sim, list[pickedScratch[i]], hit);
+                LoopMonster extra = list[pickedScratch[i]];
+                visualData.pointList.Add(MonsterWorld(sim, extra)); // 갈래 하나가 실제로 맞은 대상 하나다
+                HitMonster(sim, extra, hit);
             }
         }
 
         // 주 대상 반경 내 몬스터에 hit*ratio 광역 피해.
-        private void HitAreaTargets(LoopSimulator sim, LoopMonster primary, Fixed radius, Fixed hit, Fixed ratio)
+        private void HitAreaTargets(LoopSimulator sim, LoopMonster primary, Fixed radius, Fixed hit, Fixed ratio, AttackVisualData visualData)
         {
             Fixed px, py; sim.GetMonsterPosition(primary, out px, out py);
             CollectTargets(sim);
             TargetSelector.SelectWithinRadius(targetScratch, px, py, radius, IndexOfMonster(sim, primary), pickedScratch);
+
+            // 맞은 대상이 없어도 반경은 그린다. 빗나간 것이 아니라 그 범위에 아무도 없었다는 뜻이다.
+            visualData.radiusList.Add((float)radius.ToDoubleForDisplay());
 
             Fixed dmg = hit * ratio;
             var list = sim.state.monsterList;
@@ -375,26 +391,15 @@ namespace Synthesis.Presentation
             return c;
         }
 
-        private MonsterStatus GetStatus(LoopMonster m)
+        private MonsterSlowState GetStatus(LoopMonster monster)
         {
-            MonsterStatus st;
-            if (!statusByMonster.TryGetValue(m, out st)) { st = new MonsterStatus(); statusByMonster[m] = st; }
-            return st;
-        }
-
-        // 온힛 감속을 건다. 같은 스킬이면 지속시간만 새로 고치고, 다른 스킬이면 따로 쌓인다.
-        // 조건 없이 덮어쓰면 약한 스킬이 강한 스킬을 지운다(하위 유닛이 상위 유닛 효과를 무효화).
-        private void ApplySlow(LoopMonster m, string skillId, float pct, float dur)
-        {
-            MonsterStatus st = GetStatus(m);
-            SlowSource src;
-            if (!st.slowBySkill.TryGetValue(skillId, out src))
+            MonsterSlowState status;
+            if (!statusByMonster.TryGetValue(monster, out status))
             {
-                src = new SlowSource();
-                st.slowBySkill[skillId] = src;
+                status = new MonsterSlowState();
+                statusByMonster.Add(monster, status);
             }
-            src.pct = pct;
-            src.remaining = dur;
+            return status;
         }
 
         // 몬스터 상태 진행: 장판(DamageZone) 피해 + 감속(온힛 + 오라) 재계산해 moveSpeed 를 갱신.
@@ -424,36 +429,12 @@ namespace Synthesis.Presentation
                     }
                 }
 
-                Fixed slow = AuraSumAt(SkillEffect.Slow, BuffStat.None, fx, fy) + TickOnHitSlow(m, dt);
-                if (slow.raw <= 0)
-                {
-                    if (m.moveSpeed.raw != m.baseMoveSpeed.raw) m.moveSpeed = m.baseMoveSpeed;
-                    continue;
-                }
-                m.moveSpeed = m.baseMoveSpeed * CombatRules.SpeedRatioAfterSlow(slow);
+                // STEP 3. 핵심 - 실제 속도와 HUD 는 같은 갱신 결과를 소비한다.
+                var status = GetStatus(m);
+                status.Update(dtFixed, auraField, fx, fy);
+                m.moveSpeed = m.baseMoveSpeed * status.SpeedRatio;
             }
-
             CleanupStatus();
-        }
-
-        // 몬스터에 걸린 온힛 감속을 진행시키고 살아남은 것들의 합을 낸다. 스킬 id 별로 하나씩이라 중복되지 않는다.
-        private Fixed TickOnHitSlow(LoopMonster m, float dt)
-        {
-            MonsterStatus st;
-            if (!statusByMonster.TryGetValue(m, out st) || st.slowBySkill.Count == 0) return Fixed.Zero;
-
-            Fixed total = Fixed.Zero;
-            foreach (var pair in st.slowBySkill)
-            {
-                SlowSource src = pair.Value;
-                if (src.remaining <= 0f)
-                {
-                    continue;
-                }
-                src.remaining -= dt;
-                total = total + FixedFromFloat(src.pct);
-            }
-            return total;
         }
 
         private void CleanupStatus()
@@ -582,6 +563,28 @@ namespace Synthesis.Presentation
             return EffectiveArmor(game.Context.sim, m);
         }
 
+        // 유닛에 걸린 버프의 스킬 id 목록(SPEC 5장 유닛 선택).
+        //   실효 수치만 보여주면 값이 오른 것은 보여도 어느 스킬 때문인지 안 보인다.
+        //   지금은 출처가 아군 버프 오라뿐이라 AuraField 만 묻는다. 다른 버프 수단이 생기면 여기서 합쳐 낸다.
+        //   반경 판정을 여기서 다시 만들면 표시와 실제 적용이 갈라진다. Core 의 AuraField 한 벌을 쓴다(CLAUDE.md 4-7).
+        public void GetUnitBuffSkillIds(LoopUnit u, List<string> resultIdList)
+        {
+            if (resultIdList == null) return;
+            resultIdList.Clear();
+            if (u == null || u.data == null) return;
+
+            Vector2 uc = UnitCell(u);
+            auraField.GetSkillIdsAt(SkillEffect.AllyBuff, FixedFromFloat(uc.x), FixedFromFloat(uc.y), resultIdList);
+        }
+
+        // STEP 3. 기반 도구 - 마지막 전투 갱신 결과만 읽는다. 조회 시 감속을 다시 계산하지 않는다.
+        public IMonsterSlowSnapshot GetMonsterSlowSnapshot(LoopMonster monster)
+        {
+            if (monster == null || !monster.alive) return null;
+            MonsterSlowState status;
+            return statusByMonster.TryGetValue(monster, out status) ? status : null;
+        }
+
         // 유닛의 현재 렌더 위치를 셀 소수 좌표로. 뷰가 없으면 홈 셀.
         private Vector2 UnitCell(LoopUnit u)
         {
@@ -613,68 +616,18 @@ namespace Synthesis.Presentation
             return mapView.CellToWorldF(s.cellX, s.cellY) + new Vector3(0f, 0.5f, 0f);
         }
 
-        // ---- 공격 빔(짧게 번쩍이는 선) ----
-
-        private void ShowBeamTo(LoopUnit u, Vector3 to)
+        // STEP 3. 핵심 - 석상에는 스킬을 적용하지 않고 단일 평타만 표시한다.
+        private void ShowStatueBeam(LoopUnit unit, Vector3 target)
         {
-            LineRenderer lr = GetBeam(u);
-            Vector3 from = UnitWorld(u); // 유닛의 현재 위치에서 발사(추격 중에도 실제 위치 기준)
-            lr.SetPosition(0, from);
-            lr.SetPosition(1, to);
-            lr.enabled = true;
-            beamTimerByUnit[u] = beamVisibleSeconds;
-        }
-
-        private void TickBeam(LoopUnit u, float dt)
-        {
-            float t;
-            if (!beamTimerByUnit.TryGetValue(u, out t)) return;
-            if (t <= 0f) return;
-            t -= dt;
-            beamTimerByUnit[u] = t;
-            if (t <= 0f)
-            {
-                LineRenderer lr;
-                if (beamByUnit.TryGetValue(u, out lr) && lr != null) lr.enabled = false;
-            }
-        }
-
-        private LineRenderer GetBeam(LoopUnit u)
-        {
-            LineRenderer lr;
-            if (beamByUnit.TryGetValue(u, out lr) && lr != null) return lr;
-
-            GameObject go = new GameObject("AttackBeam");
-            go.transform.SetParent(transform, false);
-            lr = go.AddComponent<LineRenderer>();
-            lr.useWorldSpace = true;
-            lr.positionCount = 2;
-            lr.widthMultiplier = 0.07f;
-            lr.numCapVertices = 2;
-            lr.sharedMaterial = GetBeamMaterial();
-            lr.startColor = BeamColor;
-            lr.endColor = new Color(BeamColor.r, BeamColor.g, BeamColor.b, 0.35f);
-            lr.enabled = false;
-            beamByUnit[u] = lr;
-            return lr;
-        }
-
-        private Material GetBeamMaterial()
-        {
-            if (beamMaterial != null) return beamMaterial;
-            Shader s = Shader.Find("Universal Render Pipeline/Unlit");
-            if (s == null) s = Shader.Find("Sprites/Default");
-            if (s == null) s = Shader.Find("Unlit/Color");
-            beamMaterial = new Material(s);
-            beamMaterial.color = BeamColor;
-            if (beamMaterial.HasProperty("_BaseColor")) beamMaterial.SetColor("_BaseColor", BeamColor);
-            return beamMaterial;
+            attackVisualData.Clear();
+            attackVisualData.pointList.Add(target);
+            attackVisual.Show(unit, UnitWorld(unit), attackVisualData);
         }
 
         // 회수/조합 등으로 필드에서 빠진 유닛의 쿨다운/빔/스킬 캐시를 정리한다.
         private void CleanupStale(List<LoopUnit> units)
         {
-            if (beamByUnit.Count == 0 && cooldownByUnit.Count == 0 && skillsByUnit.Count == 0) return;
+            if (cooldownByUnit.Count == 0 && skillsByUnit.Count == 0) return;
 
             HashSet<LoopUnit> present = new HashSet<LoopUnit>(units);
             HashSet<LoopUnit> staleSet = null;
@@ -696,15 +649,9 @@ namespace Synthesis.Presentation
             foreach (var u in stale)
             {
                 cooldownByUnit.Remove(u);
-                beamTimerByUnit.Remove(u);
                 skillsByUnit.Remove(u);
                 attackCountByUnit.Remove(u);
-                LineRenderer lr;
-                if (beamByUnit.TryGetValue(u, out lr))
-                {
-                    if (lr != null) Destroy(lr.gameObject);
-                    beamByUnit.Remove(u);
-                }
+                attackVisual.RemoveUnit(u);
             }
         }
     }

@@ -21,7 +21,8 @@ namespace Synthesis.Presentation
             Hide();
         }
 
-        // radius 는 셀 단위 반경이다. 맵 셀 크기가 1 이므로 월드 단위와 같다.
+        // radius 는 셀 단위 반경이다. 맵 셀 크기가 1 이므로 월드 단위와 같다(LoopMapView.cellSize).
+        //   광역 링(AttackVisualController)도 같은 전제를 쓴다. 전제가 갈라지면 두 원의 크기가 달라진다.
         public void Show(float radius)
         {
             if (ring == null) return;
