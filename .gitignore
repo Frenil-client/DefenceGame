@@ -55,6 +55,10 @@ DefenceGame/Assets/_Project/Scripts/Editor/EntityPrefabBuilder.cs.meta
 DefenceGame/Assets/_Project/Scripts/Editor/RangeCircleTextureBuilder.cs
 DefenceGame/Assets/_Project/Scripts/Editor/RangeCircleTextureBuilder.cs.meta
 
+# ---- AI 작업 지침 문서(로컬 전용, 저장소에 노출하지 않음) ----
+CLAUDE.md
+AGENTS.md
+
 # ---- OS ----
 Thumbs.db
 .DS_Store
