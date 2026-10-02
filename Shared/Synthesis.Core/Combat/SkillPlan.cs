@@ -18,7 +18,7 @@ namespace Synthesis.Core.Combat
         }
     }
 
-    // STEP 3. 핵심 - 평타 스킬 해석. 전투 스크립트와 테스트가 같은 한 벌을 쓴다(CLAUDE.md 4-7).
+    // STEP 3. 핵심 - 평타 스킬 해석. 전투 스크립트와 테스트가 같은 한 벌을 쓴다(CONVENTIONS.md 2-7).
     //   Unity 의 난수를 직접 읽지 않고 굴린 값을 받는다. 그래야 헤드리스 테스트가 같은 경로를 탈 수 있다.
     public static class SkillPlanner
     {

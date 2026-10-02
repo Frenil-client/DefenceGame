@@ -4,7 +4,7 @@ namespace Synthesis.Core.Text
     //   색과 굵기를 코드가 아니라 문자열 테이블이 정한다. 팔레트를 바꿀 때 한 곳만 고치면 되고,
     //   언어마다 강조 방식이 다를 여지도 남는다. 스킬 설명 64행에 색을 박는 것을 피하려는 것이 목적이다.
     //
-    // Core 와 Presentation 이 같은 한 벌을 쓴다(CLAUDE.md 4-7). 표시 코드가 따로 감싸면 색이 갈라진다.
+    // Core 와 Presentation 이 같은 한 벌을 쓴다(CONVENTIONS.md 2-7). 표시 코드가 따로 감싸면 색이 갈라진다.
     public static class TextDecor
     {
         public const string ValueUpKey = "str.value.up";

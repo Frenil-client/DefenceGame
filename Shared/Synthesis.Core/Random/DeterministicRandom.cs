@@ -7,7 +7,7 @@ namespace Synthesis.Core.Random
     // 난수 소비 순서가 곧 결과이므로 소비 순서를 바꾸는 리팩터링은 결과를 바꾼다.
     //
     // 비트 연산 사용 사유: xorshift 는 시프트와 XOR 자체가 알고리즘의 본질이라 회피 불가능하다
-    // (CLAUDE.md 3-3 예외 조항).
+    // (CONVENTIONS.md 1-3 예외 조항).
     public sealed class DeterministicRandom
     {
         private uint stateX;

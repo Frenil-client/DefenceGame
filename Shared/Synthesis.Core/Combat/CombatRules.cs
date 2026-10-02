@@ -1,6 +1,6 @@
 namespace Synthesis.Core.Combat
 {
-    // STEP 3. 기반 도구 - 전투 상한 규칙. 전투와 UI 가 같은 한 벌을 쓴다(CLAUDE.md 4-7).
+    // STEP 3. 기반 도구 - 전투 상한 규칙. 전투와 UI 가 같은 한 벌을 쓴다(CONVENTIONS.md 2-7).
     public static class CombatRules
     {
         // [TEMP] 감속이 아무리 쌓여도 기본 이동 속도의 30% 밑으로는 내려가지 않는다.

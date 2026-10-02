@@ -10,7 +10,7 @@ namespace Synthesis.Core.Combat
         public Fixed y;
     }
 
-    // STEP 3. 핵심 - 추가 대상과 광역 대상 선택. 전투 스크립트와 테스트가 같은 한 벌을 쓴다(CLAUDE.md 4-7).
+    // STEP 3. 핵심 - 추가 대상과 광역 대상 선택. 전투 스크립트와 테스트가 같은 한 벌을 쓴다(CONVENTIONS.md 2-7).
     //   거리를 double 로 재던 것을 Fixed 로 바꿨다. 좌표가 이미 Fixed 라 변환 없이 비교하는 편이 결정적이다.
     public static class TargetSelector
     {

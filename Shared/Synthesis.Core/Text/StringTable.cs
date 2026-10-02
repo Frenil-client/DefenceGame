@@ -4,7 +4,7 @@ using Synthesis.Core.Data;
 namespace Synthesis.Core.Text
 {
     // STEP 3. 기반 도구 - 문자열 테이블. Data/strings.csv 한 벌을 읽어 키로 조회한다.
-    // Core 에 두는 이유: 린터가 키 누락과 치환자 오타를 빌드 전에 검사할 수 있어야 한다(CLAUDE.md 4-7).
+    // Core 에 두는 이유: 린터가 키 누락과 치환자 오타를 빌드 전에 검사할 수 있어야 한다(CONVENTIONS.md 2-7).
     // UnityEngine 을 참조하지 않으므로 헤드리스 테스트에서도 그대로 돈다.
     public enum Language
     {

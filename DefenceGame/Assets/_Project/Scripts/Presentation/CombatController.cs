@@ -566,7 +566,7 @@ namespace Synthesis.Presentation
         // 유닛에 걸린 버프의 스킬 id 목록(SPEC 5장 유닛 선택).
         //   실효 수치만 보여주면 값이 오른 것은 보여도 어느 스킬 때문인지 안 보인다.
         //   지금은 출처가 아군 버프 오라뿐이라 AuraField 만 묻는다. 다른 버프 수단이 생기면 여기서 합쳐 낸다.
-        //   반경 판정을 여기서 다시 만들면 표시와 실제 적용이 갈라진다. Core 의 AuraField 한 벌을 쓴다(CLAUDE.md 4-7).
+        //   반경 판정을 여기서 다시 만들면 표시와 실제 적용이 갈라진다. Core 의 AuraField 한 벌을 쓴다(CONVENTIONS.md 2-7).
         public void GetUnitBuffSkillIds(LoopUnit u, List<string> resultIdList)
         {
             if (resultIdList == null) return;

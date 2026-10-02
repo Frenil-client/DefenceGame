@@ -165,6 +165,6 @@ dotnet run --project Tools/Linter/Synthesis.Linter.csproj -c Release -- ./Data
 
 - [기술 상세](Docs/IMPLEMENTATION_NOTES.md): 책임 경계 변경, 스킬 조립과 중첩, UI 패키지 분리
 - [게임 사양](Docs/SPEC.md) / [밸런스 사양](Docs/BALANCE_SPEC.md) / [유닛 스킬](Docs/UNIT_SKILLS.md)
-- [아키텍처](Docs/ARCHITECTURE.md) / [맵 생성](Docs/MAP_SPEC.md) / [개발 로드맵](Docs/ROADMAP.md)
+- [아키텍처](Docs/ARCHITECTURE.md) / [코딩 컨벤션](Docs/CONVENTIONS.md) / [맵 생성](Docs/MAP_SPEC.md) / [개발 로드맵](Docs/ROADMAP.md)
 - [unity-ui-system](https://github.com/Frenil-client/unity-ui-system): 게임에서 사용하는 자체 UPM UI 패키지
 - [전체 포트폴리오](https://github.com/Frenil-client/frenil-portfolio): 렌더링, 셰이더와 재사용 시스템 작업

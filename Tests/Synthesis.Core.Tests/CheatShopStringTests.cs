@@ -126,7 +126,7 @@ namespace Synthesis.Core.Tests
             Assert.Contains(expected, desc);
         }
 
-        // 설명 치환자를 채우는 값. 표시 규칙은 Core 에 한 벌이라 테스트도 그것을 그대로 쓴다(CLAUDE.md 4-7).
+        // 설명 치환자를 채우는 값. 표시 규칙은 Core 에 한 벌이라 테스트도 그것을 그대로 쓴다(CONVENTIONS.md 2-7).
         private static IStringValues SkillValuesOf(SkillData s)
         {
             return new SkillStringValues().Bind(s);

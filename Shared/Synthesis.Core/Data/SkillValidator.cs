@@ -5,7 +5,7 @@ namespace Synthesis.Core.Data
     // STEP 3. 기반 도구 - 스킬 정의 적합성 검사 SKILL-01 부터 SKILL-05.
     //   파서는 필드 변환만 하므로 "파싱은 되는데 실행되지 않는" 조합이 그대로 통과했다(점검 보고서 4-C).
     //   예: EVERYNTH(3) + ALLYBUFF 는 CSV 로 만들 수 있지만 전투가 오라 경로에서 Passive 만 읽어 아무 일도 안 일어난다.
-    //   린터, 테스트, 에디터가 이 한 벌을 공유한다(CLAUDE.md 4-7). 실행부와 지원 조합이 갈라지면 안 된다.
+    //   린터, 테스트, 에디터가 이 한 벌을 공유한다(CONVENTIONS.md 2-7). 실행부와 지원 조합이 갈라지면 안 된다.
     public static class SkillValidator
     {
         // 오라 경로(CollectAuras)에서만 실행되는 효과. 반드시 상시이고 반경이 있어야 한다.

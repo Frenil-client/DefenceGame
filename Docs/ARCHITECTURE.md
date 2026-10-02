@@ -30,11 +30,11 @@ STEP 3의 전투 표시와 상태 조회는 다음 경계로 나눈다.
 
 ```
 /
-  CLAUDE.md
   Docs/
     SPEC.md
     BALANCE_SPEC.md
     ARCHITECTURE.md
+    CONVENTIONS.md
     SIM_SPEC.md
     ROADMAP.md
   Data/

@@ -1,6 +1,6 @@
 namespace Synthesis.Core.Combat
 {
-    // STEP 3. 기반 도구 - 방어력 감소 공식. 전투 판정과 UI 표시가 같은 한 벌을 쓴다(CLAUDE.md 4-7).
+    // STEP 3. 기반 도구 - 방어력 감소 공식. 전투 판정과 UI 표시가 같은 한 벌을 쓴다(CONVENTIONS.md 2-7).
     // 따로 구현하면 표시된 감소율과 실제 피해가 갈라진다.
     public static class ArmorFormula
     {
